@@ -1,26 +1,182 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* globals.css or your main CSS file */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 
+button {
+  @apply cursor-pointer;
+}
+
+* {
+  @apply outline-none;
+}
+
+/* 🌞 Light Theme Variables */
+:root {
+  /* Base */
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* UI Elements */
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --input: #f9f9f9;
+  --ring: #3b82f6;
+
+  /* Surfaces */
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+
+  /* Brand / Accent Colors */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+
+  --accent: #e0f2fe;
+  --accent-foreground: #075985;
+
+  /* Status Colors */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+
+  --warning: #facc15;
+  --warning-foreground: #1a1a1a;
+
+  --info: #0ea5e9;
+  --info-foreground: #ffffff;
+
+  /* Destructive */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* Fonts */
+  --font-sans: var(--font-roboto);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* 🌚 Dark Theme Variables */
+:root.dark {
+  /* Base */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+
+  /* UI Elements */
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --border: #27272a;
+  --input: #111111;
+  --ring: #60a5fa;
+
+  /* Surfaces */
+  --card: #111111;
+  --card-foreground: #ededed;
+  --popover: #111111;
+  --popover-foreground: #ededed;
+
+  /* Brand / Accent Colors */
+  --primary: #3b82f6;
+  --primary-foreground: #f9fafb;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+
+  --accent: #0ea5e9;
+  --accent-foreground: #f0f9ff;
+
+  /* Status Colors */
+  --success: #22c55e;
+  --success-foreground: #052e16;
+
+  --warning: #eab308;
+  --warning-foreground: #1a1a1a;
+
+  --info: #38bdf8;
+  --info-foreground: #082f49;
+
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
+}
+
+/* 🎨 Tailwind Mapping */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* 📝 Base Body Styling */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
