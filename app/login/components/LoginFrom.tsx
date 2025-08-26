@@ -2,13 +2,14 @@
 import Ticket from "@/icons/Ticket";
 import api from "@/lib/api";
 import { setCookie } from "@/lib/api/cookies";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -16,7 +17,8 @@ export default function LoginForm() {
     try {
       const response = await api.authService.login({ username, password });
       setCookie("accessToken", response.accessToken);
-      window.location.href = "/";
+      // window.location.href = "/";
+      router.push("/");
     } catch (error: any) {
       setError(
         error?.response?.data?.message ||
