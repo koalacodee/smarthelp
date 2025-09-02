@@ -31,6 +31,8 @@ import {
 } from "./supervisors";
 import { Entity, UpdateEmployeeDto } from "./employees";
 import { CreateDriverDto } from "./drivers";
+import { GroupedFAQs } from "@/app/faqs/page";
+import { ApiResponse } from "@/app/user-activity/components/UserActivityReport";
 const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
   withCredentials: true,
@@ -123,6 +125,10 @@ export interface TicketAssignee {
   supervisorId: string;
 }
 
+export interface TicketInteraction {
+  type: "SATISFACTION" | "DISSATISFACTION";
+}
+
 // Main Ticket
 export interface Ticket {
   id: string;
@@ -136,6 +142,7 @@ export interface Ticket {
   createdAt: string; // ISO Date
   updatedAt: string; // ISO Date
   answer?: string;
+  interaction?: TicketInteraction;
 }
 
 export enum TicketStatus {
@@ -238,6 +245,10 @@ export const authService = {
     }>("/auth/me");
     return response.data.data;
   },
+
+  logout: async () => {
+    return await api.post("/auth/logout");
+  },
 };
 
 export const DepartmentsService = {
@@ -282,10 +293,20 @@ export const DepartmentsService = {
     );
     return response.data.data;
   },
-  canDelete: async (id: string) => {
+  canDeleteMainDepartment: async (id: string) => {
     return await api
-      .get<{ data: boolean }>(`/department/can-delete/${id}`)
+      .get<{ data: boolean }>(`/department/can-delete/main/${id}`)
       .then((res) => res.data.data);
+  },
+  canDeleteSubDepartment: async (id: string) => {
+    return await api
+      .get<{ data: boolean }>(`/department/can-delete/sub/${id}`)
+      .then((res) => res.data.data);
+  },
+  shareDepartment: async (id: string) => {
+    return await api
+      .post<{ data: { key: string } }>(`/department/share/${id}`)
+      .then((res) => res.data.data.key);
   },
 };
 
@@ -298,6 +319,11 @@ export const FAQsService = {
   },
   updateQuestion: async (id: string, dto: UpdateQuestionInputDto) => {
     return api.put<{ data: Question }>(`/questions/${id}`, dto);
+  },
+  getGrouped: async () => {
+    return api.get<{ data: GroupedFAQs[] }>(
+      "http://localhost:8080/api/v1/questions/grouped"
+    );
   },
 };
 
@@ -477,6 +503,13 @@ export const EmployeeService = {
   },
 };
 
+export const UserActivityService = {
+  getUserActivity: async () => {
+    const response = await api.get<ApiResponse>("/activity-log/feed");
+    return response;
+  },
+};
+
 export default {
   client: api,
   authService,
@@ -489,4 +522,5 @@ export default {
   EmployeeRequestsService,
   PromotionService,
   EmployeeService,
+  UserActivityService,
 };
