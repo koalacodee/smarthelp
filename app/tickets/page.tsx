@@ -169,7 +169,13 @@ export default function Page() {
                   {new Date(ticket.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-center">
-                  <span className="text-slate-400 italic text-xs">N/A</span>
+                  <span className="text-slate-400 italic text-xs">
+                    {ticket.interaction
+                      ? ticket.interaction.type === "SATISFACTION"
+                        ? "👍"
+                        : "👎"
+                      : "N/A"}
+                  </span>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <TicketActions ticket={ticket} />

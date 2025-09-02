@@ -1,5 +1,9 @@
 import api from "@/lib/api";
+import { SupervisorPermissions } from "@/lib/api/supervisors";
+import { EmployeePermissions } from "@/lib/api/types";
 import { create } from "zustand";
+
+type Permissions = SupervisorPermissions | EmployeePermissions;
 
 interface User {
   id: string;

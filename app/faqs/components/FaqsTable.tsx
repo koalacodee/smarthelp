@@ -4,7 +4,7 @@ import FAQActions from "./FAQActions";
 
 export default function FaqsTable({ faqs }: { faqs: GroupedFAQs[] }) {
   return (
-    <table className="min-w-full divide-y divide-slate-200">
+    <table className="min-w-full divide-y divide-slate-200 overflow-auto">
       <thead className="bg-slate-100">
         <tr>
           <th
@@ -77,13 +77,13 @@ export default function FaqsTable({ faqs }: { faqs: GroupedFAQs[] }) {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    {question.views}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                     {question.satisfaction}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                     {question.dissatisfaction}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                    {question.views}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                     <FAQActions

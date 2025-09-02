@@ -26,7 +26,9 @@ export default function SubDepartmentActions({
 
   const handleDelete = async () => {
     try {
-      const canDelete = await DepartmentsService.canDelete(subDepartment.id);
+      const canDelete = await DepartmentsService.canDeleteSubDepartment(
+        subDepartment.id
+      );
 
       if (canDelete) {
         openConfirmationModal({

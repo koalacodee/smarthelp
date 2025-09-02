@@ -1,3 +1,5 @@
+import ThumbDown from "@/icons/ThumbDown";
+import ThumbUp from "@/icons/ThumbUp";
 import { Ticket } from "@/lib/api";
 
 export default function TicketDetails({ ticket }: { ticket: Ticket }) {
@@ -40,25 +42,25 @@ export default function TicketDetails({ ticket }: { ticket: Ticket }) {
             <AttachmentPreview attachment={ticket.adminAttachment} />
           </div>
         )} */}
-        {/* {ticket.customerRating && (
+        {ticket?.interaction && ticket?.interaction?.type && (
           <div className="pt-2 border-t">
             <p className="font-semibold text-slate-600">Customer Rating:</p>
             <div
               className={`inline-flex items-center gap-2 text-sm font-semibold ${
-                ticket.customerRating === "satisfied"
+                ticket?.interaction?.type === "SATISFACTION"
                   ? "text-green-800"
                   : "text-red-800"
               }`}
             >
-              {ticket.customerRating === "satisfied" ? (
-                <ThumbUpIcon className="w-4 h-4" />
+              {ticket?.interaction?.type === "SATISFACTION" ? (
+                <ThumbUp className="w-4 h-4" />
               ) : (
-                <ThumbDownIcon className="w-4 h-4" />
+                <ThumbDown className="w-4 h-4" />
               )}
-              <span className="capitalize">{ticket.customerRating}</span>
+              <span className="capitalize">{ticket?.interaction?.type}</span>
             </div>
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );

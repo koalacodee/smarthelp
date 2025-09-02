@@ -22,8 +22,10 @@ export default function AdminPage() {
   const { user } = useUserStore();
 
   useEffect(() => {
-    loadTasks();
-    loadDepartments();
+    if (user?.role === "ADMIN") {
+      loadTasks();
+      loadDepartments();
+    }
   }, []);
 
   const loadTasks = async () => {
