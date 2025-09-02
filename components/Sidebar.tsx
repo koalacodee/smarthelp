@@ -1,5 +1,11 @@
 "use client";
-import React from "react";
+import React, { JSX, useMemo } from "react";
+import { usePathname } from "next/navigation";
+import { useUserStore } from "@/app/store/useUserStore";
+import { EmployeePermissions } from "@/lib/api/types";
+import { SupervisorPermissions } from "@/lib/api/supervisors";
+
+/* --- ICONS -------------------------------------------------------------- */
 import Briefcase from "@/icons/Briefcase";
 import Car from "@/icons/Car";
 import CheckCircle from "@/icons/CheckCircle";
@@ -12,114 +18,139 @@ import Ticket from "@/icons/Ticket";
 import User from "@/icons/User";
 import UserPlus from "@/icons/UserPlus";
 import SidebarItem from "./Sidebar/SidebarItem";
-import { usePathname } from "next/navigation";
-const tabs = [
+
+/* --- CONFIG ------------------------------------------------------------- */
+const ICON_SIZE = "w-5 h-5";
+
+type Tab = {
+  id: string;
+  label: string;
+  icon: JSX.Element;
+  href: string;
+  allowed: (role: string, permissions: string[]) => boolean;
+  notification?: () => number; // optional selector
+};
+
+const tabs: Tab[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    icon: <Briefcase className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <Briefcase className={ICON_SIZE} />,
     href: "/",
+    allowed: () => true,
   },
   {
     id: "faqs",
     label: "FAQs",
-    icon: <ClipboardList className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <ClipboardList className={ICON_SIZE} />,
     href: "/faqs",
+    allowed: (r, p) =>
+      r !== "EMPLOYEE" || p.includes(EmployeePermissions.ADD_FAQS),
   },
   {
     id: "tickets",
     label: "Tickets",
-    icon: <Ticket className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <Ticket className={ICON_SIZE} />,
     href: "/tickets",
+    allowed: (r, p) =>
+      r !== "EMPLOYEE" || p.includes(EmployeePermissions.HANDLE_TICKETS),
   },
   {
     id: "tasks",
     label: "Tasks",
-    icon: <CheckCircle className="w-5 h-5" />,
-    notificationCount: 0 + 0,
+    icon: <CheckCircle className={ICON_SIZE} />,
     href: "/tasks",
+    allowed: (r, p) =>
+      r === "ADMIN" ||
+      (r === "SUPERVISOR" && p.includes(SupervisorPermissions.MANAGE_TASKS)) ||
+      (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
   },
   {
     id: "vehicles",
     label: "Vehicles",
-    icon: <Car className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <Car className={ICON_SIZE} />,
     href: "/vehicles",
+    allowed: (r) => r === "ADMIN",
   },
   {
     id: "manageTeam",
     label: "Manage Team",
-    icon: <User className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <User className={ICON_SIZE} />,
     href: "/manage-team",
+    allowed: (r) => r !== "EMPLOYEE",
   },
   {
     id: "subDepartments",
     label: "Sub-departments",
-    icon: <DocumentDuplicate className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <DocumentDuplicate className={ICON_SIZE} />,
     href: "/sub-departments",
+    allowed: (r, p) =>
+      r === "ADMIN" ||
+      (r === "SUPERVISOR" &&
+        p.includes(SupervisorPermissions.MANAGE_SUB_DEPARTMENTS)),
   },
   {
     id: "staffRequests",
     label: "Staff Requests",
-    icon: <UserPlus className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <UserPlus className={ICON_SIZE} />,
     href: "/staff-requests",
+    allowed: (r) => r !== "EMPLOYEE",
   },
   {
     id: "promotions",
     label: "Promotions",
-    icon: <Megaphone className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <Megaphone className={ICON_SIZE} />,
     href: "/promotions",
+    allowed: (r) => r === "ADMIN",
   },
   {
     id: "categories",
     label: "Categories",
-    icon: <MagnifyingGlassCircle className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <MagnifyingGlassCircle className={ICON_SIZE} />,
     href: "/department",
+    allowed: (r) => r === "ADMIN",
   },
   {
     id: "supervisors",
     label: "Supervisors",
-    icon: <User className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <User className={ICON_SIZE} />,
     href: "/supervisors",
+    allowed: (r) => r === "ADMIN",
   },
   {
     id: "userActivity",
     label: "User Activity",
-    icon: <Eye className="w-5 h-5" />,
-    notificationCount: 0,
+    icon: <Eye className={ICON_SIZE} />,
     href: "/user-activity",
+    allowed: (r) => r === "ADMIN",
   },
 ];
 
-// افتراضياً مديت قيم للـ openTicketsCount وغيره — لازم تعرفهم في مكان مناسب
-
+/* --- COMPONENT ---------------------------------------------------------- */
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user } = useUserStore();
+
+  const visibleTabs = useMemo(() => {
+    if (!user) return [];
+    return tabs.filter((tab) => tab.allowed(user.role, user.permissions ?? []));
+  }, [user]);
+
+  if (pathname === "/login") return null;
 
   return (
-    <>
-      {pathname !== "/login" && (
-        <aside className="w-64 shrink-0">
-          <nav className="space-y-1 block mb-6 lg:block">
-            {tabs.map((tab) => (
-              <SidebarItem
-                key={tab.id}
-                item={tab}
-                isActive={pathname === tab.href}
-              />
-            ))}
-          </nav>
-        </aside>
-      )}
-    </>
+    <aside className="fixed left-10 top-0 h-full w-64 z-40">
+      <div className="h-full pt-20 pb-4 overflow-y-auto">
+        <nav className="space-y-1 px-4">
+          {visibleTabs.map((tab) => (
+            <SidebarItem
+              key={tab.id}
+              isActive={pathname === tab.href}
+              item={tab}
+            />
+          ))}
+        </nav>
+      </div>
+    </aside>
   );
 }
