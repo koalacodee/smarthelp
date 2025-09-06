@@ -106,7 +106,7 @@ export default function FaqEditModal() {
           message: "FAQ Added Successfully!",
           type: "success",
         });
-        addFAQ(deptId, response.data.data);
+        addFAQ(deptId, response);
         setIsEditing(false);
       })
       .catch((error) => {

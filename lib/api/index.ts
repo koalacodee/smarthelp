@@ -379,6 +379,7 @@ export const FAQsService = {
       formData.append("file", file);
       await FileService.upload(res.data.data.uploadKey, formData);
     }
+    return res.data.data.question;
   },
   updateQuestion: async (id: string, dto: UpdateQuestionInputDto) => {
     return api.put<{ data: Question }>(`/questions/${id}`, dto);
