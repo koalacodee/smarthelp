@@ -2,11 +2,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 import ToastContainer from "@/components/Toasts/ToastContainer";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import InitializeUser from "@/components/InitializeUser";
-import LogoutButton from "@/components/LogoutButton";
 
 const roboto = localFont({
   src: "../public/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf",
@@ -29,23 +25,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${roboto.variable} antialiased`}>
         <ToastContainer />
-        <ConfirmationModal />
-        <InitializeUser />
-        <main className="flex-grow">
-          <div className="bg-slate-100 min-h-[calc(100vh-128px)]">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-              <div className="flex justify-end mb-4 pl-64">
-                <LogoutButton />
-              </div>
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 pl-64">
-                  <section className="h-full overflow-auto">{children}</section>
-                </main>
-              </div>
-            </div>
-          </div>
-        </main>
+        {children}
       </body>
     </html>
   );

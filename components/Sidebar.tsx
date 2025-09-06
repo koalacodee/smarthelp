@@ -1,9 +1,10 @@
 "use client";
-import React, { JSX, useMemo } from "react";
+import React, { JSX, useMemo, Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { useUserStore } from "@/app/store/useUserStore";
+import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { EmployeePermissions } from "@/lib/api/types";
 import { SupervisorPermissions } from "@/lib/api/supervisors";
+import SidebarSkeleton from "./Sidebar/SidebarSkeleton";
 
 /* --- ICONS -------------------------------------------------------------- */
 import Briefcase from "@/icons/Briefcase";
@@ -18,6 +19,9 @@ import Ticket from "@/icons/Ticket";
 import User from "@/icons/User";
 import UserPlus from "@/icons/UserPlus";
 import SidebarItem from "./Sidebar/SidebarItem";
+import AnalyticsInsights from "@/icons/AnalyticsInsights";
+import Team from "@/icons/Team";
+import Supervisors from "@/icons/Supervisors";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -33,11 +37,11 @@ type Tab = {
 
 const tabs: Tab[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: <Briefcase className={ICON_SIZE} />,
-    href: "/",
-    allowed: () => true,
+    id: "analytics",
+    label: "Analytics And Insights",
+    icon: <AnalyticsInsights className={ICON_SIZE} />,
+    href: "/analytics",
+    allowed: (r) => r === "ADMIN",
   },
   {
     id: "faqs",
@@ -65,17 +69,17 @@ const tabs: Tab[] = [
       (r === "SUPERVISOR" && p.includes(SupervisorPermissions.MANAGE_TASKS)) ||
       (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
   },
-  {
-    id: "vehicles",
-    label: "Vehicles",
-    icon: <Car className={ICON_SIZE} />,
-    href: "/vehicles",
-    allowed: (r) => r === "ADMIN",
-  },
+  // {
+  //   id: "vehicles",
+  //   label: "Vehicles",
+  //   icon: <Car className={ICON_SIZE} />,
+  //   href: "/vehicles",
+  //   allowed: (r) => r === "ADMIN",
+  // },
   {
     id: "manageTeam",
     label: "Manage Team",
-    icon: <User className={ICON_SIZE} />,
+    icon: <Team className={ICON_SIZE} />,
     href: "/manage-team",
     allowed: (r) => r !== "EMPLOYEE",
   },
@@ -113,7 +117,7 @@ const tabs: Tab[] = [
   {
     id: "supervisors",
     label: "Supervisors",
-    icon: <User className={ICON_SIZE} />,
+    icon: <Supervisors className={ICON_SIZE} />,
     href: "/supervisors",
     allowed: (r) => r === "ADMIN",
   },
@@ -127,6 +131,24 @@ const tabs: Tab[] = [
 ];
 
 /* --- COMPONENT ---------------------------------------------------------- */
+function SidebarContent({ tabs, pathname }: { tabs: Tab[]; pathname: string }) {
+  return (
+    <aside className="fixed left-10 top-0 h-full w-64 z-40">
+      <div className="h-full pt-20 pb-4 overflow-y-auto">
+        <nav className="space-y-1 px-4">
+          {tabs.map((tab) => (
+            <SidebarItem
+              key={tab.id}
+              isActive={pathname === tab.href}
+              item={tab}
+            />
+          ))}
+        </nav>
+      </div>
+    </aside>
+  );
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useUserStore();
@@ -138,19 +160,17 @@ export default function Sidebar() {
 
   if (pathname === "/login") return null;
 
+  if (visibleTabs.length === 0) return <SidebarSkeleton />;
+
   return (
-    <aside className="fixed left-10 top-0 h-full w-64 z-40">
-      <div className="h-full pt-20 pb-4 overflow-y-auto">
-        <nav className="space-y-1 px-4">
-          {visibleTabs.map((tab) => (
-            <SidebarItem
-              key={tab.id}
-              isActive={pathname === tab.href}
-              item={tab}
-            />
-          ))}
-        </nav>
-      </div>
-    </aside>
+    <>
+      {visibleTabs.length > 0 ? (
+        <Suspense fallback={<SidebarSkeleton />}>
+          <SidebarContent tabs={visibleTabs} pathname={pathname} />
+        </Suspense>
+      ) : (
+        <SidebarSkeleton />
+      )}
+    </>
   );
 }

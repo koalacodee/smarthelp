@@ -1,5 +1,5 @@
 "use client";
-import { useUserStore } from "@/app/store/useUserStore";
+import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import api from "@/lib/api";
 
 export default function InitializeUser() {

@@ -1,5 +1,5 @@
 "use client";
-import { useConfirmationModalStore } from "@/app/store/useConfirmationStore";
+import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useEffect } from "react";
 
 export default function ConfirmationModal() {

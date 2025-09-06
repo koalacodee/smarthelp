@@ -1,4 +1,4 @@
-import { ToastMessage } from "@/app/store/useToastStore";
+import { ToastMessage } from "@/app/(dashboard)/store/useToastStore";
 import CheckCircle from "@/icons/CheckCircle";
 import InfoCircle from "@/icons/InfoCircle";
 import XCircle from "@/icons/XCircle";

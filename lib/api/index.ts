@@ -31,14 +31,18 @@ import {
 } from "./supervisors";
 import { Entity, UpdateEmployeeDto } from "./employees";
 import { CreateDriverDto } from "./drivers";
-import { GroupedFAQs } from "@/app/faqs/page";
-import { ApiResponse } from "@/app/user-activity/components/UserActivityReport";
+import { GroupedFAQs } from "@/app/(dashboard)/faqs/page";
+import { ApiResponse } from "@/app/(dashboard)/user-activity/components/UserActivityReport";
+import {
+  PerformanceTicket,
+  PerformanceUser,
+} from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
 });
 
-// Request interceptor to inject the accessToken from sessionStorage
+// Request interceptor → inject accessToken
 api.interceptors.request.use(
   async (config) => {
     const accessToken = await getCookie("accessToken");
@@ -47,54 +51,37 @@ api.interceptors.request.use(
     }
     return config;
   },
-  async (error) => {
-    throw error;
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle 401 errors with token refresh
+// Response interceptor → handle refresh
 api.interceptors.response.use(
-  async (response) => response,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If the error is not 401, or if we've already tried to refresh, reject
     if (error.response?.status !== 401 || originalRequest._retry) {
-      throw error;
+      return Promise.reject(error);
     }
 
-    // Check if the 401 is from the refresh endpoint itself
     if (originalRequest.url === "/auth/refresh") {
-      throw error;
+      return Promise.reject(error);
     }
 
-    // Mark this request as retried to prevent infinite loops
     originalRequest._retry = true;
 
     try {
-      // Attempt to refresh the token
       const response = await api.post<{ data: { accessToken: string } }>(
         "/auth/refresh"
       );
       const accessToken = response.data.data.accessToken;
       await setCookie("accessToken", accessToken);
 
-      // Retry the original request with the new token
-      return await api(originalRequest);
+      // retry original request
+      return api(originalRequest);
     } catch (refreshError) {
-      // If refresh fails (401 or other error), reject with the original error
-
-      throw error;
+      return Promise.reject(refreshError);
     }
-  }
-);
-
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
 );
 
@@ -202,18 +189,75 @@ export interface DriverProfile {
   violations: any[];
 }
 
+// ------------------ 1. Category Views ------------------
+export interface CategoryView {
+  categoryName: string;
+  views: number;
+}
+
+// ------------------ 2. Top FAQs ------------------
+export interface TopFaq {
+  id: number;
+  question: string;
+  viewCount: number;
+  categoryName: string;
+}
+
+// ------------------ 3. FAQ Opportunities ------------------
+export interface FaqOpportunity {
+  originalCasing: string;
+  categoryId: number;
+  categoryName: string;
+  count: number;
+}
+
+// ------------------ 4. Active Promotion ------------------
+export interface ActivePromotion {
+  id: number;
+  title: string;
+  description: string;
+  startDate: string | null; // or Date if you parse it
+  endDate: string | null; // or Date if you parse it
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // أضف أي حقل تاني موجود في جدول promotions
+}
+
+// ------------------ 5. Aggregated Result ------------------
+export interface AnalyticsOverviewResult {
+  totalViews: number;
+  openTicketsCount: number;
+  answeredPendingClosureCount: number;
+  faqSatisfactionRate: number;
+
+  categoryViews: CategoryView[];
+  topFaqs: TopFaq[];
+  faqOpportunities: FaqOpportunity[];
+  activePromotion: ActivePromotion | null;
+}
+
 export const TicketsService = {
   getAllTickets: async () => {
     const response = await api.get<{ data: Ticket[] }>("/support-tickets");
     return response.data.data;
   },
 
-  answerTicket: async (ticketId: string, dto: AnswerTicketDto) => {
-    const response = await api.put<{ data: Ticket }>(
-      `/support-tickets/${ticketId}/answer`,
-      dto
-    );
-    return response.data.data;
+  answerTicket: async (ticketId: string, dto: AnswerTicketDto, file?: File) => {
+    const data = await api
+      .put<{
+        data: { ticket: Ticket; uploadKey?: string };
+      }>(`/support-tickets/${ticketId}/answer`, { ...dto, attach: !!file })
+      .then((res) => res.data.data);
+
+    console.log(data);
+
+    if (data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(data.uploadKey, formData);
+    }
+    return data.ticket;
   },
 
   reopenTicket: async (id: string) => {
@@ -310,12 +354,31 @@ export const DepartmentsService = {
   },
 };
 
+export const NotificationService = {
+  getAll: async () => {
+    return api
+      .get<{ data: { id: string; message: string }[] }>("/notification")
+      .then((res) => res.data.data);
+  },
+};
+
 export const FAQsService = {
   deleteQuestion: async (questionId: string) => {
     await api.delete(`/questions/${questionId}`);
   },
-  createQuestion: async (dto: CreateQuestionInputDto) => {
-    return api.post<{ data: Question }>("/questions", dto);
+  createQuestion: async (dto: CreateQuestionInputDto, file?: File) => {
+    const res = await api.post<{
+      data: { question: Question; uploadKey?: string };
+    }>("/questions", {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (res.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(res.data.data.uploadKey, formData);
+    }
   },
   updateQuestion: async (id: string, dto: UpdateQuestionInputDto) => {
     return api.put<{ data: Question }>(`/questions/${id}`, dto);
@@ -507,6 +570,37 @@ export const UserActivityService = {
   getUserActivity: async () => {
     const response = await api.get<ApiResponse>("/activity-log/feed");
     return response;
+  },
+  getPerformance: async () => {
+    const response = await api.get<{
+      data: { tickets: PerformanceTicket[]; users: PerformanceUser[] };
+    }>("/activity-log/performance");
+    return response.data.data;
+  },
+  getAnalyticsOverview: async () => {
+    const response = await api.get<{ data: AnalyticsOverviewResult }>(
+      "/activity-log/analytics-overview"
+    );
+    return response.data.data;
+  },
+};
+
+export const FileService = {
+  upload: async (uploadKey: string, data: FormData) => {
+    if (!data.has("file")) {
+      return null;
+    }
+    if (Array.isArray(data.get("file"))) {
+      // data.append("files", data.get("file") as File[]);
+      // data.delete("file");
+      // await api.post("/files/multiple", uploadFile, {
+      //   headers: { "x-upload-key": uploadKey },
+      // });
+    } else {
+      await api.post("/files/single", data, {
+        headers: { "x-upload-key": uploadKey },
+      });
+    }
   },
 };
 
