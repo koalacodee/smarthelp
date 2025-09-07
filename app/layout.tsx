@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ToastContainer from "@/components/Toasts/ToastContainer";
+import { PublicEnvScript } from "next-runtime-env";
 
 const roboto = localFont({
   src: "../public/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf",
@@ -23,6 +24,9 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <PublicEnvScript />
+      </head>
       <body className={`${roboto.variable} antialiased`}>
         <ToastContainer />
         {children}
