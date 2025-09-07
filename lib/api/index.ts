@@ -387,9 +387,7 @@ export const FAQsService = {
     return api.put<{ data: Question }>(`/questions/${id}`, dto);
   },
   getGrouped: async () => {
-    return api.get<{ data: GroupedFAQs[] }>(
-      "http://localhost:8080/api/v1/questions/grouped"
-    );
+    return api.get<{ data: GroupedFAQs[] }>("/questions/grouped");
   },
 };
 
