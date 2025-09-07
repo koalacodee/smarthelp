@@ -42,7 +42,7 @@ import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || publicRuntimeConfig.API_URL,
+  baseURL: publicRuntimeConfig.API_URL,
   withCredentials: true,
 });
 
