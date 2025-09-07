@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  publicRuntimeConfig: {
+    API_URL: process.env.NEXT_PUBLIC_API_URL,
+  },
   /* config options here */
   turbopack: {
     rules: {

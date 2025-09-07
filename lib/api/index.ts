@@ -37,8 +37,12 @@ import {
   PerformanceTicket,
   PerformanceUser,
 } from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || publicRuntimeConfig.API_URL,
   withCredentials: true,
 });
 
