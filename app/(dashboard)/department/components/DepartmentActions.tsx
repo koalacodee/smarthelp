@@ -7,6 +7,7 @@ import LinkIcon from "@/icons/Link";
 import { DepartmentsService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
+import { env } from "next-runtime-env";
 
 export default function DepartmentActions({
   department,
@@ -43,7 +44,7 @@ export default function DepartmentActions({
   const handleShare = async (id: string) => {
     try {
       const key = await DepartmentsService.shareDepartment(id);
-      const shareUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/share?key=${key}`;
+      const shareUrl = `${env("NEXT_PUBLIC_CLIENT_URL")}/share?key=${key}`;
       await navigator.clipboard.writeText(shareUrl);
       addToast({
         message: "Share link copied to clipboard!",

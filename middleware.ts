@@ -1,4 +1,5 @@
 // middleware.ts
+import { env } from "next-runtime-env";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -11,7 +12,7 @@ export async function middleware(request: NextRequest) {
 
   // Skip auth check for login page
   if (pathname !== "/login") {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`;
+    const url = `${env("NEXT_PUBLIC_API_URL")}/auth/refresh`;
     const cookie = request.headers.get("cookie");
 
     // fetch response

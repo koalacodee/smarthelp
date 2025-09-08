@@ -7,8 +7,6 @@ import { SupervisorPermissions } from "@/lib/api/supervisors";
 import SidebarSkeleton from "./Sidebar/SidebarSkeleton";
 
 /* --- ICONS -------------------------------------------------------------- */
-import Briefcase from "@/icons/Briefcase";
-import Car from "@/icons/Car";
 import CheckCircle from "@/icons/CheckCircle";
 import ClipboardList from "@/icons/ClipboardList";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
@@ -16,7 +14,6 @@ import Eye from "@/icons/Eye";
 import MagnifyingGlassCircle from "@/icons/MagnifyingGlassCircle";
 import Megaphone from "@/icons/Megaphone";
 import Ticket from "@/icons/Ticket";
-import User from "@/icons/User";
 import UserPlus from "@/icons/UserPlus";
 import SidebarItem from "./Sidebar/SidebarItem";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
@@ -41,7 +38,8 @@ const tabs: Tab[] = [
     label: "Analytics And Insights",
     icon: <AnalyticsInsights className={ICON_SIZE} />,
     href: "/analytics",
-    allowed: (r) => r === "ADMIN",
+    allowed: (r, p) =>
+      r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_ANALYTICS),
   },
   {
     id: "faqs",
@@ -105,7 +103,7 @@ const tabs: Tab[] = [
     label: "Promotions",
     icon: <Megaphone className={ICON_SIZE} />,
     href: "/promotions",
-    allowed: (r) => r === "ADMIN",
+    allowed: (p) => p.includes(SupervisorPermissions.MANAGE_PROMOTIONS),
   },
   {
     id: "categories",
@@ -126,7 +124,8 @@ const tabs: Tab[] = [
     label: "User Activity",
     icon: <Eye className={ICON_SIZE} />,
     href: "/user-activity",
-    allowed: (r) => r === "ADMIN",
+    allowed: (r, p) =>
+      r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_USER_ACTIVITY),
   },
 ];
 
