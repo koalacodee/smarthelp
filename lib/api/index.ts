@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import {
   AnswerTicketDto,
   CreateQuestionInputDto,
@@ -38,11 +38,18 @@ import {
   PerformanceUser,
 } from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
 import { env } from "next-runtime-env";
+import { Configuration, KnowledgeChunkApiFactory } from "./sdk";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
   withCredentials: true,
 });
+
+const factoryArgs: [Configuration, string | undefined, AxiosInstance] = [
+  new Configuration({ basePath: api.defaults.baseURL }),
+  api.defaults.baseURL,
+  api,
+];
 
 // Request interceptor → inject accessToken
 api.interceptors.request.use(
@@ -76,6 +83,7 @@ api.interceptors.response.use(
       const response = await api.post<{ data: { accessToken: string } }>(
         "/auth/refresh"
       );
+      console.log(response);
       const accessToken = response.data.data.accessToken;
       await setCookie("accessToken", accessToken);
 
@@ -122,7 +130,10 @@ export interface TicketInteraction {
 export interface Ticket {
   id: string;
   guestId: string;
-  guest: TicketGuest;
+  // guest: TicketGuest;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
   subject: string;
   description: string;
   departmentId: string;
@@ -132,6 +143,11 @@ export interface Ticket {
   updatedAt: string; // ISO Date
   answer?: string;
   interaction?: TicketInteraction;
+  department: {
+    id: string;
+    name: string;
+    parentId?: string;
+  };
 }
 
 export enum TicketStatus {
@@ -604,6 +620,8 @@ export const FileService = {
     }
   },
 };
+
+export const KnowledgeChunksService = KnowledgeChunkApiFactory(...factoryArgs);
 
 export default {
   client: api,
