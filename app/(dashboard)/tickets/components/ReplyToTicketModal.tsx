@@ -51,13 +51,13 @@ export default function ReplyToTicketModal() {
                     Customer:
                   </p>
                   <p className="p-2 bg-slate-100 rounded text-slate-800">
-                    {ticket.guest.name}
+                    {ticket.guestName}
                   </p>
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-slate-600">Phone:</p>
                   <p className="p-2 bg-slate-100 rounded text-slate-800">
-                    {ticket.guest.phone}
+                    {ticket.guestPhone}
                   </p>
                 </div>
               </div>

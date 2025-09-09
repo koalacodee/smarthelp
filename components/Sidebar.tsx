@@ -19,6 +19,7 @@ import SidebarItem from "./Sidebar/SidebarItem";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
 import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
+import BookOpen from "@/icons/BookOpen";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -103,7 +104,8 @@ const tabs: Tab[] = [
     label: "Promotions",
     icon: <Megaphone className={ICON_SIZE} />,
     href: "/promotions",
-    allowed: (p) => p.includes(SupervisorPermissions.MANAGE_PROMOTIONS),
+    allowed: (r, p) =>
+      r === "ADMIN" || p.includes(SupervisorPermissions.MANAGE_PROMOTIONS),
   },
   {
     id: "categories",
@@ -126,6 +128,13 @@ const tabs: Tab[] = [
     href: "/user-activity",
     allowed: (r, p) =>
       r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_USER_ACTIVITY),
+  },
+  {
+    id: "knowledgeChunks",
+    label: "Knowledge Chunks",
+    icon: <BookOpen className={ICON_SIZE} />,
+    href: "/knowledge-chunks",
+    allowed: (r) => r === "ADMIN",
   },
 ];
 

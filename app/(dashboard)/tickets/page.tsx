@@ -150,7 +150,7 @@ export default function Page() {
                   </p>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500">
-                  N/A
+                  {ticket.department.parentId ? ticket.department.name : "N/A"}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-600 w-48">
                   <select
@@ -163,7 +163,7 @@ export default function Page() {
                   </select>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500">
-                  {ticket.guest.name}
+                  {ticket.guestName}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500">
                   {new Date(ticket.createdAt).toLocaleDateString()}

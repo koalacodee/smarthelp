@@ -11,7 +11,7 @@ export default function TicketDetails({ ticket }: { ticket: Ticket }) {
         </h4>
         <p>
           <span className="font-semibold text-slate-600">User:</span>{" "}
-          {ticket.guest.name} ({ticket.guest.phone})
+          {ticket.guestName} ({ticket.guestPhone})
         </p>
         <p>
           <span className="font-semibold text-slate-600">Description:</span>{" "}
