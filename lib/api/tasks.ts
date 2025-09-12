@@ -15,10 +15,12 @@ export interface Datum {
   assignmentType?: TaskAssignmentType;
   createdAt?: string;
   description?: string;
-  id?: string;
+  id: string;
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   status?: TaskStatus;
   title?: string;
   updatedAt?: string;
+  dueDate?: string;
 }
 
 export interface Assignee {
@@ -101,12 +103,15 @@ export interface Task {
   assignmentType?: TaskAssignmentType;
   createdAt?: string;
   description?: string;
-  id?: string;
+  id: string;
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   status?: TaskStatus;
   targetDepartment?: TargetDepartment;
   targetSubDepartment?: TargetDepartment;
   title?: string;
   updatedAt?: string;
+  dueDate?: string;
+  assignee?: Assignee;
 }
 
 export interface TargetDepartment {
@@ -124,6 +129,8 @@ export interface CreateTaskDto {
   targetSubDepartmentId?: string;
   assigneeId?: string;
   title: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  dueDate?: string;
 }
 
 export enum TaskAssignmentType {

@@ -16,6 +16,8 @@ export default function AdminPage() {
     description: "",
     assignmentType: TaskAssignmentType.DEPARTMENT,
     targetDepartmentId: "",
+    priority: "MEDIUM" as "LOW" | "MEDIUM" | "HIGH",
+    dueDate: ""
   });
   const [departments, setDepartments] = useState<Department[]>([]);
   const { openModal } = useConfirmationModalStore();
@@ -76,6 +78,8 @@ export default function AdminPage() {
         description: formData.description,
         assignmentType: formData.assignmentType,
         targetDepartmentId: formData.targetDepartmentId ?? departments[0]?.id,
+        priority: formData.priority,
+        dueDate: formData.dueDate
       };
 
       const newTask = await TasksService.createTask(createDto);
@@ -87,6 +91,8 @@ export default function AdminPage() {
         description: "",
         assignmentType: TaskAssignmentType.DEPARTMENT,
         targetDepartmentId: "",
+        priority: "MEDIUM" as "LOW" | "MEDIUM" | "HIGH",
+        dueDate: ""
       });
     } catch (error) {
       console.error("Failed to create task:", error);
@@ -117,7 +123,7 @@ export default function AdminPage() {
               Assign Task to Supervisor Category
             </h3>
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label
                     htmlFor="task-title"
@@ -162,6 +168,44 @@ export default function AdminPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="task-priority"
+                    className="block text-sm font-medium text-muted-foreground mb-1"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    id="task-priority"
+                    className="w-full border border-border rounded-md p-2 bg-background"
+                    value={formData.priority}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        priority: e.target.value as "LOW" | "MEDIUM" | "HIGH",
+                      })
+                    }
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="task-due-date"
+                    className="block text-sm font-medium text-muted-foreground mb-1"
+                  >
+                    Due Date
+                  </label>
+                  <input
+                    id="task-due-date"
+                    type="date"
+                    className="w-full border border-border rounded-md p-2 bg-background"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  />
                 </div>
               </div>
               <textarea
@@ -212,7 +256,13 @@ export default function AdminPage() {
                         Title
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                        Priority
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Assigned To
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                        Due Date
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Last Update
@@ -249,8 +299,24 @@ export default function AdminPage() {
                             {task.title}
                           </p>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              task.priority === "HIGH"
+                                ? "bg-red-100 text-red-800"
+                                : task.priority === "MEDIUM"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
+                            {task.priority || "MEDIUM"}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {task.targetDepartment?.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {task.updatedAt

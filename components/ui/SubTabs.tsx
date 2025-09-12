@@ -1,35 +1,22 @@
 "use client";
-import Briefcase from "@/icons/Briefcase";
-import ClipboardList from "@/icons/ClipboardList";
-import User from "@/icons/User";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
-const navItems: { label: string; href: string; icon: ReactNode }[] = [
-  {
-    label: "Fleet Management",
-    href: "/vehicles",
-    icon: <Briefcase className="w-5 h-5" />,
-  },
-  {
-    label: "Licensing",
-    href: "/vehicles/licensing",
-    icon: <ClipboardList className="w-5 h-5" />,
-  },
-  {
-    label: "Drivers & Tracking",
-    href: "/vehicles/drivers",
-    icon: <User className="w-5 h-5" />,
-  },
-];
-
-export default function SubTabs() {
+export default function SubTabs({
+  tabs,
+}: {
+  tabs: {
+    label: string;
+    href: string;
+    icon: ReactNode;
+  }[];
+}) {
   const pathname = usePathname();
 
   return (
     <>
-      {navItems.map((item, idx) => (
+      {tabs.map((item, idx) => (
         <Link
           key={idx}
           href={item.href}

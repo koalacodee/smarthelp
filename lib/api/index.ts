@@ -39,6 +39,7 @@ import {
 } from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
 import { env } from "next-runtime-env";
 import { Configuration, KnowledgeChunkApiFactory } from "./sdk";
+import { MyTasksApiResponse } from "./types/my-tasks.types";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -483,6 +484,18 @@ export const TasksService = {
   },
   submitWork: async (id: string, dto: { notes: string }) => {
     return api.post(`tasks/${id}/submit-review`, dto);
+  },
+  getMyTasks: async () => {
+    const response = await api.get<MyTasksApiResponse>("/tasks/my-tasks");
+    return response.data.data;
+  },
+  approveTask: async (taskId: string) => {
+    await api.post(`/tasks/${taskId}/approve`);
+    return;
+  },
+  rejectTask: async (taskId: string, feedback?: string) => {
+    await api.post(`/tasks/${taskId}/reject`, { feedback });
+    return;
   },
 };
 
