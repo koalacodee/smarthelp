@@ -1,14 +1,19 @@
-import { create } from 'zustand';
-import { Datum } from '@/lib/api/tasks';
+import { create } from "zustand";
+
+type TaskType = {
+  id: string;
+  notes?: string;
+  title?: string;
+  description?: string;
+};
 
 interface SubmitWorkModalStore {
   isOpen: boolean;
-  currentTask: Datum | null;
-  notes: string;
+  task: TaskType | null;
   attachment: File | null;
   isSubmitting: boolean;
-  
-  openModal: (task: Datum) => void;
+
+  openModal: (task: TaskType) => void;
   closeModal: () => void;
   setNotes: (notes: string) => void;
   setAttachment: (file: File | null) => void;
@@ -17,14 +22,17 @@ interface SubmitWorkModalStore {
 
 export const useSubmitWorkModalStore = create<SubmitWorkModalStore>((set) => ({
   isOpen: false,
-  currentTask: null,
-  notes: '',
+  task: null,
   attachment: null,
   isSubmitting: false,
-  
-  openModal: (task) => set({ isOpen: true, currentTask: task, notes: '', attachment: null }),
-  closeModal: () => set({ isOpen: false, currentTask: null, notes: '', attachment: null }),
-  setNotes: (notes) => set({ notes }),
+
+  openModal: (task) => set({ isOpen: true, task, attachment: null }),
+  closeModal: () => set({ isOpen: false, task: null, attachment: null }),
   setAttachment: (attachment) => set({ attachment }),
   setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
+  setNotes: (notes) =>
+    set((state) => {
+      state.task!.notes = notes;
+      return state;
+    }),
 }));

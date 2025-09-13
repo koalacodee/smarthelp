@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Datum } from "@/lib/api/tasks";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";

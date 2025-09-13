@@ -10,6 +10,7 @@ import {
 } from "@headlessui/react";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { TasksService } from "@/lib/api";
+import { useTasksStore } from "../../store/useTasksStore";
 
 export default function TaskRejectionModal({
   taskId,
@@ -23,11 +24,14 @@ export default function TaskRejectionModal({
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addToast } = useToastStore();
+  const { updateTask } = useTasksStore();
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      await TasksService.rejectTask(taskId, feedback);
+      await TasksService.rejectTask(taskId, feedback).then((val) =>
+        updateTask(val.id, val)
+      );
       addToast({
         message: "Task rejected successfully",
         type: "success",

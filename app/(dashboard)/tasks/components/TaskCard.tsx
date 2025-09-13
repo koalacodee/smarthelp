@@ -12,23 +12,23 @@ import TaskRejectionModal from "./TaskRejectionModal";
 import Trash from "@/icons/Trash";
 import Check from "@/icons/Check";
 import X from "@/icons/X";
+import { useTasksStore } from "../../store/useTasksStore";
+import { useTaskDetailsStore } from "../store/useTaskDetailsStore";
+import SquareArrow from "@/icons/SquareArrow";
 
-export default function TaskCard({
-  task,
-}: // onUpdate,
-{
-  task: Task;
-  // onUpdate: () => void;
-}) {
+export default function TaskCard({ task }: { task: Task }) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const { addToast } = useToastStore();
   const { openModal } = useConfirmationModalStore();
+  const { updateTask, deleteTask } = useTasksStore();
+  const { openDetails } = useTaskDetailsStore();
 
   const handleApprove = async () => {
     try {
-      await api.TasksService.approveTask(task.id!);
+      await api.TasksService.approveTask(task.id!).then((val) =>
+        updateTask(val.id, val)
+      );
       addToast({ message: "Task approved", type: "success" });
-      // onUpdate();
     } catch {
       addToast({ message: "Failed to approve task", type: "error" });
     }
@@ -42,7 +42,7 @@ export default function TaskCard({
         try {
           await api.TasksService.deleteTask(task.id!);
           addToast({ message: "Task deleted", type: "success" });
-          // onUpdate();
+          deleteTask(task.id);
         } catch {
           addToast({ message: "Failed to delete task", type: "error" });
         }
@@ -50,18 +50,48 @@ export default function TaskCard({
     });
   };
 
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.title && task.description && task.createdAt) {
+      openDetails({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        dueDate: task.dueDate,
+        status: task.status || "",
+        priority: task.priority || "",
+        targetDepartment: task.targetDepartment,
+        targetSubDepartment: task.targetSubDepartment,
+        assignee: task.assignee,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt || "",
+        notes: task.notes || "",
+      });
+    }
+  };
+
   return (
     <>
-      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">
+      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow w-full relative">
+        {/* Title + Badges */}
+        <div className="flex flex-col justify-between items-start gap-3 mb-4">
+          {/* Title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <CheckCircle className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground truncate w-[60%]">
               {task.title}
             </h3>
+            <button
+              onClick={handleDetailsClick}
+              className="absolute top-0.5 right-0.5 text-muted-foreground hover:text-primary transition-colors"
+              title="View details"
+            >
+              <SquareArrow className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          {/* Badges */}
+          <div className="flex flex-wrap gap-2 shrink-0">
             <span
               className={`px-2 py-1 text-xs font-medium rounded-full ${
                 task.status === "PENDING_REVIEW"
@@ -128,20 +158,26 @@ export default function TaskCard({
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={handleApprove}
-            className="p-2 text-green-600 hover:bg-green-50 rounded-md"
-            title="Approve"
-          >
-            <Check className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setIsRejectModalOpen(true)}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-            title="Reject"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {task.status !== "COMPLETED" &&
+            task.status !== "TODO" &&
+            task.status !== "SEEN" && (
+              <>
+                <button
+                  onClick={handleApprove}
+                  className="p-2 text-green-600 hover:bg-green-50 rounded-md"
+                  title="Approve"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsRejectModalOpen(true)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                  title="Reject"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            )}
           <button
             onClick={handleDelete}
             className="p-2 text-red-600 hover:bg-red-50 rounded-md"

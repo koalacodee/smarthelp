@@ -112,6 +112,7 @@ export interface Task {
   updatedAt?: string;
   dueDate?: string;
   assignee?: Assignee;
+  notes?: string;
 }
 
 export interface TargetDepartment {

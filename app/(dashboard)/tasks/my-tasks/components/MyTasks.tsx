@@ -1,7 +1,10 @@
+"use client";
 import { MyTasksApiResponse } from "@/lib/api/types/my-tasks.types";
 import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
 import MyTasksActions from "./MyTasksActions";
+import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
+import SubmitWorkModal from "../../components/SubmitWorkModal";
 
 const getDueDateStatus = (dueDate: string, status: string) => {
   if (status === "COMPLETED") {
@@ -40,6 +43,12 @@ export default function MyTasks({
 }: {
   data: MyTasksApiResponse["data"];
 }) {
+  const { openModal } = useSubmitWorkModalStore();
+
+  const onTaskClick = (task: (typeof data.data)[0]) => {
+    openModal(task);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-5 max-w-[1400px] mx-auto">
       <MyTasksDashboard total={data.total} {...data.metrics} />
@@ -47,6 +56,7 @@ export default function MyTasks({
         <ul className="list-none">
           {data.data.map((task) => (
             <li
+              onClick={() => onTaskClick(task)}
               key={task.id}
               className="py-4 border-b border-dashed border-[#e2e8f0] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2"
             >
@@ -76,6 +86,7 @@ export default function MyTasks({
         </ul>
       </div>
       <MyTasksFilters />
+      <SubmitWorkModal />
     </div>
   );
 }

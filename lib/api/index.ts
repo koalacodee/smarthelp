@@ -461,22 +461,22 @@ export const TasksService = {
     const response = await api.get<{
       data: TaskData<Omit<Task, "targetSubDepartment">>;
     }>("/tasks/admin/department-level");
-    return response.data.data;
+    return response.data.data.data;
   },
   getSubDepartmentLevel: async () => {
     const response = await api.get<{
       data: TaskData<Omit<Task, "targetDepartment">>;
     }>("/tasks/supervisor/sub-department");
-    return response.data.data;
+    return response.data.data.data;
   },
   getEmployeeLevel: async () => {
     const response = await api.get<{ data: TaskData<Datum> }>(
       "/tasks/supervisor/employee-level"
     );
-    return response.data.data;
+    return response.data.data.data;
   },
   createTask: async (dto: CreateTaskDto) => {
-    const response = await api.post<{ data: any }>("/tasks", dto);
+    const response = await api.post<{ data: Datum }>("/tasks", dto);
     return response.data.data;
   },
   deleteTask: async (id: string) => {
@@ -490,12 +490,14 @@ export const TasksService = {
     return response.data.data;
   },
   approveTask: async (taskId: string) => {
-    await api.post(`/tasks/${taskId}/approve`);
-    return;
+    return api
+      .post<{ data: Datum }>(`/tasks/${taskId}/approve`)
+      .then((res) => res.data.data);
   },
   rejectTask: async (taskId: string, feedback?: string) => {
-    await api.post(`/tasks/${taskId}/reject`, { feedback });
-    return;
+    return api
+      .post<{ data: Datum }>(`/tasks/${taskId}/reject`, { feedback })
+      .then((res) => res.data.data);
   },
 };
 

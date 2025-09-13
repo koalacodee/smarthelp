@@ -13,13 +13,22 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateTaskDto, TaskAssignmentType } from "@/lib/api/tasks";
 import api from "@/lib/api";
-import { Department } from "@/lib/api/departments";
 import { TicketAssignee } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import Plus from "@/icons/Plus";
 import CheckCircle from "@/icons/CheckCircle";
+import { useTasksStore } from "../../store/useTasksStore";
+import { useTaskModalStore } from "../store/useTaskModalStore";
 
-const createTaskSchema = z.object({
+const adminTaskSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is Required"),
+  departmentId: z.string().min(1, "Department is required"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  dueDate: z.string().optional(),
+});
+
+const supervisorTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is Required"),
   targetSubDepartmentId: z.string().min(1, "Sub-department is required"),
@@ -28,19 +37,14 @@ const createTaskSchema = z.object({
   dueDate: z.string().optional(),
 });
 
-type CreateTaskFormData = z.infer<typeof createTaskSchema>;
+type AdminTaskFormData = z.infer<typeof adminTaskSchema>;
+type SupervisorTaskFormData = z.infer<typeof supervisorTaskSchema>;
 
-export default function AddTaskModal({
-  isOpen,
-  onClose,
-  subDepartments,
-  refreshTasks,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  subDepartments: Department[];
-  refreshTasks: () => Promise<void>;
-}) {
+type AddTaskModalProps = {
+  role: "admin" | "supervisor";
+};
+
+export default function AddTaskModal({ role }: AddTaskModalProps) {
   const { addToast } = useToastStore();
   const {
     register,
@@ -48,13 +52,16 @@ export default function AddTaskModal({
     formState: { errors, isSubmitting },
     watch,
     reset,
-  } = useForm<CreateTaskFormData>({
-    resolver: zodResolver(createTaskSchema),
+  } = useForm<AdminTaskFormData | SupervisorTaskFormData>({
+    resolver: zodResolver(role === "admin" ? adminTaskSchema : supervisorTaskSchema),
     defaultValues: {
       priority: "MEDIUM",
     },
   });
 
+  const { isOpen, setOpen, subDepartments, departments } = useTaskModalStore();
+
+  const { addTask } = useTasksStore();
   const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
     TicketAssignee[]
   >([]);
@@ -71,27 +78,38 @@ export default function AddTaskModal({
     }
   }, [selectedSubDepartmentId]);
 
-  const onSubmit = async (data: CreateTaskFormData) => {
+  const onSubmit = async (data: AdminTaskFormData | SupervisorTaskFormData) => {
     try {
-      let assignmentType: TaskAssignmentType;
+      let createTaskDto: CreateTaskDto;
 
-      if (data.assigneeId) {
-        assignmentType = TaskAssignmentType.INDIVIDUAL;
+      if (role === "admin") {
+        const adminData = data as AdminTaskFormData;
+        createTaskDto = {
+          assignmentType: TaskAssignmentType.DEPARTMENT,
+          title: adminData.title,
+          description: adminData.description || "",
+          targetDepartmentId: adminData.departmentId,
+          priority: adminData.priority,
+          dueDate: adminData.dueDate || undefined,
+        };
       } else {
-        assignmentType = TaskAssignmentType.SUB_DEPARTMENT;
+        const supervisorData = data as SupervisorTaskFormData;
+        const assignmentType = supervisorData.assigneeId
+          ? TaskAssignmentType.INDIVIDUAL
+          : TaskAssignmentType.SUB_DEPARTMENT;
+
+        createTaskDto = {
+          assignmentType,
+          title: supervisorData.title,
+          description: supervisorData.description || "",
+          targetSubDepartmentId: supervisorData.targetSubDepartmentId,
+          assigneeId: supervisorData.assigneeId || undefined,
+          priority: supervisorData.priority,
+          dueDate: supervisorData.dueDate || undefined,
+        };
       }
 
-      const createTaskDto: CreateTaskDto = {
-        assignmentType,
-        title: data.title,
-        description: data.description || "",
-        targetSubDepartmentId: data.targetSubDepartmentId,
-        assigneeId: data.assigneeId || undefined,
-        priority: data.priority,
-        dueDate: data.dueDate,
-      };
-
-      await api.TasksService.createTask(createTaskDto);
+      await api.TasksService.createTask(createTaskDto).then(addTask);
 
       addToast({
         message: "Task created successfully!",
@@ -99,8 +117,7 @@ export default function AddTaskModal({
       });
 
       reset();
-      await refreshTasks();
-      onClose();
+      setOpen(false);
     } catch (error) {
       addToast({
         message: "Failed to create task. Please try again.",
@@ -111,7 +128,11 @@ export default function AddTaskModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[1000]" onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-[1000]"
+        onClose={() => setOpen(false)}
+      >
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -162,55 +183,83 @@ export default function AddTaskModal({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {role === "admin" ? (
                     <div>
                       <label
-                        htmlFor="team-task-subdept"
+                        htmlFor="team-task-dept"
                         className="block text-sm font-medium text-muted-foreground mb-1"
                       >
-                        Sub-department
+                        Department
                       </label>
                       <select
-                        {...register("targetSubDepartmentId")}
-                        id="team-task-subdept"
+                        {...register("departmentId")}
+                        id="team-task-dept"
                         className="w-full border border-border rounded-md p-2 bg-background"
                       >
-                        <option value="">Select Sub-department</option>
-                        {subDepartments.map((dept) => (
+                        <option value="">Select Department</option>
+                        {departments?.map((dept) => (
                           <option key={dept.id} value={dept.id}>
                             {dept.name}
                           </option>
                         ))}
                       </select>
-                      {errors.targetSubDepartmentId && (
+                      {(errors as any).departmentId && (
                         <p className="text-red-500 text-xs mt-1">
-                          {errors.targetSubDepartmentId.message}
+                          {(errors as any).departmentId.message}
                         </p>
                       )}
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="team-task-subdept"
+                          className="block text-sm font-medium text-muted-foreground mb-1"
+                        >
+                          Sub-department
+                        </label>
+                        <select
+                          {...register("targetSubDepartmentId")}
+                          id="team-task-subdept"
+                          className="w-full border border-border rounded-md p-2 bg-background"
+                        >
+                          <option value="">Select Sub-department</option>
+                          {subDepartments.map((dept) => (
+                            <option key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </option>
+                          ))}
+                        </select>
+                        {(errors as any).targetSubDepartmentId && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {(errors as any).targetSubDepartmentId.message}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label
-                        htmlFor="team-task-employee"
-                        className="block text-sm font-medium text-muted-foreground mb-1"
-                      >
-                        Assign To
-                      </label>
-                      <select
-                        {...register("assigneeId")}
-                        id="team-task-employee"
-                        className="w-full border border-border rounded-md p-2 bg-background"
-                        disabled={!selectedSubDepartmentId}
-                      >
-                        <option value="">(Entire Sub-department)</option>
-                        {subDepartmentEmployees.map((employee) => (
-                          <option key={employee.id} value={employee.id}>
-                            {employee.user.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <label
+                          htmlFor="team-task-employee"
+                          className="block text-sm font-medium text-muted-foreground mb-1"
+                        >
+                          Assign To
+                        </label>
+                        <select
+                          {...register("assigneeId")}
+                          id="team-task-employee"
+                          className="w-full border border-border rounded-md p-2 bg-background"
+                          disabled={!selectedSubDepartmentId}
+                        >
+                          <option value="">(Entire Sub-department)</option>
+                          {subDepartmentEmployees.map((employee) => (
+                            <option key={employee.id} value={employee.id}>
+                              {employee.user.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -254,12 +303,17 @@ export default function AddTaskModal({
                       className="w-full border border-border rounded-md p-2"
                       placeholder="Description"
                     />
+                    {errors.description && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.description.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
-                      onClick={onClose}
+                      onClick={() => setOpen(false)}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
                       Cancel

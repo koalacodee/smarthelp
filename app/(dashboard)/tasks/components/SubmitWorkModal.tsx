@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -6,8 +7,7 @@ import api from "@/lib/api";
 export default function SubmitWorkModal() {
   const {
     isOpen,
-    currentTask,
-    notes,
+    task,
     attachment,
     isSubmitting,
     closeModal,
@@ -18,12 +18,12 @@ export default function SubmitWorkModal() {
 
   const { addToast } = useToastStore();
 
-  if (!isOpen || !currentTask) return null;
+  if (!isOpen || !task) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!notes.trim()) {
+    if (!task.notes?.trim()) {
       addToast({ message: "Please add completion notes", type: "error" });
       return;
     }
@@ -31,7 +31,7 @@ export default function SubmitWorkModal() {
     setIsSubmitting(true);
 
     try {
-      await api.TasksService.submitWork(currentTask.id!, { notes });
+      await api.TasksService.submitWork(task.id!, { notes: task.notes });
       addToast({
         message: "Task submitted for review successfully!",
         type: "success",
@@ -55,14 +55,14 @@ export default function SubmitWorkModal() {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4 text-slate-800">
-          Submit Task for Review: {currentTask.title}
+          Submit Task for Review: {task.title}
         </h3>
 
         <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
           <div>
             <p className="font-semibold text-sm text-slate-600">Description:</p>
             <p className="text-slate-800 whitespace-pre-wrap">
-              {currentTask.description || "No description provided"}
+              {task.description || "No description provided"}
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function SubmitWorkModal() {
               rows={3}
               className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Add any comments or details about the task completion..."
-              value={notes}
+              value={task.notes}
               onChange={(e) => setNotes(e.target.value)}
               required
             />
