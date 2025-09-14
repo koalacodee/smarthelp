@@ -3,6 +3,7 @@ import Link from "next/link";
 export default function SidebarItem({
   item,
   isActive,
+  onClick,
 }: {
   item: {
     id: string;
@@ -12,10 +13,12 @@ export default function SidebarItem({
     notificationCount?: number;
   };
   isActive: boolean;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       className={`w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
         isActive
           ? "bg-blue-100 text-blue-700"

@@ -1,5 +1,12 @@
 "use client";
-import React, { JSX, useMemo, Suspense } from "react";
+import React, {
+  JSX,
+  useMemo,
+  Suspense,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { EmployeePermissions } from "@/lib/api/types";
@@ -20,6 +27,7 @@ import AnalyticsInsights from "@/icons/AnalyticsInsights";
 import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import BookOpen from "@/icons/BookOpen";
+import Burger from "@/icons/Burger";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -138,17 +146,50 @@ const tabs: Tab[] = [
   },
 ];
 
-/* --- COMPONENT ---------------------------------------------------------- */
-function SidebarContent({ tabs, pathname }: { tabs: Tab[]; pathname: string }) {
+/* --- OVERLAY COMPONENT -------------------------------------------------- */
+function Overlay({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  if (!isOpen) return null;
+
   return (
-    <aside className="fixed left-10 top-0 h-full w-64 z-40">
-      <div className="h-full pt-20 pb-4 overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
+      onClick={onClose}
+    />
+  );
+}
+
+/* --- SIDEBAR CONTENT COMPONENT ----------------------------------------- */
+function SidebarContent({
+  tabs,
+  pathname,
+  isOpen,
+  onClose,
+}: {
+  tabs: Tab[];
+  pathname: string;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <aside
+      className={`fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="h-full pt-8 pb-4 overflow-y-auto bg-white shadow-xl">
         <nav className="space-y-1 px-4">
           {tabs.map((tab) => (
             <SidebarItem
               key={tab.id}
               isActive={pathname === tab.href}
               item={tab}
+              onClick={onClose}
             />
           ))}
         </nav>
@@ -160,11 +201,25 @@ function SidebarContent({ tabs, pathname }: { tabs: Tab[]; pathname: string }) {
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useUserStore();
+  const [isOpen, setIsOpen] = useState(false);
 
   const visibleTabs = useMemo(() => {
     if (!user) return [];
     return tabs.filter((tab) => tab.allowed(user.role, user.permissions ?? []));
   }, [user]);
+
+  // Auto-close sidebar when pathname changes (navigation)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsOpen(false);
+  };
 
   if (pathname === "/login") return null;
 
@@ -172,12 +227,28 @@ export default function Sidebar() {
 
   return (
     <>
-      {visibleTabs.length > 0 ? (
+      {/* Burger Button */}
+      <button
+        onClick={toggleSidebar}
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-md hover:bg-gray-50 transition-colors duration-200"
+        aria-label="Toggle sidebar"
+      >
+        <Burger className="w-6 h-6" />
+      </button>
+
+      {/* Overlay */}
+      <Overlay isOpen={isOpen} onClose={closeSidebar} />
+
+      {/* Sidebar Content */}
+      {visibleTabs.length > 0 && (
         <Suspense fallback={<SidebarSkeleton />}>
-          <SidebarContent tabs={visibleTabs} pathname={pathname} />
+          <SidebarContent
+            tabs={visibleTabs}
+            pathname={pathname}
+            isOpen={isOpen}
+            onClose={closeSidebar}
+          />
         </Suspense>
-      ) : (
-        <SidebarSkeleton />
       )}
     </>
   );
