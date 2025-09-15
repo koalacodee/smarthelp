@@ -50,7 +50,6 @@ export enum TaskStatus {
   ToDo = "To Do",
   Seen = "Seen",
   PendingReview = "Pending Review",
-  PendingSupervisorReview = "Pending Supervisor Review",
   Completed = "Completed",
 }
 

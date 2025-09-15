@@ -151,6 +151,13 @@ export interface Ticket {
   };
 }
 
+export interface TicketMetrics {
+  totalTickets: number;
+  pendingTickets: number; // NEW + SEEN statuses
+  answeredTickets: number; // ANSWERED status
+  closedTickets: number; // CLOSED status
+}
+
 export enum TicketStatus {
   NEW = "NEW",
   SEEN = "SEEN",
@@ -258,7 +265,9 @@ export interface AnalyticsOverviewResult {
 
 export const TicketsService = {
   getAllTickets: async () => {
-    const response = await api.get<{ data: Ticket[] }>("/support-tickets");
+    const response = await api.get<{
+      data: { tickets: Ticket[]; metrics: TicketMetrics };
+    }>("/support-tickets");
     return response.data.data;
   },
 
