@@ -11,7 +11,6 @@ import { usePathname } from "next/navigation";
 import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { EmployeePermissions } from "@/lib/api/types";
 import { SupervisorPermissions } from "@/lib/api/supervisors";
-import SidebarSkeleton from "./Sidebar/SidebarSkeleton";
 
 /* --- ICONS -------------------------------------------------------------- */
 import CheckCircle from "@/icons/CheckCircle";
@@ -28,6 +27,7 @@ import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
+import UserInfo from "./UserInfo";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -182,8 +182,8 @@ function SidebarContent({
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="h-full pt-8 pb-4 overflow-y-auto bg-white shadow-xl">
-        <nav className="space-y-1 px-4">
+      <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
+        <nav className="space-y-1 px-4 flex-1">
           {tabs.map((tab) => (
             <SidebarItem
               key={tab.id}
@@ -193,6 +193,9 @@ function SidebarContent({
             />
           ))}
         </nav>
+
+        {/* User Info at the bottom */}
+        <UserInfo />
       </div>
     </aside>
   );
@@ -223,7 +226,7 @@ export default function Sidebar() {
 
   if (pathname === "/login") return null;
 
-  if (visibleTabs.length === 0) return <SidebarSkeleton />;
+  // if (visibleTabs.length === 0) return <SidebarSkeleton />;
 
   return (
     <>
@@ -241,7 +244,7 @@ export default function Sidebar() {
 
       {/* Sidebar Content */}
       {visibleTabs.length > 0 && (
-        <Suspense fallback={<SidebarSkeleton />}>
+        <Suspense>
           <SidebarContent
             tabs={visibleTabs}
             pathname={pathname}
