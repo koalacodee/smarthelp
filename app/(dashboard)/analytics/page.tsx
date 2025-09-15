@@ -9,9 +9,6 @@ export default async function Home() {
 
   return (
     <>
-      <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-800">ship_super</h3>
-      </div>
       <div className="bg-white p-6 rounded-lg shadow space-y-8">
         <h3 className="text-xl font-bold text-slate-800">
           Analytics & Insights

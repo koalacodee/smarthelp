@@ -373,10 +373,42 @@ export const DepartmentsService = {
   },
 };
 
+// Notification types from the backend
+type NotificationType =
+  | "staff_request_created"
+  | "staff_request_resolved"
+  | "task_approved"
+  | "task_created_employee"
+  | "task_created_supervisor"
+  | "task_created"
+  | "task_rejected"
+  | "task_submitted_admin"
+  | "task_submitted_supervisor"
+  | "ticket_assigned_team"
+  | "ticket_assigned"
+  | "ticket_created"
+  | "ticket_reopened"
+  | "ticket_opened";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationResponse {
+  data: {
+    notifications: AppNotification[];
+    counts: { [key: string]: number };
+  };
+}
+
 export const NotificationService = {
   getAll: async () => {
     return api
-      .get<{ data: { id: string; message: string }[] }>("/notification")
+      .get<NotificationResponse>("/notification")
       .then((res) => res.data.data);
   },
 };
