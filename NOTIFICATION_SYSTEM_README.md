@@ -63,18 +63,14 @@ The system supports the following notification types from your backend:
 
 - `ticket_created` / `ticket_opened` - New ticket created
 - `ticket_assigned` - Ticket assigned to user
-- `ticket_assigned_team` - Ticket assigned to team
 - `ticket_reopened` - Ticket reopened for review
 
 ### Task Notifications (Red theme)
 
 - `task_created` - New task created
-- `task_created_employee` - Task assigned to employee
-- `task_created_supervisor` - Task created for supervisor's team
 - `task_approved` - Task approved and completed
 - `task_rejected` - Task rejected and needs changes
-- `task_submitted_admin` - Task submitted for admin review
-- `task_submitted_supervisor` - Task submitted for supervisor review
+- `task_submitted` - Task submitted for review
 
 ### Staff Request Notifications (Green theme)
 
@@ -86,7 +82,7 @@ The system supports the following notification types from your backend:
 Messages are automatically generated based on the notification type and title. The `title` field contains the dynamic content (like "I Have A Problem"), while the `type` field determines the message template. For example:
 
 - `type: "ticket_created"`, `title: "I Have A Problem"` → `"A new ticket has been created: 'I Have A Problem'."`
-- `type: "task_created_employee"`, `title: "Update Documentation"` → `"A new task has been assigned to you: 'Update Documentation'."`
+- `type: "task_created"`, `title: "Update Documentation"` → `"A new task has been created: 'Update Documentation'."`
 - `type: "staff_request_created"`, `title: "New Employee: John Smith"` → `"A new staff request has been created: 'New Employee: John Smith'."`
 
 ## API Integration
@@ -106,14 +102,10 @@ interface AppNotification {
   type:
     | "staff_request_created"
     | "staff_request_resolved"
-    | "task_approved"
-    | "task_created_employee"
-    | "task_created_supervisor"
     | "task_created"
+    | "task_approved"
     | "task_rejected"
-    | "task_submitted_admin"
-    | "task_submitted_supervisor"
-    | "ticket_assigned_team"
+    | "task_submitted"
     | "ticket_assigned"
     | "ticket_created"
     | "ticket_reopened"

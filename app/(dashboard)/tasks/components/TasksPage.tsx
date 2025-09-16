@@ -25,15 +25,11 @@ export default function TasksPage() {
         setTasks([...subTasks, ...empTasks]);
         setLoading(false);
       } else if (user?.role === "ADMIN") {
-        console.log("User role:", user?.role);
         if (user?.role === "ADMIN") {
-          console.log("Loading tasks and departments for admin...");
           await Promise.all([
             TasksService.getDepartmentLevel().then(setTasks),
             DepartmentsService.getAllDepartments().then(setDepartments),
           ]);
-        } else {
-          console.log("Not admin, skipping load");
         }
       }
     };

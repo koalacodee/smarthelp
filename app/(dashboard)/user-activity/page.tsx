@@ -6,8 +6,6 @@ export default async function Page() {
   const report = await UserActivityService.getUserActivity();
   const performance = await UserActivityService.getPerformance();
 
-  console.log(performance.tickets);
-
   return (
     <div className="space-y-8">
       <div className="mt-8">

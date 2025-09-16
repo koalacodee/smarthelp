@@ -5,7 +5,6 @@ export const revalidate = 1;
 
 export default async function Home() {
   const overview = await UserActivityService.getAnalyticsOverview();
-  console.log(overview);
 
   return (
     <>

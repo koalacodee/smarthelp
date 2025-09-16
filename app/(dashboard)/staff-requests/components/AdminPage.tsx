@@ -43,7 +43,6 @@ export default function AdminPage() {
       fetchRequests();
     } catch (error) {
       addToast({ message: "Failed to approve request", type: "error" });
-      console.log(error);
     }
   };
 

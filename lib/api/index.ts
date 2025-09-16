@@ -84,7 +84,6 @@ api.interceptors.response.use(
       const response = await api.post<{ data: { accessToken: string } }>(
         "/auth/refresh"
       );
-      console.log(response);
       const accessToken = response.data.data.accessToken;
       await setCookie("accessToken", accessToken);
 
@@ -278,8 +277,6 @@ export const TicketsService = {
       }>(`/support-tickets/${ticketId}/answer`, { ...dto, attach: !!file })
       .then((res) => res.data.data);
 
-    console.log(data);
-
     if (data.uploadKey && file) {
       const formData = new FormData();
       formData.append("file", file);
@@ -386,14 +383,10 @@ export const DepartmentsService = {
 type NotificationType =
   | "staff_request_created"
   | "staff_request_resolved"
-  | "task_approved"
-  | "task_created_employee"
-  | "task_created_supervisor"
   | "task_created"
+  | "task_approved"
   | "task_rejected"
-  | "task_submitted_admin"
-  | "task_submitted_supervisor"
-  | "ticket_assigned_team"
+  | "task_submitted"
   | "ticket_assigned"
   | "ticket_created"
   | "ticket_reopened"

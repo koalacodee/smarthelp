@@ -17,24 +17,16 @@ const generateNotificationMessage = (
       return `Staff request "${title}" has been resolved.`;
 
     // Task notifications
-    case "task_approved":
-      return `Your task "${title}" has been approved and completed.`;
-    case "task_created_employee":
-      return `A new task has been assigned to you: "${title}".`;
-    case "task_created_supervisor":
-      return `A new task has been created for your team: "${title}".`;
     case "task_created":
       return `A new task has been created: "${title}".`;
+    case "task_approved":
+      return `Your task "${title}" has been approved and completed.`;
     case "task_rejected":
       return `Your task "${title}" was rejected and requires changes.`;
-    case "task_submitted_admin":
-      return `Task "${title}" has been submitted for admin review.`;
-    case "task_submitted_supervisor":
-      return `Task "${title}" has been submitted for supervisor review.`;
+    case "task_submitted":
+      return `Task "${title}" has been submitted for review.`;
 
     // Ticket notifications
-    case "ticket_assigned_team":
-      return `Ticket "${title}" has been assigned to your team.`;
     case "ticket_assigned":
       return `Ticket "${title}" has been assigned to you.`;
     case "ticket_created":

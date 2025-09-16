@@ -27,9 +27,6 @@ export async function middleware(request: NextRequest) {
     if (!apiResponse.ok) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-
-    // ممكن هنا تستخدم data لو عايز
-    console.log("refresh response:", data);
   }
 
   return NextResponse.next({ headers });

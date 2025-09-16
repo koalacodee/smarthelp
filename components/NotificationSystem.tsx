@@ -10,14 +10,10 @@ import { NotificationService } from "@/lib/api";
 type NotificationType =
   | "staff_request_created"
   | "staff_request_resolved"
-  | "task_approved"
-  | "task_created_employee"
-  | "task_created_supervisor"
   | "task_created"
+  | "task_approved"
   | "task_rejected"
-  | "task_submitted_admin"
-  | "task_submitted_supervisor"
-  | "ticket_assigned_team"
+  | "task_submitted"
   | "ticket_assigned"
   | "ticket_created"
   | "ticket_reopened"
@@ -58,24 +54,16 @@ const generateNotificationMessage = (
       return `Staff request "${title}" has been resolved.`;
 
     // Task notifications
-    case "task_approved":
-      return `Your task "${title}" has been approved and completed.`;
-    case "task_created_employee":
-      return `A new task has been assigned to you: "${title}".`;
-    case "task_created_supervisor":
-      return `A new task has been created for your team: "${title}".`;
     case "task_created":
       return `A new task has been created: "${title}".`;
+    case "task_approved":
+      return `Your task "${title}" has been approved and completed.`;
     case "task_rejected":
       return `Your task "${title}" was rejected and requires changes.`;
-    case "task_submitted_admin":
-      return `Task "${title}" has been submitted for admin review.`;
-    case "task_submitted_supervisor":
-      return `Task "${title}" has been submitted for supervisor review.`;
+    case "task_submitted":
+      return `Task "${title}" has been submitted for review.`;
 
     // Ticket notifications
-    case "ticket_assigned_team":
-      return `Ticket "${title}" has been assigned to your team.`;
     case "ticket_assigned":
       return `Ticket "${title}" has been assigned to you.`;
     case "ticket_created":
@@ -93,17 +81,13 @@ const generateNotificationMessage = (
 const getNotificationHref = (type: NotificationType): string => {
   switch (type) {
     // Task notifications -> Tasks page
-    case "task_approved":
-    case "task_created_employee":
-    case "task_created_supervisor":
     case "task_created":
+    case "task_approved":
     case "task_rejected":
-    case "task_submitted_admin":
-    case "task_submitted_supervisor":
+    case "task_submitted":
       return "/tasks";
 
     // Ticket notifications -> Tickets page
-    case "ticket_assigned_team":
     case "ticket_assigned":
     case "ticket_created":
     case "ticket_reopened":
