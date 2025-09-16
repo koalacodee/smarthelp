@@ -129,11 +129,16 @@ export default function KnowledgeChunkEditModal() {
           );
         }
       }
-      useToastStore.getState().addToast({ message: "Knowledge chunk saved successfully", type: "success" });
+      useToastStore.getState().addToast({
+        message: "Knowledge chunk saved successfully",
+        type: "success",
+      });
       closeModal();
     } catch (error) {
       console.error("Error saving knowledge chunk:", error);
-      useToastStore.getState().addToast({ message: "Failed to save knowledge chunk", type: "error" });
+      useToastStore
+        .getState()
+        .addToast({ message: "Failed to save knowledge chunk", type: "error" });
     } finally {
       setLoading(false);
     }
