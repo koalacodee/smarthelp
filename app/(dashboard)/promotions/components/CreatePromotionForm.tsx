@@ -9,16 +9,20 @@ export default function CreatePromotionForm() {
   const [audience, setAudience] = useState<AudienceType>(AudienceType.ALL);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
   const addToast = useToastStore((state) => state.addToast);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    api.PromotionService.createPromotion({
-      title,
-      audience,
-      startDate,
-      endDate,
-    })
+    api.PromotionService.createPromotion(
+      {
+        title,
+        audience,
+        startDate,
+        endDate,
+      },
+      attachment ?? undefined
+    )
       .then(() => {
         addToast({
           message: "Promotion Created Successfully",
@@ -64,6 +68,10 @@ export default function CreatePromotionForm() {
           accept="image/*,video/*"
           className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           type="file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            setAttachment(file || null);
+          }}
         />
       </div>
       <div>

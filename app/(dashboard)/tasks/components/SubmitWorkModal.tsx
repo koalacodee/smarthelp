@@ -31,7 +31,11 @@ export default function SubmitWorkModal() {
     setIsSubmitting(true);
 
     try {
-      await api.TasksService.submitWork(task.id!, { notes: task.notes });
+      await api.TasksService.submitWork(
+        task.id!,
+        { notes: task.notes },
+        attachment ?? undefined
+      );
       addToast({
         message: "Task submitted for review successfully!",
         type: "success",

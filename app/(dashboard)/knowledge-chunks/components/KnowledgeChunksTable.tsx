@@ -18,7 +18,7 @@ export default function KnowledgeChunksTable() {
   async function loadChunks() {
     try {
       const response = await KnowledgeChunksService.getAllKnowledgeChunks();
-      const chunks = response.data.data || [];
+      const chunks = response.knowledgeChunks || [];
 
       // Group chunks by department
       const groupedMap = new Map<string, GroupedKnowledgeChunks>();
@@ -83,7 +83,9 @@ export default function KnowledgeChunksTable() {
                   <tr
                     key={chunk.id}
                     className="hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => useKnowledgeChunkViewStore.getState().toggleWidget(chunk)}
+                    onClick={() =>
+                      useKnowledgeChunkViewStore.getState().toggleWidget(chunk)
+                    }
                   >
                     <td className="px-6 py-4 max-w-md">
                       <p

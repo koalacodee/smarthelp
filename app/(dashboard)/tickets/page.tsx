@@ -17,20 +17,20 @@ export default function Page() {
   });
 
   useEffect(() => {
-    api.TicketsService.getAllTickets().then((val) => {
-      setTickets(val.tickets);
+    api.TicketsService.getAllTickets().then((response) => {
+      setTickets(response.tickets);
 
       // Calculate metrics
-      const totalTickets = val.tickets.length;
-      const pendingTickets = val.tickets.filter(
+      const totalTickets = response.tickets.length;
+      const pendingTickets = response.tickets.filter(
         (ticket) =>
           ticket.status === TicketStatus.NEW ||
           ticket.status === TicketStatus.SEEN
       ).length;
-      const answeredTickets = val.tickets.filter(
+      const answeredTickets = response.tickets.filter(
         (ticket) => ticket.status === TicketStatus.ANSWERED
       ).length;
-      const closedTickets = val.tickets.filter(
+      const closedTickets = response.tickets.filter(
         (ticket) => ticket.status === TicketStatus.CLOSED
       ).length;
 
@@ -40,6 +40,8 @@ export default function Page() {
         answeredTickets,
         closedTickets,
       });
+
+      // Note: attachments are available in response.attachments if needed
     });
   }, []);
 

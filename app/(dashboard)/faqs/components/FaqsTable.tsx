@@ -15,9 +15,11 @@ export default function FaqsTable() {
   }, []);
 
   async function loadFAQs() {
-    FAQsService.getGrouped()
-      .then((res) => res.data.data)
-      .then(setFAQs);
+    FAQsService.getGrouped().then((res) => {
+      // Handle new response structure with attachments
+      setFAQs(res.questions);
+      // Note: attachments are available in res.attachments if needed
+    });
   }
 
   return (

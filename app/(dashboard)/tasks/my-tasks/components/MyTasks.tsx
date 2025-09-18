@@ -1,5 +1,6 @@
 "use client";
 import { MyTasksApiResponse } from "@/lib/api/types/my-tasks.types";
+import { MyTasksResponse } from "@/lib/api";
 import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
 import MyTasksActions from "./MyTasksActions";
@@ -38,14 +39,10 @@ const getDueDateStatus = (dueDate: string, status: string) => {
   );
 };
 
-export default function MyTasks({
-  data,
-}: {
-  data: MyTasksApiResponse["data"];
-}) {
+export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openModal } = useSubmitWorkModalStore();
 
-  const onTaskClick = (task: (typeof data.data)[0]) => {
+  const onTaskClick = (task: (typeof data.tasks)[0]) => {
     openModal(task);
   };
 
@@ -54,7 +51,7 @@ export default function MyTasks({
       <MyTasksDashboard total={data.total} {...data.metrics} />
       <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
         <ul className="list-none">
-          {data.data.map((task) => (
+          {data.tasks.map((task) => (
             <li
               onClick={() => onTaskClick(task)}
               key={task.id}

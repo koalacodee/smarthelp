@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { Attachment } from "@/types";
 import AttachmentInput from "@/components/ui/AttachmentInput";
 import api from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -13,7 +12,7 @@ export default function FaqEditModal() {
   const [answer, setAnswer] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [subDepartmentId, setSubDepartmentId] = useState<string | null>(null);
-  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const { addToast } = useToastStore();
@@ -55,7 +54,7 @@ export default function FaqEditModal() {
     }
   }, [departmentId, subDepartmentsForCategory, subDepartmentId]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question || !answer || !departmentId) {
       alert("Please fill all fields.");
@@ -65,11 +64,15 @@ export default function FaqEditModal() {
     const deptId = subDepartmentId ?? departmentId;
 
     if (faq) {
-      api.FAQsService.updateQuestion(faq.id, {
-        text: question,
-        answer,
-        departmentId: deptId,
-      })
+      api.FAQsService.updateQuestion(
+        faq.id,
+        {
+          text: question,
+          answer,
+          departmentId: deptId,
+        },
+        attachment || undefined
+      )
         .then((response) => {
           addToast({
             message: "FAQ Updated Successfully!",
@@ -96,11 +99,14 @@ export default function FaqEditModal() {
       return;
     }
 
-    api.FAQsService.createQuestion({
-      text: question,
-      answer,
-      departmentId: subDepartmentId ?? departmentId,
-    })
+    api.FAQsService.createQuestion(
+      {
+        text: question,
+        answer,
+        departmentId: subDepartmentId ?? departmentId,
+      },
+      attachment || undefined
+    )
       .then((response) => {
         addToast({
           message: "FAQ Added Successfully!",

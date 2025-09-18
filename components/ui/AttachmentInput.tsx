@@ -1,11 +1,10 @@
 "use client";
 import React, { useRef } from "react";
-import { Attachment } from "@/types";
 import XCircle from "@/icons/XCircle";
 
 interface FileUploaderProps {
-  attachment: Attachment | null;
-  setAttachment: (attachment: Attachment | null) => void;
+  attachment: File | null;
+  setAttachment: (attachment: File | null) => void;
   id: string;
   maxSizeMB?: number;
   accept?: string;
@@ -46,11 +45,7 @@ export default function AttachmentInput({
 
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
-        setAttachment({
-          name: file.name,
-          type: file.type,
-          dataUrl: loadEvent.target?.result as string,
-        });
+        setAttachment(file);
       };
       reader.onerror = () => {
         alert("There was an error reading the file.");

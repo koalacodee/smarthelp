@@ -5,13 +5,13 @@ import { DepartmentsService, KnowledgeChunksService } from "@/lib/api";
 import { useKnowledgeChunksStore } from "../store/useKnowledgeChunksStore";
 import { CreateKnowledgeChunkRequest } from "@/lib/api/sdk/models";
 import XCircle from "@/icons/XCircle";
-import Plus from "@/icons/Plus";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 
 export default function KnowledgeChunkEditModal() {
   const { isOpen, mode, chunk, closeModal } = useKnowledgeChunkModalStore();
   const { addChunk, updateChunk, chunks } = useKnowledgeChunksStore();
   const [loading, setLoading] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [departments, setDepartments] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -46,7 +46,7 @@ export default function KnowledgeChunkEditModal() {
     setLoading(true);
     try {
       const response = await KnowledgeChunksService.getAllKnowledgeChunks();
-      const chunks = response.data.data || [];
+      const chunks = response.knowledgeChunks || [];
       const existingChunk = chunks.find((c) => c.id === chunk.id);
 
       if (existingChunk) {
@@ -71,7 +71,8 @@ export default function KnowledgeChunkEditModal() {
         // Delete old chunk and create new one
         await KnowledgeChunksService.deleteKnowledgeChunk(chunk.id);
         const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData
+          formData,
+          attachment || undefined
         );
         if (response.data.data) {
           // Refresh the entire list instead of trying to update
@@ -79,7 +80,7 @@ export default function KnowledgeChunkEditModal() {
             await KnowledgeChunksService.getAllKnowledgeChunks();
           const groupedMap = new Map<string, any>();
 
-          (refreshResponse.data.data || []).forEach((chunk) => {
+          (refreshResponse.knowledgeChunks || []).forEach((chunk) => {
             const dept = chunk.department;
             if (dept) {
               const key = dept.id;
@@ -101,7 +102,8 @@ export default function KnowledgeChunkEditModal() {
         }
       } else {
         const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData
+          formData,
+          attachment || undefined
         );
         if (response.data.data) {
           // Refresh the entire list
@@ -109,7 +111,7 @@ export default function KnowledgeChunkEditModal() {
             await KnowledgeChunksService.getAllKnowledgeChunks();
           const groupedMap = new Map<string, any>();
 
-          (refreshResponse.data.data || []).forEach((chunk) => {
+          (refreshResponse.knowledgeChunks || []).forEach((chunk) => {
             const dept = chunk.department;
             if (dept) {
               const key = dept.id;
@@ -207,6 +209,26 @@ export default function KnowledgeChunkEditModal() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="knowledge-chunk-attachment"
+              className="block text-sm font-medium text-foreground mb-1"
+            >
+              Attachment (Optional)
+            </label>
+            <input
+              id="knowledge-chunk-attachment"
+              type="file"
+              accept="*"
+              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setAttachment(file || null);
+              }}
+              disabled={loading}
+            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

@@ -46,6 +46,7 @@ type AddTaskModalProps = {
 
 export default function AddTaskModal({ role }: AddTaskModalProps) {
   const { addToast } = useToastStore();
+  const [attachment, setAttachment] = useState<File | null>(null);
   const {
     register,
     handleSubmit,
@@ -53,7 +54,9 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     watch,
     reset,
   } = useForm<AdminTaskFormData | SupervisorTaskFormData>({
-    resolver: zodResolver(role === "admin" ? adminTaskSchema : supervisorTaskSchema),
+    resolver: zodResolver(
+      role === "admin" ? adminTaskSchema : supervisorTaskSchema
+    ),
     defaultValues: {
       priority: "MEDIUM",
     },
@@ -109,7 +112,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
         };
       }
 
-      await api.TasksService.createTask(createTaskDto).then(addTask);
+      await api.TasksService.createTask(
+        createTaskDto,
+        attachment ?? undefined
+      ).then(addTask);
 
       addToast({
         message: "Task created successfully!",
@@ -308,6 +314,25 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         {errors.description.message}
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="task-attachment"
+                      className="block text-sm font-medium text-muted-foreground mb-1"
+                    >
+                      Attachment (Optional)
+                    </label>
+                    <input
+                      id="task-attachment"
+                      type="file"
+                      accept="*"
+                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setAttachment(file || null);
+                      }}
+                    />
                   </div>
 
                   <div className="flex justify-end gap-2">

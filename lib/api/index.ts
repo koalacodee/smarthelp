@@ -2,6 +2,9 @@ import axios, { AxiosInstance } from "axios";
 import {
   AnswerTicketDto,
   CreateQuestionInputDto,
+  CreateTicketDto,
+  CreateKnowledgeChunkInputDto,
+  UpdateKnowledgeChunkInputDto,
   LoginDto,
   UpdateQuestionInputDto,
 } from "./dtos";
@@ -262,11 +265,38 @@ export interface AnalyticsOverviewResult {
   activePromotion: ActivePromotion | null;
 }
 
+// Ticket Response Types
+export interface TicketAttachmentsResponse {
+  attachments: { [ticketId: string]: string[] };
+}
+
+export interface SupportTicketsResponse extends TicketAttachmentsResponse {
+  tickets: Ticket[];
+  metrics: TicketMetrics;
+}
+
+export interface TrackTicketResponse extends TicketAttachmentsResponse {
+  id: string;
+  code: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  question: string;
+  answer?: string;
+}
+
 export const TicketsService = {
   getAllTickets: async () => {
     const response = await api.get<{
-      data: { tickets: Ticket[]; metrics: TicketMetrics };
+      data: SupportTicketsResponse;
     }>("/support-tickets");
+    return response.data.data;
+  },
+
+  trackTicket: async (ticketCode: string) => {
+    const response = await api.get<{
+      data: TrackTicketResponse;
+    }>(`/tickets/${ticketCode}`);
     return response.data.data;
   },
 
@@ -415,6 +445,35 @@ export const NotificationService = {
   },
 };
 
+// FAQ Response Types
+export interface FAQAttachmentsResponse {
+  attachments: { [questionId: string]: string[] };
+}
+
+export interface SingleFAQResponse extends FAQAttachmentsResponse {
+  question: Question | null;
+}
+
+export interface MultipleFAQsResponse extends FAQAttachmentsResponse {
+  questions: Question[];
+}
+
+export interface GroupedFAQsResponse extends FAQAttachmentsResponse {
+  questions: any[];
+}
+
+export interface ViewFAQsResponse extends FAQAttachmentsResponse {
+  faqs: any[];
+}
+
+export interface SharedFAQsResponse extends FAQAttachmentsResponse {
+  faqs: any[];
+}
+
+export interface GroupQuestionsResponse extends FAQAttachmentsResponse {
+  groupedQuestions: any[];
+}
+
 export const FAQsService = {
   deleteQuestion: async (questionId: string) => {
     await api.delete(`/questions/${questionId}`);
@@ -434,11 +493,60 @@ export const FAQsService = {
     }
     return res.data.data.question;
   },
-  updateQuestion: async (id: string, dto: UpdateQuestionInputDto) => {
-    return api.put<{ data: Question }>(`/questions/${id}`, dto);
+  updateQuestion: async (
+    id: string,
+    dto: UpdateQuestionInputDto,
+    file?: File
+  ) => {
+    const res = await api.put<{
+      data: { question: Question; uploadKey?: string };
+    }>(`/questions/${id}`, {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (res.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(res.data.data.uploadKey, formData);
+    }
+    return res.data.data.question;
+  },
+  getQuestion: async (id: string) => {
+    const response = await api.get<{ data: SingleFAQResponse }>(
+      `/questions/${id}`
+    );
+    return response.data.data;
+  },
+  getAllQuestions: async () => {
+    const response = await api.get<{ data: MultipleFAQsResponse }>(
+      "/questions"
+    );
+    return response.data.data;
+  },
+  getViewFAQs: async () => {
+    const response = await api.get<{ data: ViewFAQsResponse }>(
+      "/questions/view"
+    );
+    return response.data.data;
   },
   getGrouped: async () => {
-    return api.get<{ data: GroupedFAQs[] }>("/questions/grouped");
+    const response = await api.get<{ data: GroupedFAQsResponse }>(
+      "/questions/grouped"
+    );
+    return response.data.data;
+  },
+  getShared: async () => {
+    const response = await api.get<{ data: SharedFAQsResponse }>(
+      "/questions/shared"
+    );
+    return response.data.data;
+  },
+  getGroup: async () => {
+    const response = await api.get<{ data: GroupQuestionsResponse }>(
+      "/questions/group"
+    );
+    return response.data.data;
   },
 };
 
@@ -490,6 +598,30 @@ export const DriversService = {
   },
 };
 
+// Task Response Types
+export interface TaskAttachmentsResponse {
+  attachments: { [taskId: string]: string[] };
+}
+
+export interface SingleTaskResponse extends TaskAttachmentsResponse {
+  task: Task;
+}
+
+export interface MultipleTasksResponse extends TaskAttachmentsResponse {
+  tasks: Task[];
+}
+
+export interface MyTasksResponse extends TaskAttachmentsResponse {
+  tasks: Task[];
+  total: number;
+  canSubmitWork: boolean[];
+  metrics: {
+    pendingCount: number;
+    completedCount: number;
+    completionPercentage: number;
+  };
+}
+
 export const TasksService = {
   getDepartmentLevel: async () => {
     const response = await api.get<{
@@ -509,18 +641,53 @@ export const TasksService = {
     );
     return response.data.data.data;
   },
-  createTask: async (dto: CreateTaskDto) => {
-    const response = await api.post<{ data: Datum }>("/tasks", dto);
-    return response.data.data;
+  createTask: async (dto: CreateTaskDto, file?: File) => {
+    const response = await api.post<{
+      data: { task: Datum; uploadKey?: string };
+    }>("/tasks", {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (response.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.task;
   },
   deleteTask: async (id: string) => {
     return api.delete(`/tasks/${id}`);
   },
-  submitWork: async (id: string, dto: { notes: string }) => {
-    return api.post(`tasks/${id}/submit-review`, dto);
+  submitWork: async (id: string, dto: { notes: string }, file?: File) => {
+    const response = await api.post<{
+      data: { task: Datum; uploadKey?: string };
+    }>(`tasks/${id}/submit-review`, {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (response.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.task;
+  },
+  getTask: async (id: string) => {
+    const response = await api.get<{ data: SingleTaskResponse }>(
+      `/tasks/${id}`
+    );
+    return response.data.data;
+  },
+  getAllTasks: async () => {
+    const response = await api.get<{ data: MultipleTasksResponse }>("/tasks");
+    return response.data.data;
   },
   getMyTasks: async () => {
-    const response = await api.get<MyTasksApiResponse>("/tasks/my-tasks");
+    const response = await api.get<{ data: MyTasksResponse }>(
+      "/tasks/my-tasks"
+    );
     return response.data.data;
   },
   approveTask: async (taskId: string) => {
@@ -571,9 +738,46 @@ export const EmployeeRequestsService = {
   },
 };
 
+// Promotion Response Types
+export interface PromotionAttachmentsResponse {
+  attachments: { [promotionId: string]: string[] };
+}
+
+export interface SinglePromotionResponse extends PromotionAttachmentsResponse {
+  promotion: any; // Replace 'any' with proper Promotion type if available
+}
+
+export interface MultiplePromotionsResponse
+  extends PromotionAttachmentsResponse {
+  promotions: any[]; // Replace 'any[]' with proper Promotion[] type if available
+}
+
 export const PromotionService = {
-  createPromotion: async (dto: CreatePromotionDto) => {
-    const response = await api.post("/promotions", dto);
+  createPromotion: async (dto: CreatePromotionDto, file?: File) => {
+    const response = await api.post<{
+      data: { promotion: any; uploadKey?: string };
+    }>("/promotions", {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (response.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.promotion;
+  },
+  getPromotion: async (id: string) => {
+    const response = await api.get<{ data: SinglePromotionResponse }>(
+      `/promotions/${id}`
+    );
+    return response.data.data;
+  },
+  getAllPromotions: async () => {
+    const response = await api.get<{ data: MultiplePromotionsResponse }>(
+      "/promotions"
+    );
     return response.data.data;
   },
 };
@@ -670,7 +874,77 @@ export const FileService = {
   },
 };
 
-export const KnowledgeChunksService = KnowledgeChunkApiFactory(...factoryArgs);
+// Knowledge Chunk Response Types
+export interface KnowledgeChunkAttachmentsResponse {
+  attachments: { [chunkId: string]: string[] };
+}
+
+export interface SingleKnowledgeChunkResponse
+  extends KnowledgeChunkAttachmentsResponse {
+  knowledgeChunk: any | null; // Replace 'any' with proper KnowledgeChunk type if available
+}
+
+export interface MultipleKnowledgeChunksResponse
+  extends KnowledgeChunkAttachmentsResponse {
+  knowledgeChunks: any[]; // Replace 'any[]' with proper KnowledgeChunk[] type if available
+}
+
+export const KnowledgeChunksService = {
+  ...KnowledgeChunkApiFactory(...factoryArgs),
+
+  createKnowledgeChunk: async (
+    dto: CreateKnowledgeChunkInputDto,
+    file?: File
+  ) => {
+    const response = await api.post<{
+      data: { knowledgeChunk: any; uploadKey?: string };
+    }>("/knowledge-chunks", {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (response.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.knowledgeChunk;
+  },
+
+  updateKnowledgeChunk: async (
+    id: string,
+    dto: UpdateKnowledgeChunkInputDto,
+    file?: File
+  ) => {
+    const response = await api.put<{
+      data: { knowledgeChunk: any; uploadKey?: string };
+    }>(`/knowledge-chunks/${id}`, {
+      ...dto,
+      attach: !!file,
+    });
+
+    if (response.data.data.uploadKey && file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.knowledgeChunk;
+  },
+
+  getKnowledgeChunk: async (id: string) => {
+    const response = await api.get<{ data: SingleKnowledgeChunkResponse }>(
+      `/knowledge-chunks/${id}`
+    );
+    return response.data.data;
+  },
+
+  getAllKnowledgeChunks: async () => {
+    const response = await api.get<{ data: MultipleKnowledgeChunksResponse }>(
+      "/knowledge-chunks"
+    );
+    return response.data.data;
+  },
+};
 
 export default {
   client: api,
