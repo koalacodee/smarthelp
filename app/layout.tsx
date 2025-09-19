@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ToastContainer from "@/components/Toasts/ToastContainer";
+import ProgressBar from "@/components/ProgressBar";
 import { PublicEnvScript } from "next-runtime-env";
 
 const roboto = localFont({
@@ -28,6 +29,7 @@ export default async function RootLayout({
         <PublicEnvScript />
       </head>
       <body className={`${roboto.variable} antialiased`}>
+        <ProgressBar />
         <ToastContainer />
         {children}
       </body>
