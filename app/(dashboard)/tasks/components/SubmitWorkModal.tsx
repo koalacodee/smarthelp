@@ -1,20 +1,20 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
+import AttachmentInput from "@/components/ui/AttachmentInput";
+import {
+  Attachment,
+  useAttachmentStore,
+} from "@/app/(dashboard)/store/useAttachmentStore";
 
 export default function SubmitWorkModal() {
-  const {
-    isOpen,
-    task,
-    attachment,
-    isSubmitting,
-    closeModal,
-    setNotes,
-    setAttachment,
-    setIsSubmitting,
-  } = useSubmitWorkModalStore();
+  const { isOpen, task, isSubmitting, closeModal, setNotes, setIsSubmitting } =
+    useSubmitWorkModalStore();
+
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { getFormData } = useAttachmentStore();
 
   const { addToast } = useToastStore();
 
@@ -31,10 +31,13 @@ export default function SubmitWorkModal() {
     setIsSubmitting(true);
 
     try {
+      // Get FormData from attachment store
+      const formData = attachments.length > 0 ? getFormData() : undefined;
+
       await api.TasksService.submitWork(
         task.id!,
         { notes: task.notes },
-        attachment ?? undefined
+        formData
       );
       addToast({
         message: "Task submitted for review successfully!",
@@ -45,13 +48,6 @@ export default function SubmitWorkModal() {
       addToast({ message: "Failed to submit task for review", type: "error" });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAttachment(file);
     }
   };
 
@@ -90,21 +86,10 @@ export default function SubmitWorkModal() {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="supervisor-task-attachment"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Add Attachment (Optional)
-            </label>
-            <input
-              id="supervisor-task-attachment"
-              accept="*"
-              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              type="file"
-              onChange={handleFileChange}
-            />
-          </div>
+          <AttachmentInput
+            id="supervisor-task-attachment"
+            onAttachmentsChange={setAttachments}
+          />
 
           <div className="mt-8 flex justify-end gap-4">
             <button

@@ -1,98 +1,237 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  useAttachmentStore,
+  Attachment,
+  ExistingAttachment,
+} from "@/app/(dashboard)/store/useAttachmentStore";
+import AttachmentModal from "./AttachmentModal";
 import XCircle from "@/icons/XCircle";
+import Plus from "@/icons/Plus";
+import Trash from "@/icons/Trash";
 
-interface FileUploaderProps {
-  attachment: File | null;
-  setAttachment: (attachment: File | null) => void;
+interface AttachmentInputProps {
   id: string;
   maxSizeMB?: number;
   accept?: string;
   label?: string;
+  existingAttachments?: ExistingAttachment[];
+  onAttachmentsChange?: (attachments: Attachment[]) => void;
 }
 
 export default function AttachmentInput({
-  attachment,
-  setAttachment,
   id,
-  maxSizeMB = 15,
+  maxSizeMB = 100,
   accept = "*",
   label,
-}: FileUploaderProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const computedLabel = label || `Attachment (Optional, max ${maxSizeMB}MB)`;
+  existingAttachments = [],
+  onAttachmentsChange,
+}: AttachmentInputProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const {
+    attachments,
+    existingAttachments: storeExistingAttachments,
+    existingsToDelete,
+    removeAttachment,
+    clearAttachments,
+    setExistingAttachments,
+    deleteExistingAttachment,
+    restoreExistingAttachment,
+  } = useAttachmentStore();
+  const computedLabel = label || `Attachments (Optional, max ${maxSizeMB}MB)`;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Client-side validation for file type
-      if (accept === "image/*" && !file.type.startsWith("image/")) {
-        alert(
-          "Invalid file type. Please select an image file (e.g., PNG, JPG, SVG)."
-        );
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
-
-      // Client-side validation for file size
-      if (file.size > maxSizeMB * 1024 * 1024) {
-        alert(
-          `File is too large. Please upload files smaller than ${maxSizeMB}MB.`
-        );
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        setAttachment(file);
-      };
-      reader.onerror = () => {
-        alert("There was an error reading the file.");
-      };
-      reader.readAsDataURL(file);
+  // Set existing attachments when they change
+  useEffect(() => {
+    if (existingAttachments.length > 0) {
+      setExistingAttachments(existingAttachments);
     }
+  }, [existingAttachments, setExistingAttachments]);
+
+  // Notify parent component when attachments change
+  useEffect(() => {
+    if (onAttachmentsChange) {
+      onAttachmentsChange(attachments);
+    }
+  }, [attachments, onAttachmentsChange]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearAttachments();
+    };
+  }, [clearAttachments]);
+
+  const handleRemoveAttachment = (index: number) => {
+    removeAttachment(index);
   };
 
-  const removeAttachment = () => {
-    setAttachment(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const handleDeleteExistingAttachment = (index: number) => {
+    deleteExistingAttachment(index);
+  };
+
+  const handleRestoreExistingAttachment = (index: number) => {
+    restoreExistingAttachment(index);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const isExpired = (expirationDate: Date) => {
+    return new Date() > expirationDate;
   };
 
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-slate-700 mb-1"
-      >
+      <label className="block text-sm font-medium text-slate-700 mb-1">
         {computedLabel}
       </label>
-      {!attachment ? (
-        <input
-          id={id}
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept={accept}
-          className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-      ) : (
-        <div className="mt-2 flex items-center justify-between p-2 bg-slate-100 rounded-md border border-slate-200">
-          <span className="text-sm text-slate-800 truncate pr-2">
-            {attachment.name}
-          </span>
-          <button
-            type="button"
-            onClick={removeAttachment}
-            className="text-slate-500 hover:text-red-600 flex-shrink-0"
-            aria-label="Remove attachment"
-          >
-            <XCircle className="w-5 h-5" />
-          </button>
+
+      {/* Add Attachment Button */}
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(true)}
+        className="inline-flex items-center px-3 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add Attachment
+      </button>
+
+      {/* Existing Attachments List */}
+      {storeExistingAttachments.length > 0 && (
+        <div className="mt-3">
+          <h4 className="text-sm font-medium text-slate-700 mb-2">
+            Existing Attachments
+          </h4>
+          <div className="space-y-2">
+            {storeExistingAttachments.map((attachment, index) => (
+              <div
+                key={`existing-${index}`}
+                className={`flex items-center justify-between p-3 rounded-md border ${
+                  isExpired(new Date(attachment.expiryDate))
+                    ? "bg-red-50 border-red-200"
+                    : "bg-blue-50 border-blue-200"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {attachment.originalName}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {formatFileSize(attachment.sizeInBytes)} •{" "}
+                    {attachment.fileType} • Expires:{" "}
+                    {new Date(attachment.expiryDate).toLocaleString()}
+                    {isExpired(new Date(attachment.expiryDate)) && (
+                      <span className="text-red-600 font-medium ml-1">
+                        (EXPIRED)
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteExistingAttachment(index)}
+                  className="ml-2 text-slate-400 hover:text-red-600 flex-shrink-0 transition-colors"
+                  aria-label="Delete existing attachment"
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Deleted Existing Attachments (for restoration) */}
+      {existingsToDelete.length > 0 && (
+        <div className="mt-3">
+          <h4 className="text-sm font-medium text-slate-500 mb-2">
+            Deleted Attachments
+          </h4>
+          <div className="space-y-2">
+            {existingsToDelete.map((attachment, index) => (
+              <div
+                key={`deleted-${index}`}
+                className="flex items-center justify-between p-3 rounded-md border bg-gray-50 border-gray-200 opacity-60"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-500 truncate line-through">
+                    {attachment.originalName}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {formatFileSize(attachment.sizeInBytes)} •{" "}
+                    {attachment.fileType}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRestoreExistingAttachment(index)}
+                  className="ml-2 text-slate-400 hover:text-green-600 flex-shrink-0 transition-colors"
+                  aria-label="Restore deleted attachment"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* New Attachments List */}
+      {attachments.length > 0 && (
+        <div className="mt-3">
+          <h4 className="text-sm font-medium text-slate-700 mb-2">
+            New Attachments
+          </h4>
+          <div className="space-y-2">
+            {attachments.map((attachment, index) => (
+              <div
+                key={`new-${index}`}
+                className={`flex items-center justify-between p-3 rounded-md border ${
+                  isExpired(attachment.expirationDate)
+                    ? "bg-red-50 border-red-200"
+                    : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {attachment.file.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {formatFileSize(attachment.file.size)} • Expires:{" "}
+                    {attachment.expirationDate.toLocaleString()}
+                    {isExpired(attachment.expirationDate) && (
+                      <span className="text-red-600 font-medium ml-1">
+                        (EXPIRED)
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAttachment(index)}
+                  className="ml-2 text-slate-400 hover:text-red-600 flex-shrink-0 transition-colors"
+                  aria-label="Remove attachment"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attachment Modal */}
+      <AttachmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxSizeMB={maxSizeMB}
+        accept={accept}
+      />
     </div>
   );
 }

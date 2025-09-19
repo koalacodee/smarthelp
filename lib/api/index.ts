@@ -2,7 +2,6 @@ import axios, { AxiosInstance } from "axios";
 import {
   AnswerTicketDto,
   CreateQuestionInputDto,
-  CreateTicketDto,
   CreateKnowledgeChunkInputDto,
   UpdateKnowledgeChunkInputDto,
   LoginDto,
@@ -34,7 +33,6 @@ import {
 } from "./supervisors";
 import { Entity, UpdateEmployeeDto } from "./employees";
 import { CreateDriverDto } from "./drivers";
-import { GroupedFAQs } from "@/app/(dashboard)/faqs/page";
 import { ApiResponse } from "@/app/(dashboard)/user-activity/components/UserActivityReport";
 import {
   PerformanceTicket,
@@ -42,7 +40,6 @@ import {
 } from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
 import { env } from "next-runtime-env";
 import { Configuration, KnowledgeChunkApiFactory } from "./sdk";
-import { MyTasksApiResponse } from "./types/my-tasks.types";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -300,16 +297,18 @@ export const TicketsService = {
     return response.data.data;
   },
 
-  answerTicket: async (ticketId: string, dto: AnswerTicketDto, file?: File) => {
+  answerTicket: async (
+    ticketId: string,
+    dto: AnswerTicketDto,
+    formData?: FormData
+  ) => {
     const data = await api
       .put<{
         data: { ticket: Ticket; uploadKey?: string };
-      }>(`/support-tickets/${ticketId}/answer`, { ...dto, attach: !!file })
+      }>(`/support-tickets/${ticketId}/answer`, { ...dto, attach: !!formData })
       .then((res) => res.data.data);
 
-    if (data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (data.uploadKey && formData) {
       await FileService.upload(data.uploadKey, formData);
     }
     return data.ticket;
@@ -478,17 +477,15 @@ export const FAQsService = {
   deleteQuestion: async (questionId: string) => {
     await api.delete(`/questions/${questionId}`);
   },
-  createQuestion: async (dto: CreateQuestionInputDto, file?: File) => {
+  createQuestion: async (dto: CreateQuestionInputDto, formData?: FormData) => {
     const res = await api.post<{
       data: { question: Question; uploadKey?: string };
     }>("/questions", {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (res.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (res.data.data.uploadKey && formData) {
       await FileService.upload(res.data.data.uploadKey, formData);
     }
     return res.data.data.question;
@@ -496,18 +493,16 @@ export const FAQsService = {
   updateQuestion: async (
     id: string,
     dto: UpdateQuestionInputDto,
-    file?: File
+    formData?: FormData
   ) => {
     const res = await api.put<{
       data: { question: Question; uploadKey?: string };
     }>(`/questions/${id}`, {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (res.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (res.data.data.uploadKey && formData) {
       await FileService.upload(res.data.data.uploadKey, formData);
     }
     return res.data.data.question;
@@ -641,17 +636,15 @@ export const TasksService = {
     );
     return response.data.data.data;
   },
-  createTask: async (dto: CreateTaskDto, file?: File) => {
+  createTask: async (dto: CreateTaskDto, formData?: FormData) => {
     const response = await api.post<{
       data: { task: Datum; uploadKey?: string };
     }>("/tasks", {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (response.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (response.data.data.uploadKey && formData) {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.task;
@@ -659,17 +652,19 @@ export const TasksService = {
   deleteTask: async (id: string) => {
     return api.delete(`/tasks/${id}`);
   },
-  submitWork: async (id: string, dto: { notes: string }, file?: File) => {
+  submitWork: async (
+    id: string,
+    dto: { notes: string },
+    formData?: FormData
+  ) => {
     const response = await api.post<{
       data: { task: Datum; uploadKey?: string };
     }>(`tasks/${id}/submit-review`, {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (response.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (response.data.data.uploadKey && formData) {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.task;
@@ -753,17 +748,15 @@ export interface MultiplePromotionsResponse
 }
 
 export const PromotionService = {
-  createPromotion: async (dto: CreatePromotionDto, file?: File) => {
+  createPromotion: async (dto: CreatePromotionDto, formData?: FormData) => {
     const response = await api.post<{
       data: { promotion: any; uploadKey?: string };
     }>("/promotions", {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (response.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (response.data.data.uploadKey && formData) {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.promotion;
@@ -855,22 +848,37 @@ export const UserActivityService = {
   },
 };
 
+interface AttachmentMetadataResponse {
+  data: {
+    fileType: string;
+    originalName: string;
+    sizeInBytes: number;
+    expiryDate: string;
+    contentType: string;
+  };
+}
+
 export const FileService = {
   upload: async (uploadKey: string, data: FormData) => {
-    if (!data.has("file")) {
+    if (!data.has("file") && !data.has("files")) {
       return null;
     }
-    if (Array.isArray(data.get("file"))) {
-      // data.append("files", data.get("file") as File[]);
-      // data.delete("file");
-      // await api.post("/files/multiple", uploadFile, {
-      //   headers: { "x-upload-key": uploadKey },
-      // });
+    if (data.has("files")) {
+      await api.post("/files/multiple", data, {
+        headers: { "x-upload-key": uploadKey },
+      });
     } else {
       await api.post("/files/single", data, {
         headers: { "x-upload-key": uploadKey },
       });
     }
+  },
+
+  getAttachmentMetadata: async (tokenOrId: string) => {
+    const res = await api.get<AttachmentMetadataResponse>(
+      `/attachment/${tokenOrId}/metadata`
+    );
+    return res.data.data;
   },
 };
 
@@ -894,18 +902,16 @@ export const KnowledgeChunksService = {
 
   createKnowledgeChunk: async (
     dto: CreateKnowledgeChunkInputDto,
-    file?: File
+    formData?: FormData
   ) => {
     const response = await api.post<{
       data: { knowledgeChunk: any; uploadKey?: string };
     }>("/knowledge-chunks", {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (response.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (response.data.data.uploadKey && formData) {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.knowledgeChunk;
@@ -914,18 +920,16 @@ export const KnowledgeChunksService = {
   updateKnowledgeChunk: async (
     id: string,
     dto: UpdateKnowledgeChunkInputDto,
-    file?: File
+    formData?: FormData
   ) => {
     const response = await api.put<{
       data: { knowledgeChunk: any; uploadKey?: string };
     }>(`/knowledge-chunks/${id}`, {
       ...dto,
-      attach: !!file,
+      attach: !!formData,
     });
 
-    if (response.data.data.uploadKey && file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (response.data.data.uploadKey && formData) {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.knowledgeChunk;

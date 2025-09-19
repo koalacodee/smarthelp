@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { GroupedFAQs } from "../page";
 import FAQActions from "./FAQActions";
 import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
 import { useEffect } from "react";

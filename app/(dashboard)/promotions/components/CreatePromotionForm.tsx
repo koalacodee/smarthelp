@@ -3,17 +3,26 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
 import { AudienceType } from "@/lib/api/types";
 import { useState } from "react";
+import AttachmentInput from "@/components/ui/AttachmentInput";
+import {
+  Attachment,
+  useAttachmentStore,
+} from "@/app/(dashboard)/store/useAttachmentStore";
 
 export default function CreatePromotionForm() {
   const [title, setTitle] = useState("");
   const [audience, setAudience] = useState<AudienceType>(AudienceType.ALL);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { getFormData } = useAttachmentStore();
   const addToast = useToastStore((state) => state.addToast);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Get FormData from attachment store
+    const formData = attachments.length > 0 ? getFormData() : undefined;
+
     api.PromotionService.createPromotion(
       {
         title,
@@ -21,7 +30,7 @@ export default function CreatePromotionForm() {
         startDate,
         endDate,
       },
-      attachment ?? undefined
+      formData
     )
       .then(() => {
         addToast({
@@ -56,24 +65,12 @@ export default function CreatePromotionForm() {
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
-      <div>
-        <label
-          htmlFor="promo-attachment"
-          className="block text-sm font-medium text-slate-700 mb-1"
-        >
-          Promotion Media (Image or Video)
-        </label>
-        <input
-          id="promo-attachment"
-          accept="image/*,video/*"
-          className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          type="file"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            setAttachment(file || null);
-          }}
-        />
-      </div>
+      <AttachmentInput
+        id="promo-attachment"
+        accept="image/*,video/*"
+        onAttachmentsChange={setAttachments}
+        label="Promotion Media (Image or Video)"
+      />
       <div>
         <label
           htmlFor="promo-audience"

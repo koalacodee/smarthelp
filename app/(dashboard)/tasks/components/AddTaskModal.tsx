@@ -19,6 +19,11 @@ import Plus from "@/icons/Plus";
 import CheckCircle from "@/icons/CheckCircle";
 import { useTasksStore } from "../../store/useTasksStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
+import AttachmentInput from "@/components/ui/AttachmentInput";
+import {
+  Attachment,
+  useAttachmentStore,
+} from "@/app/(dashboard)/store/useAttachmentStore";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -46,7 +51,8 @@ type AddTaskModalProps = {
 
 export default function AddTaskModal({ role }: AddTaskModalProps) {
   const { addToast } = useToastStore();
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { getFormData } = useAttachmentStore();
   const {
     register,
     handleSubmit,
@@ -112,10 +118,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
         };
       }
 
-      await api.TasksService.createTask(
-        createTaskDto,
-        attachment ?? undefined
-      ).then(addTask);
+      // Get FormData from attachment store
+      const formData = attachments.length > 0 ? getFormData() : undefined;
+
+      await api.TasksService.createTask(createTaskDto, formData).then(addTask);
 
       addToast({
         message: "Task created successfully!",
@@ -316,24 +322,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     )}
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="task-attachment"
-                      className="block text-sm font-medium text-muted-foreground mb-1"
-                    >
-                      Attachment (Optional)
-                    </label>
-                    <input
-                      id="task-attachment"
-                      type="file"
-                      accept="*"
-                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        setAttachment(file || null);
-                      }}
-                    />
-                  </div>
+                  <AttachmentInput
+                    id="task-attachment"
+                    onAttachmentsChange={setAttachments}
+                  />
 
                   <div className="flex justify-end gap-2">
                     <button

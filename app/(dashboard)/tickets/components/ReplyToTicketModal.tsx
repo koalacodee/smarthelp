@@ -4,24 +4,33 @@ import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket"
 import api, { TicketStatus } from "@/lib/api";
 import { useState } from "react";
 import { useTicketStore } from "../store/useTicketStore";
+import AttachmentInput from "@/components/ui/AttachmentInput";
+import {
+  Attachment,
+  useAttachmentStore,
+} from "@/app/(dashboard)/store/useAttachmentStore";
 
 export default function ReplyToTicketModal() {
   const { ticket, setTicket } = useCurrentEditingTicketStore();
   const { addToast } = useToastStore();
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
-  const [file, setFile] = useState<File | undefined>(undefined);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { getFormData } = useAttachmentStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
     e.preventDefault();
     try {
+      // Get FormData from attachment store
+      const formData = attachments.length > 0 ? getFormData() : undefined;
+
       await api.TicketsService.answerTicket(
         ticket.id,
         {
           content: answer,
         },
-        file
+        formData
       );
       setTicket(null);
       addToast({
@@ -93,25 +102,10 @@ export default function ReplyToTicketModal() {
                   defaultValue={ticket.answer || ""}
                   onChange={(e) => setAnswer(e.target.value)}
                 />
-                <div>
-                  <label
-                    htmlFor="admin-reply-attachment"
-                    className="block text-sm font-medium text-slate-700 mb-1"
-                  >
-                    Attachment (Optional, max 15MB)
-                  </label>
-                  <input
-                    id="admin-reply-attachment"
-                    accept="*"
-                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    type="file"
-                    onChange={(e) => {
-                      if (e.target.files) {
-                        setFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </div>
+                <AttachmentInput
+                  id="admin-reply-attachment"
+                  onAttachmentsChange={setAttachments}
+                />
                 <div className="mt-4 flex items-start gap-4">
                   <div className="flex items-center h-5 pt-0.5">
                     <input

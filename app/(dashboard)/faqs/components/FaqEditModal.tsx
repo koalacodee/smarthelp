@@ -6,18 +6,23 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
 import { Department } from "@/lib/api/departments";
 import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
+import {
+  Attachment,
+  useAttachmentStore,
+} from "@/app/(dashboard)/store/useAttachmentStore";
 
 export default function FaqEditModal() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [subDepartmentId, setSubDepartmentId] = useState<string | null>(null);
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const { addToast } = useToastStore();
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
+  const { getFormData } = useAttachmentStore();
 
   useEffect(() => {
     Promise.all([
@@ -43,7 +48,7 @@ export default function FaqEditModal() {
       const firstCatId = departments[0]?.id || "";
       setDepartmentId(firstCatId);
       setSubDepartmentId(null);
-      setAttachment(null);
+      setAttachments([]);
     }
   }, [faq, departments]);
 
@@ -64,6 +69,9 @@ export default function FaqEditModal() {
     const deptId = subDepartmentId ?? departmentId;
 
     if (faq) {
+      // Get FormData from attachment store
+      const formData = attachments.length > 0 ? getFormData() : undefined;
+
       api.FAQsService.updateQuestion(
         faq.id,
         {
@@ -71,7 +79,7 @@ export default function FaqEditModal() {
           answer,
           departmentId: deptId,
         },
-        attachment || undefined
+        formData
       )
         .then((response) => {
           addToast({
@@ -99,13 +107,16 @@ export default function FaqEditModal() {
       return;
     }
 
+    // Get FormData from attachment store
+    const formData = attachments.length > 0 ? getFormData() : undefined;
+
     api.FAQsService.createQuestion(
       {
         text: question,
         answer,
         departmentId: subDepartmentId ?? departmentId,
       },
-      attachment || undefined
+      formData
     )
       .then((response) => {
         addToast({
@@ -229,9 +240,8 @@ export default function FaqEditModal() {
               </div>
             </div>
             <AttachmentInput
-              attachment={attachment}
-              setAttachment={setAttachment}
               id="faq-attachment-input"
+              onAttachmentsChange={setAttachments}
             />
           </div>
           <div className="mt-8 flex justify-end gap-4">
