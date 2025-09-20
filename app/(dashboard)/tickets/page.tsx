@@ -6,9 +6,11 @@ import { useTicketStore } from "./store/useTicketStore";
 import TicketsDashboard from "./components/TicketsDashboard";
 import TicketsFilters from "./components/TicketsFilters";
 import TicketsList from "./components/TicketsList";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 
 export default function Page() {
   const { tickets, setTickets } = useTicketStore();
+  const { setAttachments } = useAttachmentsStore();
   const [metrics, setMetrics] = useState<TicketMetrics>({
     totalTickets: 0,
     pendingTickets: 0,
@@ -41,7 +43,8 @@ export default function Page() {
         closedTickets,
       });
 
-      // Note: attachments are available in response.attachments if needed
+      // Set attachments to the store
+      setAttachments("ticket", response.attachments);
     });
   }, []);
 

@@ -5,13 +5,16 @@ import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { DepartmentsService, TasksService } from "@/lib/api";
 import TaskCard from "./TaskCard";
 import DetailedTaskCard from "./DetailedTaskCard";
+import EditTaskModal from "./EditTaskModal";
 import { useTasksStore } from "../../store/useTasksStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
+import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 
 export default function TasksPage() {
   const { user } = useUserStore();
   const { tasks, setTasks, isLoading, setLoading, error } = useTasksStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
+  const { setTaskAttachments } = useTaskAttachments();
 
   useEffect(() => {
     const fetch = async () => {
@@ -27,7 +30,12 @@ export default function TasksPage() {
       } else if (user?.role === "ADMIN") {
         if (user?.role === "ADMIN") {
           await Promise.all([
-            TasksService.getDepartmentLevel().then(setTasks),
+            TasksService.getDepartmentLevel()
+              .then((data) => {
+                setTasks(data.data);
+                setTaskAttachments(data.attachments);
+              })
+              .then(),
             DepartmentsService.getAllDepartments().then(setDepartments),
           ]);
         }
@@ -61,6 +69,7 @@ export default function TasksPage() {
         </div>
       )}
       <DetailedTaskCard />
+      <EditTaskModal role={user?.role === "ADMIN" ? "admin" : "supervisor"} />
     </>
   );
 }

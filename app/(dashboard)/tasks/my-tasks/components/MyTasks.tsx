@@ -63,7 +63,8 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                   {task.description}
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {task.dueDate && getDueDateStatus(task.dueDate, task.status)}
+                  {task.dueDate &&
+                    getDueDateStatus(task.dueDate, task.status || "")}
                   <span
                     className={`px-2 py-0.5 rounded ${
                       task.priority === "HIGH"

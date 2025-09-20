@@ -32,11 +32,13 @@ export default function CreatePromotionForm() {
       },
       formData
     )
-      .then(() => {
+      .then((promotion) => {
         addToast({
           message: "Promotion Created Successfully",
           type: "success",
         });
+        // Note: Attachments are handled by the API and will be available in the response
+        // The attachment store is for file uploads, not for storing URLs
       })
       .catch(() => {
         addToast({

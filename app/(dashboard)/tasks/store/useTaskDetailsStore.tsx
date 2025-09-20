@@ -21,6 +21,7 @@ type TaskDetails = {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  attachments?: string[];
 };
 
 type TaskDetailsStore = {

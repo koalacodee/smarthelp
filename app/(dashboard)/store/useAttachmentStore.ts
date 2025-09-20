@@ -16,23 +16,30 @@ export interface ExistingAttachment {
 
 interface AttachmentStore {
   attachments: Attachment[];
-  existingAttachments: ExistingAttachment[];
-  existingsToDelete: ExistingAttachment[];
+  existingAttachments: { [attachmentId: string]: ExistingAttachment };
+  existingsToDelete: { [attachmentId: string]: ExistingAttachment };
   addAttachment: (attachment: Attachment) => void;
   removeAttachment: (index: number) => void;
   clearAttachments: () => void;
-  setExistingAttachments: (attachments: ExistingAttachment[]) => void;
-  deleteExistingAttachment: (index: number) => void;
-  restoreExistingAttachment: (index: number) => void;
+  setExistingAttachments: (attachments: {
+    [attachmentId: string]: ExistingAttachment;
+  }) => void;
+  addExistingAttachment: (
+    attachmentId: string,
+    attachment: ExistingAttachment
+  ) => void;
+  deleteExistingAttachment: (attachmentId: string) => void;
+  restoreExistingAttachment: (attachmentId: string) => void;
   clearExistingsToDelete: () => void;
+  clearExistingAttachments: () => void;
   getAttachment: (index: number) => Attachment | undefined;
   getFormData: () => FormData;
 }
 
 export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
   attachments: [],
-  existingAttachments: [],
-  existingsToDelete: [],
+  existingAttachments: {},
+  existingsToDelete: {},
 
   addAttachment: (attachment) => {
     set((state) => ({
@@ -54,35 +61,54 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     set({ existingAttachments: attachments });
   },
 
-  deleteExistingAttachment: (index) => {
+  addExistingAttachment: (attachmentId, attachment) => {
+    set((state) => ({
+      existingAttachments: {
+        ...state.existingAttachments,
+        [attachmentId]: attachment,
+      },
+    }));
+  },
+
+  deleteExistingAttachment: (attachmentId) => {
     set((state) => {
-      const attachmentToDelete = state.existingAttachments[index];
+      const attachmentToDelete = state.existingAttachments[attachmentId];
+      if (!attachmentToDelete) return state;
+
+      const { [attachmentId]: removed, ...remaining } =
+        state.existingAttachments;
       return {
-        existingAttachments: state.existingAttachments.filter(
-          (_, i) => i !== index
-        ),
-        existingsToDelete: [...state.existingsToDelete, attachmentToDelete],
+        existingAttachments: remaining,
+        existingsToDelete: {
+          ...state.existingsToDelete,
+          [attachmentId]: attachmentToDelete,
+        },
       };
     });
   },
 
-  restoreExistingAttachment: (index) => {
+  restoreExistingAttachment: (attachmentId) => {
     set((state) => {
-      const attachmentToRestore = state.existingsToDelete[index];
+      const attachmentToRestore = state.existingsToDelete[attachmentId];
+      if (!attachmentToRestore) return state;
+
+      const { [attachmentId]: removed, ...remaining } = state.existingsToDelete;
       return {
-        existingAttachments: [
+        existingAttachments: {
           ...state.existingAttachments,
-          attachmentToRestore,
-        ],
-        existingsToDelete: state.existingsToDelete.filter(
-          (_, i) => i !== index
-        ),
+          [attachmentId]: attachmentToRestore,
+        },
+        existingsToDelete: remaining,
       };
     });
   },
 
   clearExistingsToDelete: () => {
-    set({ existingsToDelete: [] });
+    set({ existingsToDelete: {} });
+  },
+
+  clearExistingAttachments: () => {
+    set({ existingAttachments: {} });
   },
 
   getAttachment: (index) => {
@@ -124,10 +150,10 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     }
 
     // Add information about deleted existing attachments
-    if (existingsToDelete.length > 0) {
+    if (Object.keys(existingsToDelete).length > 0) {
       formData.append(
         "deletedExistingAttachments",
-        JSON.stringify(existingsToDelete)
+        JSON.stringify(Object.values(existingsToDelete))
       );
     }
 

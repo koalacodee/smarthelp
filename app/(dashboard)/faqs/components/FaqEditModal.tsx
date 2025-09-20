@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import AttachmentInput from "@/components/ui/AttachmentInput";
-import api from "@/lib/api";
+import api, { FileService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
 import { Department } from "@/lib/api/departments";
@@ -10,6 +10,8 @@ import {
   Attachment,
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
+import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 
 export default function FaqEditModal() {
   const [question, setQuestion] = useState("");
@@ -23,13 +25,21 @@ export default function FaqEditModal() {
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
   const { getFormData } = useAttachmentStore();
-
+  const { getAttachments } = useAttachmentsStore();
+  const { setMetadata } = useMediaMetadataStore();
+  const { addExistingAttachment } = useAttachmentStore();
   useEffect(() => {
     Promise.all([
       api.DepartmentsService.getAllDepartments().then(setDepartments),
       api.DepartmentsService.getAllSubDepartments().then(setSubDepartments),
     ]);
   }, []);
+  const {
+    existingsToDelete,
+    clearAttachments,
+    clearExistingsToDelete,
+    setExistingAttachments,
+  } = useAttachmentStore();
 
   const subDepartmentsForCategory = useMemo(() => {
     if (!departmentId) return [];
@@ -37,10 +47,26 @@ export default function FaqEditModal() {
   }, [departmentId, subDepartments]);
 
   useEffect(() => {
+    // Clear attachment store state
+    clearAttachments();
+    clearExistingsToDelete();
+    setExistingAttachments({});
     if (faq) {
-      setQuestion(faq.text);
-      setAnswer(faq.answer || "");
-      setDepartmentId(faq.departmentId);
+      const init = async () => {
+        setQuestion(faq.text);
+        setAnswer(faq.answer || "");
+        setDepartmentId(faq.departmentId);
+        const promises = getAttachments("faq", faq.id).map((id) =>
+          FileService.getAttachmentMetadata(id).then((m) => {
+            setMetadata(id, m);
+            addExistingAttachment(id, m);
+            return [id, m];
+          })
+        );
+
+        await Promise.all(promises);
+      };
+      init();
     } else {
       // Reset for new FAQ, default to first available category
       setQuestion("");
@@ -59,6 +85,10 @@ export default function FaqEditModal() {
     }
   }, [departmentId, subDepartmentsForCategory, subDepartmentId]);
 
+  const handleClose = () => {
+    setIsEditing(false);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question || !answer || !departmentId) {
@@ -68,16 +98,15 @@ export default function FaqEditModal() {
 
     const deptId = subDepartmentId ?? departmentId;
 
+    const formData = attachments.length > 0 ? getFormData() : undefined;
     if (faq) {
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
       api.FAQsService.updateQuestion(
         faq.id,
         {
           text: question,
           answer,
           departmentId: deptId,
+          deleteAttachments: Object.keys(existingsToDelete),
         },
         formData
       )
@@ -95,7 +124,7 @@ export default function FaqEditModal() {
               (dept) => dept.id === deptId
             )?.name,
           });
-          setIsEditing(false);
+          handleClose();
         })
         .catch((error) => {
           addToast({
@@ -104,35 +133,36 @@ export default function FaqEditModal() {
           });
           console.error("Update FAQ error:", error);
         });
-      return;
+    } else {
+      api.FAQsService.createQuestion(
+        {
+          text: question,
+          answer,
+          departmentId: subDepartmentId ?? departmentId,
+        },
+        formData
+      )
+        .then((response) => {
+          addToast({
+            message: "FAQ Added Successfully!",
+            type: "success",
+          });
+          addFAQ(deptId, response);
+          handleClose();
+        })
+        .catch((error) => {
+          addToast({
+            message: "Failed to add FAQ",
+            type: "error",
+          });
+          console.error("Create FAQ error:", error);
+        });
     }
 
-    // Get FormData from attachment store
-    const formData = attachments.length > 0 ? getFormData() : undefined;
-
-    api.FAQsService.createQuestion(
-      {
-        text: question,
-        answer,
-        departmentId: subDepartmentId ?? departmentId,
-      },
-      formData
-    )
-      .then((response) => {
-        addToast({
-          message: "FAQ Added Successfully!",
-          type: "success",
-        });
-        addFAQ(deptId, response);
-        setIsEditing(false);
-      })
-      .catch((error) => {
-        addToast({
-          message: "Failed to add FAQ",
-          type: "error",
-        });
-        console.error("Create FAQ error:", error);
-      });
+    // Clear attachment store state
+    clearAttachments();
+    clearExistingsToDelete();
+    setExistingAttachments({});
   };
 
   const modalTitle = faq && faq.answer ? "Edit FAQ" : "Add New FAQ";
@@ -144,7 +174,7 @@ export default function FaqEditModal() {
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={() => setIsEditing(false)}
+      onClick={handleClose}
       aria-modal="true"
       role="dialog"
     >
@@ -242,12 +272,15 @@ export default function FaqEditModal() {
             <AttachmentInput
               id="faq-attachment-input"
               onAttachmentsChange={setAttachments}
+              attachmentType="faq"
+              attachmentId={faq?.id}
+              getAttachmentTokens={getAttachments}
             />
           </div>
           <div className="mt-8 flex justify-end gap-4">
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
+              onClick={handleClose}
               className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
             >
               Cancel

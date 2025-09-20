@@ -5,9 +5,11 @@ import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
 import { useEffect } from "react";
 import { FAQsService } from "@/lib/api";
 import RefreshButton from "@/components/ui/RefreshButton";
+import { useFAQAttachments } from "@/lib/store/useAttachmentsStore";
 
 export default function FaqsTable() {
   const { faqs: storedFaqs, setFAQs } = useGroupedFAQsStore();
+  const { setFAQAttachments } = useFAQAttachments();
 
   useEffect(() => {
     loadFAQs();
@@ -17,7 +19,8 @@ export default function FaqsTable() {
     FAQsService.getGrouped().then((res) => {
       // Handle new response structure with attachments
       setFAQs(res.questions);
-      // Note: attachments are available in res.attachments if needed
+      // Set attachments to the store
+      setFAQAttachments(res.attachments);
     });
   }
 

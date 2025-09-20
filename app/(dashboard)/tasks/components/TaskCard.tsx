@@ -14,7 +14,26 @@ import Check from "@/icons/Check";
 import X from "@/icons/X";
 import { useTasksStore } from "../../store/useTasksStore";
 import { useTaskDetailsStore } from "../store/useTaskDetailsStore";
+import { useCurrentEditingTaskStore } from "../store/useCurrentEditingTaskStore";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import SquareArrow from "@/icons/SquareArrow";
+import Pencil from "@/icons/Pencil";
+// Custom PaperClip icon component
+const PaperClipIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+    />
+  </svg>
+);
 
 export default function TaskCard({ task }: { task: Task }) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -22,6 +41,8 @@ export default function TaskCard({ task }: { task: Task }) {
   const { openModal } = useConfirmationModalStore();
   const { updateTask, deleteTask } = useTasksStore();
   const { openDetails } = useTaskDetailsStore();
+  const { setTask, setIsEditing } = useCurrentEditingTaskStore();
+  const { getAttachments } = useAttachmentsStore();
 
   const handleApprove = async () => {
     try {
@@ -53,6 +74,7 @@ export default function TaskCard({ task }: { task: Task }) {
   const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (task.title && task.description && task.createdAt) {
+      const taskAttachments = getAttachments("task", task.id);
       openDetails({
         id: task.id,
         title: task.title,
@@ -66,6 +88,7 @@ export default function TaskCard({ task }: { task: Task }) {
         createdAt: task.createdAt,
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
+        attachments: taskAttachments,
       });
     }
   };
@@ -117,6 +140,14 @@ export default function TaskCard({ task }: { task: Task }) {
             >
               {task.priority || "MEDIUM"}
             </span>
+
+            {getAttachments("task", task.id).length > 0 && (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 flex items-center gap-1">
+                <PaperClipIcon className="w-3 h-3" />
+                {getAttachments("task", task.id).length} attachment
+                {getAttachments("task", task.id).length !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
         </div>
 
@@ -158,6 +189,17 @@ export default function TaskCard({ task }: { task: Task }) {
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
+          <button
+            onClick={() => {
+              setTask(task);
+              setIsEditing(true);
+            }}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
+            title="Edit Task"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+
           {task.status !== "COMPLETED" &&
             task.status !== "TODO" &&
             task.status !== "SEEN" && (

@@ -121,6 +121,7 @@ export interface UpdateQuestionInputDto {
   answer?: string;
   departmentId?: string;
   // knowledgeChunkId?: string;
+  deleteAttachments?: string[];
 }
 
 export interface ApproveTaskInputDto {

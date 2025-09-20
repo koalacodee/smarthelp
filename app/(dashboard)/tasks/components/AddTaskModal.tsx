@@ -24,6 +24,7 @@ import {
   Attachment,
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -52,7 +53,13 @@ type AddTaskModalProps = {
 export default function AddTaskModal({ role }: AddTaskModalProps) {
   const { addToast } = useToastStore();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData } = useAttachmentStore();
+  const {
+    getFormData,
+    clearAttachments,
+    clearExistingsToDelete,
+    setExistingAttachments,
+  } = useAttachmentStore();
+  const { getAttachments } = useAttachmentsStore();
   const {
     register,
     handleSubmit,
@@ -86,6 +93,17 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       });
     }
   }, [selectedSubDepartmentId]);
+
+  const handleClose = () => {
+    // Clear attachment store state
+    clearAttachments();
+    clearExistingsToDelete();
+    setExistingAttachments({});
+
+    // Reset form and close modal
+    reset();
+    setOpen(false);
+  };
 
   const onSubmit = async (data: AdminTaskFormData | SupervisorTaskFormData) => {
     try {
@@ -127,6 +145,11 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
         message: "Task created successfully!",
         type: "success",
       });
+
+      // Clear attachment store state
+      clearAttachments();
+      clearExistingsToDelete();
+      setExistingAttachments({});
 
       reset();
       setOpen(false);
@@ -325,12 +348,14 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   <AttachmentInput
                     id="task-attachment"
                     onAttachmentsChange={setAttachments}
+                    attachmentType="task"
+                    getAttachmentTokens={getAttachments}
                   />
 
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
-                      onClick={() => setOpen(false)}
+                      onClick={handleClose}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
                       Cancel

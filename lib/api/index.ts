@@ -617,12 +617,35 @@ export interface MyTasksResponse extends TaskAttachmentsResponse {
   };
 }
 
+export interface DepartmentLevelTaskData
+  extends TaskData<Omit<Task, "targetSubDepartment">> {
+  attachments: { [taskId: string]: string[] };
+}
+
+export interface UpdateTaskDto {
+  title?: string;
+  description?: string;
+  dueDate?: Date;
+  departmentId?: string;
+  assigneeId?: string;
+  assignerId?: string;
+  approverId?: string | null;
+  targetDepartmentId?: string;
+  targetSubDepartmentId?: string;
+  completedAt?: Date | null;
+  priority?: "HIGH" | "MEDIUM" | "LOW";
+  notes?: string | null;
+  feedback?: string | null;
+  attach?: boolean;
+  deleteAttachments?: string[];
+}
+
 export const TasksService = {
   getDepartmentLevel: async () => {
     const response = await api.get<{
-      data: TaskData<Omit<Task, "targetSubDepartment">>;
+      data: DepartmentLevelTaskData;
     }>("/tasks/admin/department-level");
-    return response.data.data.data;
+    return response.data.data;
   },
   getSubDepartmentLevel: async () => {
     const response = await api.get<{
@@ -694,6 +717,22 @@ export const TasksService = {
     return api
       .post<{ data: Datum }>(`/tasks/${taskId}/reject`, { feedback })
       .then((res) => res.data.data);
+  },
+  updateTask: async (id: string, dto: UpdateTaskDto, formData?: FormData) => {
+    const response = await api.put<{
+      data: {
+        task: Datum;
+        uploadKey?: string;
+      };
+    }>(`/tasks/${id}`, {
+      ...dto,
+      attach: !!formData,
+    });
+
+    if (response.data.data.uploadKey && formData) {
+      await FileService.upload(response.data.data.uploadKey, formData);
+    }
+    return response.data.data.task;
   },
 };
 
@@ -963,4 +1002,5 @@ export default {
   PromotionService,
   EmployeeService,
   UserActivityService,
+  FileService,
 };

@@ -4,6 +4,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import InitializeUser from "@/components/InitializeUser";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationSystem from "@/components/NotificationSystem";
+import MediaPreviewModal from "@/components/ui/MediaPreviewModal";
 
 export default async function RootLayout({
   children,
@@ -30,6 +31,7 @@ export default async function RootLayout({
         </div>
       </div>
       <NotificationSystem />
+      <MediaPreviewModal />
     </>
   );
 }
