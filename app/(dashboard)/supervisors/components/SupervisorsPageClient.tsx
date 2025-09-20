@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import SupervisorEditModal from "./SupervisorEditModal";
 import SupervisorsTable from "./SupervisorsTable";
-import { useSupervisorsStore } from "../store/useSupervisorsStore";
+import { useSupervisorStore } from "@/lib/store/useSupervisorStore";
 import { useCurrentEditingSupervisorStore } from "../store/useCurrentEditingSupervisorStore";
 import { SupervisorsService } from "@/lib/api/index";
 
@@ -14,7 +14,8 @@ interface SupervisorsPageClientProps {
 export default function SupervisorsPageClient({
   initialSupervisors,
 }: SupervisorsPageClientProps) {
-  const { supervisors, setSupervisors } = useSupervisorsStore();
+  const { entities: supervisors, setEntities: setSupervisors } =
+    useSupervisorStore();
   const { setSupervisor, setIsEditing, isEditing } =
     useCurrentEditingSupervisorStore();
   const [searchTerm, setSearchTerm] = useState("");

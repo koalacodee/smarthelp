@@ -5,7 +5,7 @@ import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import TaskCard from "./TaskCard";
 import DetailedTaskCard from "./DetailedTaskCard";
 import EditTaskModal from "./EditTaskModal";
-import { useTasksStore } from "../../store/useTasksStore";
+import { useTaskStore } from "@/lib/store/useTaskStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 
@@ -23,7 +23,7 @@ export default function TasksPageClient({
   userRole,
 }: TasksPageClientProps) {
   const { user } = useUserStore();
-  const { tasks, setTasks, isLoading, setLoading, error } = useTasksStore();
+  const { tasks, setTasks, isLoading, setLoading, error } = useTaskStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
 
@@ -55,7 +55,7 @@ export default function TasksPageClient({
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {tasks.map((task) => (
+          {tasks.map((task: any) => (
             <div
               key={task.id}
               className="bg-background p-4 rounded-md shadow-md"

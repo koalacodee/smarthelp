@@ -26,5 +26,3 @@ export const useUserStore = create<UserStore>((set, get) => ({
     set({ user, initialized: true });
   },
 }));
-
-// Cu
