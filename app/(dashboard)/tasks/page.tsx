@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Metadata } from "next";
+import { DepartmentsService, TasksService } from "@/lib/api";
 import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
-import TasksPage from "./components/TasksPage";
+import TasksPageClient from "./components/TasksPageClient";
 
 export const metadata: Metadata = {
   title: "Tasks | Task Management System",
@@ -21,6 +22,28 @@ export default async function Page() {
     return redirect("/tasks/my-tasks");
   }
 
+  // Fetch data based on user role
+  let tasks: any[] = [];
+  let departments: any[] = [];
+  let subDepartments: any[] = [];
+
+  if (userRole === "ADMIN") {
+    const [departmentData, departmentsData] = await Promise.all([
+      TasksService.getDepartmentLevel(),
+      DepartmentsService.getAllDepartments(),
+    ]);
+    tasks = departmentData.data;
+    departments = departmentsData;
+  } else if (userRole === "SUPERVISOR") {
+    const [subDepartmentsData, subTasks, empTasks] = await Promise.all([
+      DepartmentsService.getAllSubDepartments(),
+      TasksService.getSubDepartmentLevel(),
+      TasksService.getEmployeeLevel(),
+    ]);
+    tasks = [...subTasks, ...empTasks];
+    subDepartments = subDepartmentsData;
+  }
+
   return (
     <>
       <div className="space-y-6">
@@ -29,7 +52,12 @@ export default async function Page() {
           <AddTaskButton />
         </div>
 
-        <TasksPage />
+        <TasksPageClient
+          initialTasks={tasks}
+          initialDepartments={departments}
+          initialSubDepartments={subDepartments}
+          userRole={userRole}
+        />
 
         <AddTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />
         <SubmitWorkModal />

@@ -1,4 +1,3 @@
-"use client";
 import { Department as DepartmentType } from "@/lib/api/departments";
 import EyeIcon from "@/icons/Eye";
 import EyeSlashIcon from "@/icons/EyeSlash";
