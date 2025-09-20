@@ -1,11 +1,15 @@
 "use client";
-import { MyTasksApiResponse } from "@/lib/api/types/my-tasks.types";
+import { useEffect } from "react";
 import { MyTasksResponse } from "@/lib/api";
 import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
 import MyTasksActions from "./MyTasksActions";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
 import SubmitWorkModal from "../../components/SubmitWorkModal";
+import { useTaskDetailsStore } from "../../store/useTaskDetailsStore";
+import DetailedTaskCard from "../../components/DetailedTaskCard";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
+import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 
 const getDueDateStatus = (dueDate: string, status: string) => {
   if (status === "COMPLETED") {
@@ -41,9 +45,40 @@ const getDueDateStatus = (dueDate: string, status: string) => {
 
 export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openModal } = useSubmitWorkModalStore();
+  const { openDetails } = useTaskDetailsStore();
+  const { getAttachments } = useAttachmentsStore();
+  const { setTaskAttachments } = useTaskAttachments();
 
-  const onTaskClick = (task: (typeof data.tasks)[0]) => {
+  // Store attachments from the response
+  useEffect(() => {
+    if (data.attachments) {
+      setTaskAttachments(data.attachments);
+    }
+  }, [data.attachments]);
+
+  const onTaskClick = (task: (typeof data.data)[0]) => {
     openModal(task);
+  };
+
+  const handlePreviewClick = (task: (typeof data.data)[0]) => {
+    if (task.title && task.description && task.createdAt) {
+      const taskAttachments = getAttachments("task", task.id);
+      openDetails({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        dueDate: task.dueDate,
+        status: task.status || "",
+        priority: task.priority || "",
+        targetDepartment: task.targetDepartment,
+        targetSubDepartment: task.targetSubDepartment,
+        assignee: task.assignee,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt || "",
+        notes: task.notes || "",
+        attachments: taskAttachments,
+      });
+    }
   };
 
   return (
@@ -51,9 +86,9 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
       <MyTasksDashboard total={data.total} {...data.metrics} />
       <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
         <ul className="list-none">
-          {data.tasks.map((task) => (
+          {data.data.map((task) => (
             <li
-              onClick={() => onTaskClick(task)}
+              // onClick={() => onTaskClick(task)}
               key={task.id}
               className="py-4 border-b border-dashed border-[#e2e8f0] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2"
             >
@@ -78,13 +113,17 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                   </span>
                 </div>
               </div>
-              <MyTasksActions taskId={task.id} />
+              <MyTasksActions
+                onTaskClick={() => onTaskClick(task)}
+                onPreviewClick={() => handlePreviewClick(task)}
+              />
             </li>
           ))}
         </ul>
       </div>
       <MyTasksFilters />
       <SubmitWorkModal />
+      <DetailedTaskCard />
     </div>
   );
 }

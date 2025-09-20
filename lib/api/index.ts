@@ -607,7 +607,7 @@ export interface MultipleTasksResponse extends TaskAttachmentsResponse {
 }
 
 export interface MyTasksResponse extends TaskAttachmentsResponse {
-  tasks: Task[];
+  data: Task[];
   total: number;
   canSubmitWork: boolean[];
   metrics: {
