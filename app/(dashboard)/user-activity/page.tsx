@@ -1,6 +1,13 @@
+import { Metadata } from "next";
 import { UserActivityService } from "@/lib/api";
 import UserActivityReport from "./components/UserActivityReport";
 import UserPerformanceTable from "./components/UserPerformanceTable";
+
+export const metadata: Metadata = {
+  title: "User Activity | Performance Analytics",
+  description:
+    "Monitor user activity, performance metrics, and team productivity analytics",
+};
 
 export default async function Page() {
   const report = await UserActivityService.getUserActivity();

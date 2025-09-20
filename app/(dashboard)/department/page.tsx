@@ -1,7 +1,14 @@
+import { Metadata } from "next";
 import { DepartmentsService } from "@/lib/api";
 import DepartmentsContainer from "./components/DepartmentsContainer";
 import DepartmentEditingModal from "./components/DepartmentEditingModal";
 import AddDepartmentButton from "./components/AddDepartmentButton";
+
+export const metadata: Metadata = {
+  title: "Departments | Organization Management",
+  description:
+    "Manage organizational departments, create and edit department structures",
+};
 
 export default async function DepartmentsPage() {
   const departments = await DepartmentsService.getAllDepartments();

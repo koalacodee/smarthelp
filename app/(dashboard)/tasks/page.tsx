@@ -1,9 +1,15 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Metadata } from "next";
 import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPage from "./components/TasksPage";
+
+export const metadata: Metadata = {
+  title: "Tasks | Task Management System",
+  description: "Manage and track team tasks, assignments, and project progress",
+};
 
 type UserRole = "EMPLOYEE" | "ADMIN" | "SUPERVISOR";
 

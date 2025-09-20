@@ -1,5 +1,12 @@
+import { Metadata } from "next";
 import { UserActivityService } from "@/lib/api";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Analytics | Dashboard Insights",
+  description:
+    "View analytics and insights for FAQ performance, ticket metrics, and user activity",
+};
 
 export const revalidate = 1;
 

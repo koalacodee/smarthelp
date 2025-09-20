@@ -1,8 +1,15 @@
+import { Metadata } from "next";
 import { FAQsService } from "@/lib/api";
 import FaqEditModal from "./components/FaqEditModal";
 import FaqsTable from "./components/FaqsTable";
 import AddNewFaqButton from "./components/AddNewFaqButton";
 import { Question } from "@/lib/api/types";
+
+export const metadata: Metadata = {
+  title: "FAQs | Knowledge Base Management",
+  description:
+    "Manage frequently asked questions, create and edit FAQ entries for better customer support",
+};
 
 export interface GroupedFAQs {
   departmentId: string;

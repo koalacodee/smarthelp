@@ -1,8 +1,14 @@
-// أعلى صفحة /vehicles أو /department
+import { Metadata } from "next";
 import api from "@/lib/api";
 import VehiclesContainer from "./components/VehiclesContainer";
 import AddNewVehicle from "./components/AddNewVehicle";
 import VehicleEditingModal from "./components/VehicleEditingModal";
+
+export const metadata: Metadata = {
+  title: "Vehicles | Fleet Management",
+  description:
+    "Manage vehicle fleet, track vehicle information, and monitor fleet operations",
+};
 
 export default async function Page() {
   const vehicles = await api.VehiclesService.getAllVehicles();
