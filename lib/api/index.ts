@@ -622,6 +622,15 @@ export interface DepartmentLevelTaskData
   attachments: { [taskId: string]: string[] };
 }
 
+export interface SubDepartmentLevelTaskData
+  extends TaskData<Omit<Task, "targetDepartment">> {
+  attachments: { [taskId: string]: string[] };
+}
+
+export interface EmployeeLevelTaskData extends TaskData<Datum> {
+  attachments: { [taskId: string]: string[] };
+}
+
 export interface UpdateTaskDto {
   title?: string;
   description?: string;
@@ -649,15 +658,15 @@ export const TasksService = {
   },
   getSubDepartmentLevel: async () => {
     const response = await api.get<{
-      data: TaskData<Omit<Task, "targetDepartment">>;
+      data: SubDepartmentLevelTaskData;
     }>("/tasks/supervisor/sub-department");
-    return response.data.data.data;
+    return response.data.data;
   },
   getEmployeeLevel: async () => {
-    const response = await api.get<{ data: TaskData<Datum> }>(
+    const response = await api.get<{ data: EmployeeLevelTaskData }>(
       "/tasks/supervisor/employee-level"
     );
-    return response.data.data.data;
+    return response.data.data;
   },
   createTask: async (dto: CreateTaskDto, formData?: FormData) => {
     const response = await api.post<{

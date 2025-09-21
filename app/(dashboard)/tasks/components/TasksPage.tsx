@@ -25,7 +25,11 @@ export default function TasksPage() {
           TasksService.getSubDepartmentLevel(),
           TasksService.getEmployeeLevel(),
         ]);
-        setTasks([...subTasks, ...empTasks]);
+        setTasks([...subTasks.data, ...empTasks.data]);
+        setTaskAttachments({
+          ...subTasks.attachments,
+          ...empTasks.attachments,
+        });
         setLoading(false);
       } else if (user?.role === "ADMIN") {
         if (user?.role === "ADMIN") {

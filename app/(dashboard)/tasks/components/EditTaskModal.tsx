@@ -116,13 +116,14 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   ]);
 
   useEffect(() => {
-    // When department changes, reset sub-department if it's no longer valid
+    // When department changes, reset sub-department if it's no longer valid (only for admin role)
     if (
+      role === "admin" &&
       !subDepartmentsForCategory.some((sd) => sd.id === targetSubDepartmentId)
     ) {
       setTargetSubDepartmentId("");
     }
-  }, [departmentId, subDepartmentsForCategory, targetSubDepartmentId]);
+  }, [departmentId, subDepartmentsForCategory, targetSubDepartmentId, role]);
 
   useEffect(() => {
     if (targetSubDepartmentId) {
