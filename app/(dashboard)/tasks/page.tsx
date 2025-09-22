@@ -40,7 +40,7 @@ export default async function Page() {
       TasksService.getSubDepartmentLevel(),
       TasksService.getEmployeeLevel(),
     ]);
-    tasks = [...subTasks, ...empTasks];
+    tasks = [...subTasks.data, ...empTasks.data];
     subDepartments = subDepartmentsData;
   }
 

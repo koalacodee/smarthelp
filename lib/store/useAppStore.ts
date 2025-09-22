@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { AppNotification } from "@/types";
 
 // Global UI state
 interface UIState {
@@ -13,9 +14,9 @@ interface UIState {
   setTheme: (theme: "light" | "dark" | "system") => void;
 
   // Notifications
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, "id">) => void;
-  removeNotification: (id: string) => void;
+  notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, "id">) => void;
+  removeNotification: (id: number) => void;
   clearNotifications: () => void;
 }
 
@@ -96,7 +97,7 @@ export const useAppStore = create<GlobalStore>()(
         set((state) => ({
           notifications: [
             ...state.notifications,
-            { ...notification, id: Date.now().toString() },
+            { ...notification, id: Date.now() },
           ],
         })),
       removeNotification: (id) =>

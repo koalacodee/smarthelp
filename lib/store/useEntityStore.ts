@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-interface BaseEntity {
+export interface BaseEntity {
   id: string;
   updatedAt?: string;
 }
@@ -92,14 +92,14 @@ export function createEntityStore<T extends BaseEntity>(
     setError: (error) => set({ error }),
 
     // Utility actions
-    getEntityById: (id) => {
+    getEntityById: (id: string) => {
       const state = get();
-      return state.entities.find((entity) => entity.id === id);
+      return state.entities.find((entity: T) => entity.id === id);
     },
 
-    getEntitiesByField: (field, value) => {
+    getEntitiesByField: <K extends keyof T>(field: K, value: T[K]) => {
       const state = get();
-      return state.entities.filter((entity) => entity[field] === value);
+      return state.entities.filter((entity: T) => entity[field] === value);
     },
   });
 

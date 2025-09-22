@@ -71,7 +71,7 @@ Object.assign(ticketStore, {
     const state = useTicketStore.getState();
     const isSelected = state.selectedTickets.includes(ticketId);
     const newSelection = isSelected
-      ? state.selectedTickets.filter((id) => id !== ticketId)
+      ? state.selectedTickets.filter((id: string) => id !== ticketId)
       : [...state.selectedTickets, ticketId];
     useTicketStore.setState({ selectedTickets: newSelection });
   },
@@ -80,20 +80,20 @@ Object.assign(ticketStore, {
 
   getTicketsByStatus: (status: string) => {
     const state = useTicketStore.getState();
-    return state.entities.filter((ticket) => ticket.status === status);
+    return state.entities.filter((ticket: Ticket) => ticket.status === status);
   },
 
   getTicketsByDepartment: (departmentId: string) => {
     const state = useTicketStore.getState();
     return state.entities.filter(
-      (ticket) => ticket.departmentId === departmentId
+      (ticket: Ticket) => ticket.departmentId === departmentId
     );
   },
 
   getTicketsByAssignee: (assigneeId: string) => {
     const state = useTicketStore.getState();
     return state.entities.filter(
-      (ticket) => ticket.assignee?.userId === assigneeId
+      (ticket: Ticket) => ticket.assignee?.userId === assigneeId
     );
   },
 });

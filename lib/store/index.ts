@@ -3,7 +3,7 @@ export { useAppStore } from "./useAppStore";
 
 // Entity stores
 export { useTaskStore } from "./useTaskStore";
-export { useTicketStore } from "./useSupervisorStore";
+export { useTicketStore } from "./useTicketStore";
 export { useSupervisorStore } from "./useSupervisorStore";
 export { useDepartmentStore } from "./useDepartmentStore";
 
