@@ -19,6 +19,38 @@ type EditTaskModalProps = {
   role: "admin" | "supervisor";
 };
 
+// Helper function to calculate reminder in milliseconds
+const calculateReminderMilliseconds = (
+  days?: number,
+  hours?: number,
+  minutes?: number
+): number | undefined => {
+  if (!days && !hours && !minutes) return undefined;
+
+  const totalDays = days || 0;
+  const totalHours = hours || 0;
+  const totalMinutes = minutes || 0;
+
+  // Convert everything to milliseconds
+  const daysInMs = totalDays * 24 * 60 * 60 * 1000;
+  const hoursInMs = totalHours * 60 * 60 * 1000;
+  const minutesInMs = totalMinutes * 60 * 1000;
+
+  return daysInMs + hoursInMs + minutesInMs;
+};
+
+// Helper function to convert milliseconds back to days, hours, minutes
+const convertMillisecondsToTime = (milliseconds?: number) => {
+  if (!milliseconds) return { days: 0, hours: 0, minutes: 0 };
+
+  const totalMinutes = Math.floor(milliseconds / (1000 * 60));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  return { days, hours, minutes };
+};
+
 export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -27,6 +59,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [assigneeId, setAssigneeId] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [dueDate, setDueDate] = useState("");
+  const [reminderDays, setReminderDays] = useState<number>(0);
+  const [reminderHours, setReminderHours] = useState<number>(0);
+  const [reminderMinutes, setReminderMinutes] = useState<number>(0);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
@@ -74,6 +109,12 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         setPriority(task.priority || "MEDIUM");
         setDueDate(task.dueDate || "");
 
+        // Load existing reminder interval values
+        const reminderTime = convertMillisecondsToTime(task.reminderInterval);
+        setReminderDays(reminderTime.days);
+        setReminderHours(reminderTime.hours);
+        setReminderMinutes(reminderTime.minutes);
+
         if (role === "admin") {
           setDepartmentId(task.targetDepartment?.id || "");
         } else {
@@ -98,6 +139,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       setDescription("");
       setPriority("MEDIUM");
       setDueDate("");
+      setReminderDays(0);
+      setReminderHours(0);
+      setReminderMinutes(0);
       setDepartmentId("");
       setTargetSubDepartmentId("");
       setAssigneeId("");
@@ -159,11 +203,19 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     if (!task?.id) return;
 
     try {
+      // Calculate reminder in milliseconds
+      const reminderMs = calculateReminderMilliseconds(
+        reminderDays,
+        reminderHours,
+        reminderMinutes
+      );
+
       let updateTaskDto: UpdateTaskDto = {
         title,
         description,
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined,
+        reminderInterval: reminderMs,
       };
 
       if (role === "admin") {
@@ -376,6 +428,76 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Reminder Interval (Optional)
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label
+                    htmlFor="reminder-days"
+                    className="block text-xs text-slate-500 mb-1"
+                  >
+                    Days
+                  </label>
+                  <input
+                    id="reminder-days"
+                    type="number"
+                    min="0"
+                    value={reminderDays}
+                    onChange={(e) =>
+                      setReminderDays(Number(e.target.value) || 0)
+                    }
+                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="reminder-hours"
+                    className="block text-xs text-slate-500 mb-1"
+                  >
+                    Hours
+                  </label>
+                  <input
+                    id="reminder-hours"
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={reminderHours}
+                    onChange={(e) =>
+                      setReminderHours(Number(e.target.value) || 0)
+                    }
+                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="reminder-minutes"
+                    className="block text-xs text-slate-500 mb-1"
+                  >
+                    Minutes
+                  </label>
+                  <input
+                    id="reminder-minutes"
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={reminderMinutes}
+                    onChange={(e) =>
+                      setReminderMinutes(Number(e.target.value) || 0)
+                    }
+                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Set a recurring reminder interval
+              </p>
             </div>
 
             <AttachmentInput

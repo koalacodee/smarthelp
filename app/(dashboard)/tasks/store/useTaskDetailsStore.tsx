@@ -22,6 +22,7 @@ type TaskDetails = {
   updatedAt: string;
   notes?: string;
   attachments?: string[];
+  reminderInterval?: number;
 };
 
 type TaskDetailsStore = {

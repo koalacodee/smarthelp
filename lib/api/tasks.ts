@@ -21,6 +21,7 @@ export interface Datum {
   title?: string;
   updatedAt?: string;
   dueDate?: string;
+  reminderInterval?: number;
 }
 
 export interface Assignee {
@@ -113,6 +114,7 @@ export interface Task {
   dueDate?: string;
   assignee?: Assignee;
   notes?: string;
+  reminderInterval?: number;
 }
 
 export interface TargetDepartment {
@@ -132,6 +134,7 @@ export interface CreateTaskDto {
   title: string;
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate?: string;
+  reminderInterval?: number;
 }
 
 export enum TaskAssignmentType {

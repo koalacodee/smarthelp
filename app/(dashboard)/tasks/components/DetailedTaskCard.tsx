@@ -27,6 +27,23 @@ const PaperClipIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Helper function to convert milliseconds to readable format
+const formatReminderInterval = (milliseconds?: number): string => {
+  if (!milliseconds || milliseconds <= 0) return "";
+
+  const totalMinutes = Math.floor(milliseconds / (1000 * 60));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+  if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+
+  return parts.length > 0 ? parts.join(", ") : "";
+};
+
 export default function DetailedTaskCard() {
   const { isOpen, currentTask, closeDetails } = useTaskDetailsStore();
   const { openPreview } = useMediaPreviewStore();
@@ -153,6 +170,18 @@ export default function DetailedTaskCard() {
                           : "Not set"}
                       </p>
                     </div>
+
+                    {currentTask.reminderInterval && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          Reminder Interval
+                        </h3>
+                        <p className="text-blue-600 font-medium">
+                          Every{" "}
+                          {formatReminderInterval(currentTask.reminderInterval)}
+                        </p>
+                      </div>
+                    )}
 
                     {currentTask.targetDepartment && (
                       <div>

@@ -35,6 +35,23 @@ const PaperClipIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Helper function to convert milliseconds to readable format
+const formatReminderInterval = (milliseconds?: number): string => {
+  if (!milliseconds || milliseconds <= 0) return "";
+
+  const totalMinutes = Math.floor(milliseconds / (1000 * 60));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+
+  return parts.length > 0 ? parts.join(" ") : "";
+};
+
 export default function TaskCard({ task }: { task: Task }) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const { addToast } = useToastStore();
@@ -89,75 +106,87 @@ export default function TaskCard({ task }: { task: Task }) {
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
         attachments: taskAttachments,
+        reminderInterval: task.reminderInterval,
       });
     }
   };
 
   return (
     <>
-      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow w-full relative">
-        {/* Title + Badges */}
-        <div className="flex flex-col justify-between items-start gap-3 mb-4">
-          {/* Title */}
-          <div className="flex items-center gap-3 min-w-0">
-            <CheckCircle className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground truncate w-[60%]">
-              {task.title}
-            </h3>
-            <button
-              onClick={handleDetailsClick}
-              className="absolute top-0.5 right-0.5 text-muted-foreground hover:text-primary transition-colors"
-              title="View details"
-            >
-              <SquareArrow className="w-5 h-5" />
-            </button>
+      <div className="bg-white rounded-xl p-6 border border-gray-200 w-full relative shadow-sm">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">
+                {task.title}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                {task.description}
+              </p>
+            </div>
           </div>
-
-          {/* Badges */}
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <span
-              className={`px-2 py-1 text-xs font-medium rounded-full ${
-                task.status === "PENDING_REVIEW"
-                  ? "bg-blue-100 text-blue-800"
-                  : task.status === "SEEN"
-                  ? "bg-amber-100 text-amber-800"
-                  : task.status === "COMPLETED"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-800"
-              }`}
-            >
-              {task?.status?.replace("_", " ") || "TODO"}
-            </span>
-
-            <span
-              className={`px-2 py-1 text-xs font-medium rounded-full ${
-                task.priority === "HIGH"
-                  ? "bg-red-100 text-red-800"
-                  : task.priority === "MEDIUM"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-green-100 text-green-800"
-              }`}
-            >
-              {task.priority || "MEDIUM"}
-            </span>
-
-            {getAttachments("task", task.id).length > 0 && (
-              <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 flex items-center gap-1">
-                <PaperClipIcon className="w-3 h-3" />
-                {getAttachments("task", task.id).length} attachment
-                {getAttachments("task", task.id).length !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
+          <button
+            onClick={handleDetailsClick}
+            className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="View details"
+          >
+            <SquareArrow className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Badges */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <span
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full ${
+              task.status === "PENDING_REVIEW"
+                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                : task.status === "SEEN"
+                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                : task.status === "COMPLETED"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-gray-50 text-gray-700 border border-gray-200"
+            }`}
+          >
+            {task?.status?.replace("_", " ") || "TODO"}
+          </span>
+
+          <span
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full ${
+              task.priority === "HIGH"
+                ? "bg-red-50 text-red-700 border border-red-200"
+                : task.priority === "MEDIUM"
+                ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                : "bg-green-50 text-green-700 border border-green-200"
+            }`}
+          >
+            {task.priority || "MEDIUM"}
+          </span>
+
+          {getAttachments("task", task.id).length > 0 && (
+            <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5">
+              <PaperClipIcon className="w-3 h-3" />
+              {getAttachments("task", task.id).length} attachment
+              {getAttachments("task", task.id).length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {/* Task Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-3 min-w-[160px]">
-              <Briefcase className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-gray-600" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">Assigned To</p>
-                <p className="font-medium">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Assigned To
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
                   {task.assignee?.user?.name ||
                     task.targetSubDepartment?.name ||
                     "Unassigned"}
@@ -165,36 +194,88 @@ export default function TaskCard({ task }: { task: Task }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 min-w-[160px]">
-              <Clock className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                <Clock className="w-5 h-5 text-gray-600" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">Due Date</p>
-                <p className="font-medium">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Due Date
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
                   {task.dueDate
                     ? new Date(task.dueDate).toLocaleDateString()
-                    : "N/A"}
+                    : "Not set"}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Last Updated</p>
-              <p className="font-medium">
-                {new Date(task.updatedAt || new Date()).toLocaleDateString()}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Last Updated
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {new Date(task.updatedAt || new Date()).toLocaleDateString()}
+                </p>
+              </div>
             </div>
+
+            {task.reminderInterval && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Reminder
+                  </p>
+                  <p className="text-sm font-semibold text-blue-600">
+                    Every {formatReminderInterval(task.reminderInterval)}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-4 border-t border-gray-100">
           <button
             onClick={() => {
               setTask(task);
               setIsEditing(true);
             }}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
+            className="p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edit Task"
           >
             <Pencil className="w-4 h-4" />
@@ -206,14 +287,14 @@ export default function TaskCard({ task }: { task: Task }) {
               <>
                 <button
                   onClick={handleApprove}
-                  className="p-2 text-green-600 hover:bg-green-50 rounded-md"
+                  className="p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                   title="Approve"
                 >
                   <Check className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setIsRejectModalOpen(true)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                  className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Reject"
                 >
                   <X className="w-4 h-4" />
@@ -222,7 +303,7 @@ export default function TaskCard({ task }: { task: Task }) {
             )}
           <button
             onClick={handleDelete}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+            className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete"
           >
             <Trash className="w-4 h-4" />

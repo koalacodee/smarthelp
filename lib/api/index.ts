@@ -647,6 +647,7 @@ export interface UpdateTaskDto {
   feedback?: string | null;
   attach?: boolean;
   deleteAttachments?: string[];
+  reminderInterval?: number;
 }
 
 export const TasksService = {

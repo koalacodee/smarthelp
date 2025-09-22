@@ -32,6 +32,9 @@ const adminTaskSchema = z.object({
   departmentId: z.string().min(1, "Department is required"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   dueDate: z.string().optional(),
+  reminderDays: z.number().min(0).optional(),
+  reminderHours: z.number().min(0).max(23).optional(),
+  reminderMinutes: z.number().min(0).max(59).optional(),
 });
 
 const supervisorTaskSchema = z.object({
@@ -41,6 +44,9 @@ const supervisorTaskSchema = z.object({
   assigneeId: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   dueDate: z.string().optional(),
+  reminderDays: z.number().min(0).optional(),
+  reminderHours: z.number().min(0).max(23).optional(),
+  reminderMinutes: z.number().min(0).max(59).optional(),
 });
 
 type AdminTaskFormData = z.infer<typeof adminTaskSchema>;
@@ -48,6 +54,26 @@ type SupervisorTaskFormData = z.infer<typeof supervisorTaskSchema>;
 
 type AddTaskModalProps = {
   role: "admin" | "supervisor";
+};
+
+// Helper function to calculate reminder in milliseconds
+const calculateReminderMilliseconds = (
+  days?: number,
+  hours?: number,
+  minutes?: number
+): number | undefined => {
+  if (!days && !hours && !minutes) return undefined;
+
+  const totalDays = days || 0;
+  const totalHours = hours || 0;
+  const totalMinutes = minutes || 0;
+
+  // Convert everything to milliseconds
+  const daysInMs = totalDays * 24 * 60 * 60 * 1000;
+  const hoursInMs = totalHours * 60 * 60 * 1000;
+  const minutesInMs = totalMinutes * 60 * 1000;
+
+  return daysInMs + hoursInMs + minutesInMs;
 };
 
 export default function AddTaskModal({ role }: AddTaskModalProps) {
@@ -109,6 +135,13 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     try {
       let createTaskDto: CreateTaskDto;
 
+      // Calculate reminder in milliseconds
+      const reminderMs = calculateReminderMilliseconds(
+        data.reminderDays,
+        data.reminderHours,
+        data.reminderMinutes
+      );
+
       if (role === "admin") {
         const adminData = data as AdminTaskFormData;
         createTaskDto = {
@@ -118,6 +151,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           targetDepartmentId: adminData.departmentId,
           priority: adminData.priority,
           dueDate: adminData.dueDate || undefined,
+          reminderInterval: reminderMs,
         };
       } else {
         const supervisorData = data as SupervisorTaskFormData;
@@ -133,6 +167,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           assigneeId: supervisorData.assigneeId || undefined,
           priority: supervisorData.priority,
           dueDate: supervisorData.dueDate || undefined,
+          reminderInterval: reminderMs,
         };
       }
 
@@ -329,6 +364,71 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         className="w-full border border-border rounded-md p-2 bg-background"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Reminder Interval (Optional)
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label
+                          htmlFor="reminder-days"
+                          className="block text-xs text-muted-foreground mb-1"
+                        >
+                          Days
+                        </label>
+                        <input
+                          {...register("reminderDays", { valueAsNumber: true })}
+                          id="reminder-days"
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reminder-hours"
+                          className="block text-xs text-muted-foreground mb-1"
+                        >
+                          Hours
+                        </label>
+                        <input
+                          {...register("reminderHours", {
+                            valueAsNumber: true,
+                          })}
+                          id="reminder-hours"
+                          type="number"
+                          min="0"
+                          max="23"
+                          placeholder="0"
+                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reminder-minutes"
+                          className="block text-xs text-muted-foreground mb-1"
+                        >
+                          Minutes
+                        </label>
+                        <input
+                          {...register("reminderMinutes", {
+                            valueAsNumber: true,
+                          })}
+                          id="reminder-minutes"
+                          type="number"
+                          min="0"
+                          max="59"
+                          placeholder="0"
+                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Set a recurring reminder interval
+                    </p>
                   </div>
 
                   <div>
