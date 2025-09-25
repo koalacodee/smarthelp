@@ -3,14 +3,14 @@ import { create } from "zustand";
 
 export interface Attachment {
   file: File;
-  expirationDate: Date;
+  expirationDate?: Date; // Made optional
 }
 
 export interface ExistingAttachment {
   fileType: string;
   originalName: string;
   sizeInBytes: number;
-  expiryDate: string;
+  expiryDate?: string; // Made optional
   contentType: string;
 }
 
@@ -131,20 +131,24 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
         });
       }
 
-      // Add expiration dates for new files
+      // Add expiration dates for new files (only if they exist)
       if (attachments.length === 1) {
-        // Single attachment - add as single expiration date
-        formData.append(
-          "expirationDate",
-          attachments[0].expirationDate.toISOString()
-        );
-      } else {
-        // Multiple attachments - add as indexed expiration dates
-        attachments.forEach((attachment, index) => {
+        // Single attachment - add as single expiration date if it exists
+        if (attachments[0].expirationDate) {
           formData.append(
-            `expirationDates[${index}]`,
-            attachment.expirationDate.toISOString()
+            "expirationDate",
+            attachments[0].expirationDate.toISOString()
           );
+        }
+      } else {
+        // Multiple attachments - add as indexed expiration dates if they exist
+        attachments.forEach((attachment, index) => {
+          if (attachment.expirationDate) {
+            formData.append(
+              `expirationDates[${index}]`,
+              attachment.expirationDate.toISOString()
+            );
+          }
         });
       }
     }

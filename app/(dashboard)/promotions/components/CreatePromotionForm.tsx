@@ -15,37 +15,52 @@ export default function CreatePromotionForm() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData } = useAttachmentStore();
+  const {
+    getFormData,
+    clearAttachments,
+    clearExistingsToDelete,
+    setExistingAttachments,
+  } = useAttachmentStore();
   const addToast = useToastStore((state) => state.addToast);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Get FormData from attachment store
-    const formData = attachments.length > 0 ? getFormData() : undefined;
 
-    api.PromotionService.createPromotion(
-      {
-        title,
-        audience,
-        startDate,
-        endDate,
-      },
-      formData
-    )
-      .then((promotion) => {
-        addToast({
-          message: "Promotion Created Successfully",
-          type: "success",
-        });
-        // Note: Attachments are handled by the API and will be available in the response
-        // The attachment store is for file uploads, not for storing URLs
-      })
-      .catch(() => {
-        addToast({
-          message: "Failed to create promotion",
-          type: "error",
-        });
+    try {
+      // Get FormData from attachment store
+      const formData = attachments.length > 0 ? getFormData() : undefined;
+
+      await api.PromotionService.createPromotion(
+        {
+          title,
+          audience,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        },
+        formData
+      );
+
+      addToast({
+        message: "Promotion Created Successfully",
+        type: "success",
       });
+
+      // Clear form and attachment store after successful creation
+      setTitle("");
+      setAudience(AudienceType.ALL);
+      setStartDate("");
+      setEndDate("");
+      setAttachments([]);
+      clearAttachments();
+      clearExistingsToDelete();
+      setExistingAttachments({});
+    } catch (error) {
+      console.error("Failed to create promotion:", error);
+      addToast({
+        message: "Failed to create promotion. Please try again.",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -67,12 +82,7 @@ export default function CreatePromotionForm() {
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
-      <AttachmentInput
-        id="promo-attachment"
-        accept="image/*,video/*"
-        onAttachmentsChange={setAttachments}
-        label="Promotion Media (Image or Video)"
-      />
+
       <div>
         <label
           htmlFor="promo-audience"
@@ -124,6 +134,14 @@ export default function CreatePromotionForm() {
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <AttachmentInput
+            id="promo-attachment"
+            accept="image/*,video/*"
+            onAttachmentsChange={setAttachments}
+            label="Promotion Attachments"
           />
         </div>
       </div>

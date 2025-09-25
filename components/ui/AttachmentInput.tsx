@@ -79,7 +79,7 @@ export default function AttachmentInput({
       tokenOrId: attachmentId,
       fileType: attachment.fileType,
       sizeInBytes: attachment.sizeInBytes,
-      expiryDate: attachment.expiryDate,
+      expiryDate: attachment.expiryDate || "",
     });
   };
 
@@ -109,7 +109,7 @@ export default function AttachmentInput({
       tokenOrId: url, // Use the blob URL for new attachments
       fileType: fileType,
       sizeInBytes: attachment.file.size,
-      expiryDate: attachment.expirationDate.toISOString(),
+      expiryDate: attachment.expirationDate?.toISOString() || "",
     });
   };
 
@@ -121,7 +121,8 @@ export default function AttachmentInput({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const isExpired = (expirationDate: Date) => {
+  const isExpired = (expirationDate?: Date) => {
+    if (!expirationDate) return false;
     return new Date() > expirationDate;
   };
 
@@ -153,6 +154,7 @@ export default function AttachmentInput({
                 <div
                   key={`existing-${id}`}
                   className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
+                    attachment.expiryDate &&
                     isExpired(new Date(attachment.expiryDate))
                       ? "bg-red-50 border-red-200 hover:bg-red-100"
                       : "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -167,12 +169,19 @@ export default function AttachmentInput({
                     </p>
                     <p className="text-xs text-slate-500">
                       {formatFileSize(attachment.sizeInBytes)} •{" "}
-                      {attachment.fileType} • Expires:{" "}
-                      {new Date(attachment.expiryDate).toLocaleString()}
-                      {isExpired(new Date(attachment.expiryDate)) && (
-                        <span className="text-red-600 font-medium ml-1">
-                          (EXPIRED)
-                        </span>
+                      {attachment.fileType}
+                      {attachment.expiryDate ? (
+                        <>
+                          {" • Expires: "}
+                          {new Date(attachment.expiryDate).toLocaleString()}
+                          {isExpired(new Date(attachment.expiryDate)) && (
+                            <span className="text-red-600 font-medium ml-1">
+                              (EXPIRED)
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        " • No expiration"
                       )}
                     </p>
                   </div>
@@ -242,6 +251,7 @@ export default function AttachmentInput({
               <div
                 key={`new-${index}`}
                 className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
+                  attachment.expirationDate &&
                   isExpired(attachment.expirationDate)
                     ? "bg-red-50 border-red-200 hover:bg-red-100"
                     : "bg-slate-50 border-slate-200 hover:bg-slate-100"
@@ -253,12 +263,19 @@ export default function AttachmentInput({
                     {attachment.file.name}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {formatFileSize(attachment.file.size)} • Expires:{" "}
-                    {attachment.expirationDate.toLocaleString()}
-                    {isExpired(attachment.expirationDate) && (
-                      <span className="text-red-600 font-medium ml-1">
-                        (EXPIRED)
-                      </span>
+                    {formatFileSize(attachment.file.size)}
+                    {attachment.expirationDate ? (
+                      <>
+                        {" • Expires: "}
+                        {attachment.expirationDate.toLocaleString()}
+                        {isExpired(attachment.expirationDate) && (
+                          <span className="text-red-600 font-medium ml-1">
+                            (EXPIRED)
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      " • No expiration"
                     )}
                   </p>
                 </div>

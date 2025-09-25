@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Attachment,
   useAttachmentStore,
@@ -21,22 +21,10 @@ export default function AttachmentModal({
   accept = "*",
 }: AttachmentModalProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [day, setDay] = useState(1);
-  const [hour, setHour] = useState(0);
-  const [minute, setMinute] = useState(0);
+  const [expirationDate, setExpirationDate] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { addAttachment } = useAttachmentStore();
-
-  // Calculate expiration date based on day, hour, minute
-  const expirationDate = useMemo(() => {
-    const now = new Date();
-    const expiration = new Date(now);
-    expiration.setDate(now.getDate() + day);
-    expiration.setHours(now.getHours() + hour);
-    expiration.setMinutes(now.getMinutes() + minute);
-    return expiration;
-  }, [day, hour, minute]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -72,7 +60,7 @@ export default function AttachmentModal({
     try {
       const attachment: Attachment = {
         file,
-        expirationDate,
+        expirationDate: expirationDate ? new Date(expirationDate) : undefined,
       };
 
       addAttachment(attachment);
@@ -80,9 +68,7 @@ export default function AttachmentModal({
 
       // Reset form
       setFile(null);
-      setDay(1);
-      setHour(0);
-      setMinute(0);
+      setExpirationDate("");
     } catch (error) {
       console.error("Error adding attachment:", error);
       alert("Failed to add attachment. Please try again.");
@@ -93,9 +79,7 @@ export default function AttachmentModal({
 
   const handleClose = () => {
     setFile(null);
-    setDay(1);
-    setHour(0);
-    setMinute(0);
+    setExpirationDate("");
     onClose();
   };
 
@@ -147,61 +131,19 @@ export default function AttachmentModal({
           {/* Expiration Date */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Expiration Date
+              Expiration Date{" "}
+              <span className="text-slate-500 font-normal">(Optional)</span>
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Days
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="365"
-                  value={day}
-                  onChange={(e) =>
-                    setDay(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Hours
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  value={hour}
-                  onChange={(e) =>
-                    setHour(
-                      Math.max(0, Math.min(23, parseInt(e.target.value) || 0))
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Minutes
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={minute}
-                  onChange={(e) =>
-                    setMinute(
-                      Math.max(0, Math.min(59, parseInt(e.target.value) || 0))
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
+            <input
+              type="datetime-local"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)} // Prevent selecting past dates
+              className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+            />
             <p className="text-xs text-slate-500 mt-1">
-              Expires: {expirationDate.toLocaleString()}
+              Leave empty for no expiration. Files without expiration dates will
+              be stored permanently.
             </p>
           </div>
 
