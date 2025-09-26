@@ -1,58 +1,49 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Datum, Task } from "@/lib/api/tasks";
+import { MyTasksResponse } from "@/lib/api";
 
-type TaskType = Datum | Task;
-
-interface TaskFilters {
+interface MyTasksFilters {
   search: string;
   status: string;
   priority: string;
-  assignee: string;
+  category: string;
 }
 
-interface TaskStore {
+interface MyTasksStore {
   // Data
-  tasks: TaskType[];
-  filteredTasks: TaskType[];
-  filters: TaskFilters;
+  tasks: MyTasksResponse["data"];
+  filteredTasks: MyTasksResponse["data"];
+  filters: MyTasksFilters;
+  total: number;
+  metrics: MyTasksResponse["metrics"];
 
   // Loading states
   isLoading: boolean;
-  isCreating: boolean;
-  isUpdating: boolean;
-  isDeleting: boolean;
-
-  // Error handling
   error: string | null;
 
   // Actions
-  setTasks: (tasks: TaskType[]) => void;
-  addTask: (task: TaskType) => void;
-  addTasks: (tasks: TaskType[]) => void;
-  updateTask: (taskId: string, updates: Partial<TaskType>) => void;
-  deleteTask: (taskId: string) => void;
-  clearTasks: () => void;
+  setTasks: (data: MyTasksResponse) => void;
+  updateTask: (
+    taskId: string,
+    updates: Partial<MyTasksResponse["data"][0]>
+  ) => void;
 
   // Filter actions
-  setFilters: (filters: Partial<TaskFilters>) => void;
+  setFilters: (filters: Partial<MyTasksFilters>) => void;
   applyFilters: () => void;
   clearFilters: () => void;
 
   // Loading actions
   setLoading: (loading: boolean) => void;
-  setCreating: (creating: boolean) => void;
-  setUpdating: (updating: boolean) => void;
-  setDeleting: (deleting: boolean) => void;
   setError: (error: string | null) => void;
 
   // Utility actions
-  getTaskById: (id: string) => TaskType | undefined;
-  getTasksByStatus: (status: string) => TaskType[];
-  getTasksByPriority: (priority: string) => TaskType[];
+  getTaskById: (id: string) => MyTasksResponse["data"][0] | undefined;
+  getTasksByStatus: (status: string) => MyTasksResponse["data"];
+  getTasksByPriority: (priority: string) => MyTasksResponse["data"];
 }
 
-export const useTaskStore = create<TaskStore>()(
+export const useMyTasksStore = create<MyTasksStore>()(
   persist(
     (set, get) => ({
       // Initial state
@@ -62,30 +53,26 @@ export const useTaskStore = create<TaskStore>()(
         search: "",
         status: "All",
         priority: "All",
-        assignee: "All",
+        category: "All",
+      },
+      total: 0,
+      metrics: {
+        completedCount: 0,
+        pendingCount: 0,
+        completionPercentage: 0,
       },
       isLoading: false,
-      isCreating: false,
-      isUpdating: false,
-      isDeleting: false,
       error: null,
 
       // Data actions
-      setTasks: (tasks) => {
-        set({ tasks, filteredTasks: tasks });
+      setTasks: (data) => {
+        set({
+          tasks: data.data,
+          filteredTasks: data.data,
+          total: data.total,
+          metrics: data.metrics,
+        });
       },
-
-      addTask: (task) =>
-        set((state) => {
-          const newTasks = [...state.tasks, task];
-          return { tasks: newTasks };
-        }),
-
-      addTasks: (tasks) =>
-        set((state) => {
-          const newTasks = [...state.tasks, ...tasks];
-          return { tasks: newTasks };
-        }),
 
       updateTask: (taskId, updates) =>
         set((state) => ({
@@ -95,13 +82,6 @@ export const useTaskStore = create<TaskStore>()(
               : task
           ),
         })),
-
-      deleteTask: (taskId) =>
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== taskId),
-        })),
-
-      clearTasks: () => set({ tasks: [], filteredTasks: [] }),
 
       // Filter actions
       setFilters: (newFilters) => {
@@ -149,21 +129,14 @@ export const useTaskStore = create<TaskStore>()(
           );
         }
 
-        // Assignee filter
-        if (filters.assignee === "Assigned") {
-          filtered = filtered.filter(
-            (task) =>
-              task.assignee ||
-              (task as any).targetSubDepartment ||
-              (task as any).targetDepartment
-          );
-        } else if (filters.assignee === "Unassigned") {
-          filtered = filtered.filter(
-            (task) =>
-              !task.assignee &&
-              !(task as any).targetSubDepartment &&
-              !(task as any).targetDepartment
-          );
+        // Category filter (this is a custom filter for my-tasks)
+        if (filters.category !== "All") {
+          // You can implement category logic based on your requirements
+          // For now, we'll use a simple example
+          filtered = filtered.filter((task) => {
+            // This is a placeholder - implement based on your category logic
+            return true;
+          });
         }
 
         set({ filteredTasks: filtered });
@@ -175,7 +148,7 @@ export const useTaskStore = create<TaskStore>()(
             search: "",
             status: "All",
             priority: "All",
-            assignee: "All",
+            category: "All",
           },
         });
         get().applyFilters();
@@ -183,9 +156,6 @@ export const useTaskStore = create<TaskStore>()(
 
       // Loading actions
       setLoading: (isLoading) => set({ isLoading }),
-      setCreating: (isCreating) => set({ isCreating }),
-      setUpdating: (isUpdating) => set({ isUpdating }),
-      setDeleting: (isDeleting) => set({ isDeleting }),
       setError: (error) => set({ error }),
 
       // Utility actions
@@ -205,11 +175,13 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: "task-store",
+      name: "my-tasks-store",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         tasks: state.tasks,
-        // Don't persist loading states or errors
+        total: state.total,
+        metrics: state.metrics,
+        // Don't persist loading states, errors, or filters
       }),
     }
   )

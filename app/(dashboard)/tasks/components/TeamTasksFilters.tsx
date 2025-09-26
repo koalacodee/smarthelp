@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useTaskStore } from "@/lib/store/useTaskStore";
 
 interface TeamTasksFiltersProps {
   onFilterChange?: (filters: {
@@ -14,12 +14,7 @@ interface TeamTasksFiltersProps {
 export default function TeamTasksFilters({
   onFilterChange,
 }: TeamTasksFiltersProps) {
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "All",
-    priority: "All",
-    assignee: "All",
-  });
+  const { filters, setFilters } = useTaskStore();
 
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -66,19 +61,6 @@ export default function TeamTasksFilters({
           <option>High</option>
           <option>Medium</option>
           <option>Low</option>
-        </select>
-
-        <label className="block mb-1 mt-4 text-xs text-[#4a5568]">
-          Assignee
-        </label>
-        <select
-          value={filters.assignee}
-          onChange={(e) => handleFilterChange("assignee", e.target.value)}
-          className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-md text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6]"
-        >
-          <option>All</option>
-          <option>Assigned</option>
-          <option>Unassigned</option>
         </select>
       </div>
     </div>

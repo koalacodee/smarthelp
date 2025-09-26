@@ -33,16 +33,18 @@ export default function TasksPageClient({
   userRole,
 }: TasksPageClientProps) {
   const { user } = useUserStore();
-  const { tasks, setTasks, isLoading, setLoading, error } = useTaskStore();
+  const {
+    tasks,
+    filteredTasks,
+    filters,
+    setTasks,
+    setFilters,
+    isLoading,
+    setLoading,
+    error,
+  } = useTaskStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
-  const [filteredTasks, setFilteredTasks] = useState(initialTasks);
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "All",
-    priority: "All",
-    assignee: "All",
-  });
 
   useEffect(() => {
     // Initialize with server data only once on mount
@@ -53,60 +55,6 @@ export default function TasksPageClient({
       setTaskAttachments(initialAttachments);
     }
   }, []); // Empty dependency array - only run once on mount
-
-  // Filter tasks based on current filters
-  useEffect(() => {
-    let filtered = tasks;
-
-    // Search filter
-    if (filters.search) {
-      filtered = filtered.filter(
-        (task) =>
-          task.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-          task.description?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filters.status !== "All") {
-      const statusMap: { [key: string]: string } = {
-        Completed: "COMPLETED",
-        "In Progress": "TODO",
-        "Pending Review": "PENDING_REVIEW",
-        Seen: "SEEN",
-        Rejected: "REJECTED",
-      };
-      filtered = filtered.filter(
-        (task) => task.status === statusMap[filters.status]
-      );
-    }
-
-    // Priority filter
-    if (filters.priority !== "All") {
-      filtered = filtered.filter(
-        (task) => task.priority === filters.priority.toUpperCase()
-      );
-    }
-
-    // Assignee filter
-    if (filters.assignee === "Assigned") {
-      filtered = filtered.filter(
-        (task) =>
-          task.assignee ||
-          (task as any).targetSubDepartment ||
-          (task as any).targetDepartment
-      );
-    } else if (filters.assignee === "Unassigned") {
-      filtered = filtered.filter(
-        (task) =>
-          !task.assignee &&
-          !(task as any).targetSubDepartment &&
-          !(task as any).targetDepartment
-      );
-    }
-
-    setFilteredTasks(filtered);
-  }, [tasks, filters]);
 
   const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);

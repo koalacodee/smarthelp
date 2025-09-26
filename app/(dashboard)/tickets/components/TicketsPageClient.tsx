@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ReplyToTicketModal from "./ReplyToTicketModal";
 import { Ticket, TicketMetrics } from "@/lib/api";
-import { useTicketStore } from "@/lib/store/useTicketStore";
+import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
 import TicketsFilters from "./TicketsFilters";
 import TicketsList from "./TicketsList";
@@ -20,7 +20,7 @@ export default function TicketsPageClient({
   initialAttachments,
   initialMetrics,
 }: TicketsPageClientProps) {
-  const { setEntities: setTickets } = useTicketStore();
+  const { filteredTickets, setTickets } = useTicketStore();
   const { setAttachments } = useAttachmentsStore();
   const [metrics, setMetrics] = useState<TicketMetrics>(initialMetrics);
 
@@ -43,7 +43,7 @@ export default function TicketsPageClient({
 
       {/* Right Column - Tickets List */}
       <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
-        <TicketsList tickets={initialTickets} />
+        <TicketsList tickets={filteredTickets} />
       </div>
 
       <ReplyToTicketModal />
