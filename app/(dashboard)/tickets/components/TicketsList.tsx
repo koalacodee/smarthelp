@@ -86,17 +86,19 @@ export default function TicketsList({ tickets }: TicketsListProps) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
-        <ul className="list-none">
-          {tickets.map((ticket) => (
-            <li
-              onClick={() => handleTicketClick(ticket)}
-              key={ticket.id}
-              className="py-4 border-b border-dashed border-[#e2e8f0] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 cursor-pointer hover:bg-slate-50 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="font-medium text-sm mb-1">{ticket.subject}</div>
-                <div className="text-xs text-[#667eea] mb-2">
+      <div className="space-y-0">
+        {tickets.map((ticket) => (
+          <div
+            key={ticket.id}
+            className="relative bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleTicketClick(ticket)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-900 text-sm mb-1">
+                  {ticket.subject}
+                </div>
+                <div className="text-xs text-gray-600 mb-2">
                   {ticket.guestName} •{" "}
                   {new Date(ticket.createdAt).toLocaleDateString()}
                 </div>
@@ -114,10 +116,12 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                   )}
                 </div>
               </div>
-              <TicketActions ticket={ticket} />
-            </li>
-          ))}
-        </ul>
+              <div className="flex-shrink-0 ml-4">
+                <TicketActions ticket={ticket} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <TicketModal

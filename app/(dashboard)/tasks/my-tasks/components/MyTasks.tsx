@@ -84,7 +84,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openDetails } = useTaskDetailsStore();
   const { getAttachments } = useAttachmentsStore();
   const { setTaskAttachments } = useTaskAttachments();
-  const { setMetadata, getMetadata } = useMediaMetadataStore();
+  const { setMetadata } = useMediaMetadataStore();
   const { openPreview } = useMediaPreviewStore();
   const [taskAttachmentsMetadata, setTaskAttachmentsMetadata] = useState<{
     [taskId: string]: { [attachmentId: string]: any };
@@ -192,7 +192,16 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-5 max-w-[1400px] mx-auto">
-      <MyTasksDashboard total={data.total} {...data.metrics} />
+      {/* Left Column - Dashboard and Filters */}
+      <div className="space-y-5">
+        {/* Dashboard */}
+        <MyTasksDashboard total={data.total} {...data.metrics} />
+
+        {/* Filters */}
+        <MyTasksFilters />
+      </div>
+
+      {/* Right Column - Tasks List */}
       <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
         <div className="space-y-0">
           {data.data.map((task) => {
@@ -333,7 +342,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
           })}
         </div>
       </div>
-      <MyTasksFilters />
+
       <SubmitWorkModal />
       <DetailedTaskCard />
     </div>

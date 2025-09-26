@@ -97,6 +97,11 @@ export interface Department {
 export interface TaskData<T> {
   count: number;
   data: T[];
+  metrics: {
+    pendingCount: number;
+    completedCount: number;
+    completionPercentage: number;
+  };
   success: boolean;
 }
 

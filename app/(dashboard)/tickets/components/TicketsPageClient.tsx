@@ -32,11 +32,20 @@ export default function TicketsPageClient({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-5 max-w-[1400px] mx-auto">
-      <TicketsDashboard {...metrics} />
+      {/* Left Column - Dashboard and Filters */}
       <div className="space-y-5">
-        <TicketsList tickets={initialTickets} />
+        {/* Dashboard */}
+        <TicketsDashboard {...metrics} />
+
+        {/* Filters */}
         <TicketsFilters />
       </div>
+
+      {/* Right Column - Tickets List */}
+      <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
+        <TicketsList tickets={initialTickets} />
+      </div>
+
       <ReplyToTicketModal />
     </div>
   );

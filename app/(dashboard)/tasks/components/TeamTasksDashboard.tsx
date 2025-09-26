@@ -1,17 +1,19 @@
-import { TicketMetrics } from "@/lib/api";
-
-export default function TicketsDashboard({
-  totalTickets,
-  pendingTickets,
-  answeredTickets,
-  closedTickets,
-}: TicketMetrics) {
-  const completionPercentage =
-    totalTickets > 0 ? Math.round((closedTickets / totalTickets) * 100) : 0;
-
+export default function TeamTasksDashboard({
+  total,
+  completedCount,
+  pendingCount,
+  completionPercentage,
+}: {
+  total: number;
+  completedCount: number;
+  pendingCount: number;
+  completionPercentage: number;
+}) {
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
-      <h3 className="text-base font-semibold mb-4 text-[#4a5568]">Dashboard</h3>
+      <h3 className="text-base font-semibold mb-4 text-[#4a5568]">
+        Team Dashboard
+      </h3>
       <div
         className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 relative`}
         style={{
@@ -29,27 +31,21 @@ export default function TicketsDashboard({
       <ul className="list-none">
         <li className="flex justify-between py-2.5 border-b border-[#e2e8f0] text-sm">
           <span>
-            <span className="mr-1.5">🎫</span> Total Tickets
+            <span className="mr-1.5">📋</span> Total Tasks
           </span>
-          <span className="text-[#667eea]">{totalTickets}</span>
+          <span className="text-[#667eea]">{total}</span>
         </li>
         <li className="flex justify-between py-2.5 border-b border-[#e2e8f0] text-sm">
           <span>
-            <span className="mr-1.5">⏳</span> Pending
+            <span className="mr-1.5">✅</span> Completed
           </span>
-          <span className="text-[#f59e0b]">{pendingTickets}</span>
-        </li>
-        <li className="flex justify-between py-2.5 border-b border-[#e2e8f0] text-sm">
-          <span>
-            <span className="mr-1.5">✅</span> Answered
-          </span>
-          <span className="text-[#48bb78]">{answeredTickets}</span>
+          <span className="text-[#48bb78]">{completedCount}</span>
         </li>
         <li className="flex justify-between py-2.5 text-sm">
           <span>
-            <span className="mr-1.5">🔒</span> Closed
+            <span className="mr-1.5">🟡</span> In Progress
           </span>
-          <span className="text-[#6b7280]">{closedTickets}</span>
+          <span className="text-[#f59e0b]">{pendingCount}</span>
         </li>
       </ul>
     </div>

@@ -27,6 +27,7 @@ export default async function Page() {
   let departments: any[] = [];
   let subDepartments: any[] = [];
   let attachments: any = {};
+  let metrics: any = null;
 
   if (userRole === "ADMIN") {
     const [departmentData, departmentsData] = await Promise.all([
@@ -36,6 +37,8 @@ export default async function Page() {
     tasks = departmentData.data;
     departments = departmentsData;
     attachments = departmentData.attachments || {};
+    metrics = departmentData.metrics;
+    console.log(departmentData, departmentsData);
   } else if (userRole === "SUPERVISOR") {
     const [subDepartmentsData, subTasks, empTasks] = await Promise.all([
       DepartmentsService.getAllSubDepartments(),
@@ -48,6 +51,28 @@ export default async function Page() {
       ...(subTasks.attachments || {}),
       ...(empTasks.attachments || {}),
     };
+    // Combine metrics from both sub-department and employee level tasks
+    metrics = {
+      pendingCount:
+        (subTasks.metrics?.pendingCount || 0) +
+        (empTasks.metrics?.pendingCount || 0),
+      completedCount:
+        (subTasks.metrics?.completedCount || 0) +
+        (empTasks.metrics?.completedCount || 0),
+      completionPercentage: Math.round(
+        (((subTasks.metrics?.completedCount || 0) +
+          (empTasks.metrics?.completedCount || 0)) /
+          Math.max(
+            (subTasks.metrics?.pendingCount || 0) +
+              (empTasks.metrics?.pendingCount || 0) +
+              (subTasks.metrics?.completedCount || 0) +
+              (empTasks.metrics?.completedCount || 0),
+            1
+          )) *
+          100
+      ),
+    };
+    console.log(subDepartmentsData, subTasks, empTasks);
   }
 
   return (
@@ -63,6 +88,7 @@ export default async function Page() {
           initialDepartments={departments}
           initialSubDepartments={subDepartments}
           initialAttachments={attachments}
+          initialMetrics={metrics}
           userRole={userRole}
         />
 

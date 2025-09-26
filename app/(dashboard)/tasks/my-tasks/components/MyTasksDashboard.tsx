@@ -10,7 +10,7 @@ export default function MyTasksDashboard({
   completionPercentage: number;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5 mb-5">
+    <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
       <h3 className="text-base font-semibold mb-4 text-[#4a5568]">Dashboard</h3>
       <div
         className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 relative`}
