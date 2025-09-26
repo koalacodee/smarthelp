@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
-import TaskCard from "./TaskCard";
+import TeamTaskCard from "./TeamTaskCard";
 import DetailedTaskCard from "./DetailedTaskCard";
 import EditTaskModal from "./EditTaskModal";
 import { useTaskStore } from "@/lib/store/useTaskStore";
@@ -13,6 +13,7 @@ interface TasksPageClientProps {
   initialTasks: any[];
   initialDepartments: any[];
   initialSubDepartments: any[];
+  initialAttachments?: any;
   userRole?: string;
 }
 
@@ -20,6 +21,7 @@ export default function TasksPageClient({
   initialTasks,
   initialDepartments,
   initialSubDepartments,
+  initialAttachments,
   userRole,
 }: TasksPageClientProps) {
   const { user } = useUserStore();
@@ -28,18 +30,14 @@ export default function TasksPageClient({
   const { setTaskAttachments } = useTaskAttachments();
 
   useEffect(() => {
-    // Initialize with server data
+    // Initialize with server data only once on mount
     setTasks(initialTasks);
     setDepartments(initialDepartments);
     setSubDepartments(initialSubDepartments);
-  }, [
-    initialTasks,
-    initialDepartments,
-    initialSubDepartments,
-    setTasks,
-    setDepartments,
-    setSubDepartments,
-  ]);
+    if (initialAttachments) {
+      setTaskAttachments(initialAttachments);
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <>
@@ -54,14 +52,9 @@ export default function TasksPageClient({
           No tasks found
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="space-y-0">
           {tasks.map((task: any) => (
-            <div
-              key={task.id}
-              className="bg-background p-4 rounded-md shadow-md"
-            >
-              <TaskCard task={task} />
-            </div>
+            <TeamTaskCard key={task.id} task={task} userRole={userRole} />
           ))}
         </div>
       )}

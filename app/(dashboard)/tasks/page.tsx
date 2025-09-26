@@ -26,6 +26,7 @@ export default async function Page() {
   let tasks: any[] = [];
   let departments: any[] = [];
   let subDepartments: any[] = [];
+  let attachments: any = {};
 
   if (userRole === "ADMIN") {
     const [departmentData, departmentsData] = await Promise.all([
@@ -34,6 +35,7 @@ export default async function Page() {
     ]);
     tasks = departmentData.data;
     departments = departmentsData;
+    attachments = departmentData.attachments || {};
   } else if (userRole === "SUPERVISOR") {
     const [subDepartmentsData, subTasks, empTasks] = await Promise.all([
       DepartmentsService.getAllSubDepartments(),
@@ -42,6 +44,10 @@ export default async function Page() {
     ]);
     tasks = [...subTasks.data, ...empTasks.data];
     subDepartments = subDepartmentsData;
+    attachments = {
+      ...(subTasks.attachments || {}),
+      ...(empTasks.attachments || {}),
+    };
   }
 
   return (
@@ -56,6 +62,7 @@ export default async function Page() {
           initialTasks={tasks}
           initialDepartments={departments}
           initialSubDepartments={subDepartments}
+          initialAttachments={attachments}
           userRole={userRole}
         />
 
