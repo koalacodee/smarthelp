@@ -86,7 +86,7 @@ export default function SidebarItem({
       )}
 
       {/* Sub Links */}
-      {hasSubLinks && isExpanded && (
+      {hasSubLinks && isExpanded && item.subLinks && (
         <div className="ml-6 mt-1 space-y-1">
           {item.subLinks.map((subLink, index) => {
             const isSubLinkActive = pathname === subLink.href;

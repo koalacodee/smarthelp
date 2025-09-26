@@ -87,11 +87,16 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     if (filters.search) {
       filtered = filtered.filter(
         (ticket) =>
-          ticket.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          ticket.subject
+            ?.toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
           ticket.description
             ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
-          ticket.userEmail?.toLowerCase().includes(filters.search.toLowerCase())
+          ticket.guestEmail
+            ?.toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          ticket.guestName?.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 
@@ -100,10 +105,12 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       filtered = filtered.filter((ticket) => ticket.status === filters.status);
     }
 
-    // Category filter
+    // Category filter (using department name as category)
     if (filters.category) {
       filtered = filtered.filter(
-        (ticket) => ticket.category === filters.category
+        (ticket) =>
+          ticket.department?.name?.toLowerCase() ===
+          filters.category.toLowerCase()
       );
     }
 
