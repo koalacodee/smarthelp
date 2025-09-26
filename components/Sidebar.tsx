@@ -27,6 +27,7 @@ import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
+import Car from "@/icons/Car";
 import UserInfo from "./UserInfo";
 
 /* --- CONFIG ------------------------------------------------------------- */
@@ -39,6 +40,10 @@ type Tab = {
   href: string;
   allowed: (role: string, permissions: string[]) => boolean;
   notification?: () => number; // optional selector
+  subLinks?: {
+    label: string;
+    href: string;
+  }[];
 };
 
 const tabs: Tab[] = [
@@ -75,6 +80,16 @@ const tabs: Tab[] = [
       r === "ADMIN" ||
       (r === "SUPERVISOR" && p.includes(SupervisorPermissions.MANAGE_TASKS)) ||
       (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
+    subLinks: [
+      {
+        label: "Team Tasks",
+        href: "/tasks",
+      },
+      {
+        label: "My Tasks",
+        href: "/tasks/my-tasks",
+      },
+    ],
   },
   // {
   //   id: "vehicles",
@@ -82,6 +97,20 @@ const tabs: Tab[] = [
   //   icon: <Car className={ICON_SIZE} />,
   //   href: "/vehicles",
   //   allowed: (r) => r === "ADMIN",
+  //   subLinks: [
+  //     {
+  //       label: "Fleet Management",
+  //       href: "/vehicles",
+  //     },
+  //     {
+  //       label: "Licensing",
+  //       href: "/vehicles/licensing",
+  //     },
+  //     {
+  //       label: "Drivers & Tracking",
+  //       href: "/vehicles/drivers",
+  //     },
+  //   ],
   // },
   {
     id: "manageTeam",
@@ -170,11 +199,13 @@ function SidebarContent({
   pathname,
   isOpen,
   onClose,
+  user,
 }: {
   tabs: Tab[];
   pathname: string;
   isOpen: boolean;
   onClose: () => void;
+  user: any;
 }) {
   return (
     <aside
@@ -184,14 +215,25 @@ function SidebarContent({
     >
       <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
         <nav className="space-y-1 px-4 flex-1">
-          {tabs.map((tab) => (
-            <SidebarItem
-              key={tab.id}
-              isActive={pathname === tab.href}
-              item={tab}
-              onClick={onClose}
-            />
-          ))}
+          {tabs.map((tab) => {
+            // For tasks, only show sub-links for supervisors
+            const shouldShowSubLinks =
+              tab.id === "tasks" ? user?.role === "SUPERVISOR" : tab.subLinks;
+
+            const itemWithSubLinks = {
+              ...tab,
+              subLinks: shouldShowSubLinks ? tab.subLinks : undefined,
+            };
+
+            return (
+              <SidebarItem
+                key={tab.id}
+                isActive={pathname === tab.href}
+                item={itemWithSubLinks}
+                onClick={onClose}
+              />
+            );
+          })}
         </nav>
 
         {/* User Info at the bottom */}
@@ -250,6 +292,7 @@ export default function Sidebar() {
             pathname={pathname}
             isOpen={isOpen}
             onClose={closeSidebar}
+            user={user}
           />
         </Suspense>
       )}
