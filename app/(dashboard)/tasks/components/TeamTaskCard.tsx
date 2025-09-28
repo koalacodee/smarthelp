@@ -17,6 +17,7 @@ import { FileService } from "@/lib/api";
 import TaskRejectionModal from "./TaskRejectionModal";
 import api from "@/lib/api";
 import { useConfirmationModalStore } from "../../store/useConfirmationStore";
+import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
 
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
@@ -63,6 +64,19 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getSubmissionStatusColor = (status: string) => {
+  switch (status) {
+    case "SUBMITTED":
+      return "bg-blue-100 text-blue-800";
+    case "APPROVED":
+      return "bg-green-100 text-green-800";
+    case "REJECTED":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 interface TeamTaskCardProps {
   task: Task;
   userRole?: string;
@@ -70,6 +84,10 @@ interface TeamTaskCardProps {
 
 export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isSubmissionsExpanded, setIsSubmissionsExpanded] = useState(false);
+  const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(
+    new Set()
+  );
   const { openDetails } = useTaskDetailsStore();
   const { setTask, setIsEditing } = useCurrentEditingTaskStore();
   const { getAttachments } = useAttachmentsStore();
@@ -78,9 +96,15 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   const { updateTask, deleteTask } = useTasksStore();
   const { openModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
+  const { getTaskSubmissions, getSubmissionAttachments } =
+    useTaskSubmissionsStore();
   const [taskAttachmentsMetadata, setTaskAttachmentsMetadata] = useState<{
     [attachmentId: string]: any;
   }>({});
+  const [submissionAttachmentsMetadata, setSubmissionAttachmentsMetadata] =
+    useState<{
+      [attachmentId: string]: any;
+    }>({});
 
   // Load attachment metadata for this task
   useEffect(() => {
@@ -122,6 +146,54 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
 
     loadAttachmentsMetadata();
   }, [task.id, getAttachments, setMetadata]);
+
+  // Load submission attachment metadata
+  useEffect(() => {
+    const loadSubmissionAttachmentsMetadata = async () => {
+      const taskSubmissions = getTaskSubmissions(task.id);
+      const allSubmissionAttachments: string[] = [];
+
+      taskSubmissions.forEach((submission) => {
+        const submissionAttachments = getSubmissionAttachments(submission.id);
+        allSubmissionAttachments.push(...submissionAttachments);
+      });
+
+      if (allSubmissionAttachments.length > 0) {
+        const attachmentMetadataPromises = allSubmissionAttachments.map(
+          async (attachmentId) => {
+            try {
+              const metadata = await FileService.getAttachmentMetadata(
+                attachmentId
+              );
+              setMetadata(attachmentId, metadata);
+              return { attachmentId, metadata };
+            } catch (error) {
+              console.error(
+                `Failed to load metadata for submission attachment ${attachmentId}:`,
+                error
+              );
+              return { attachmentId, metadata: null };
+            }
+          }
+        );
+
+        const results = await Promise.all(attachmentMetadataPromises);
+        const attachmentMap = results.reduce(
+          (acc, { attachmentId, metadata }) => {
+            if (metadata) {
+              acc[attachmentId] = metadata;
+            }
+            return acc;
+          },
+          {} as { [attachmentId: string]: any }
+        );
+
+        setSubmissionAttachmentsMetadata(attachmentMap);
+      }
+    };
+
+    loadSubmissionAttachmentsMetadata();
+  }, [task.id, getTaskSubmissions, getSubmissionAttachments, setMetadata]);
 
   const handleApprove = async () => {
     try {
@@ -173,7 +245,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   };
 
   const handleAttachmentClick = (attachmentId: string) => {
-    const attachmentMetadata = taskAttachmentsMetadata[attachmentId];
+    const attachmentMetadata =
+      taskAttachmentsMetadata[attachmentId] ||
+      submissionAttachmentsMetadata[attachmentId];
     if (attachmentMetadata) {
       openPreview({
         originalName: attachmentMetadata.originalName,
@@ -186,6 +260,19 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   };
 
   const taskAttachments = getAttachments("task", task.id);
+  const taskSubmissions = getTaskSubmissions(task.id);
+
+  const toggleSubmission = (submissionId: string) => {
+    setExpandedSubmissions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <>
@@ -341,6 +428,212 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Task Submissions */}
+            {taskSubmissions.length > 0 && (
+              <div className="border-t border-gray-200 pt-3">
+                <button
+                  onClick={() =>
+                    setIsSubmissionsExpanded(!isSubmissionsExpanded)
+                  }
+                  className="flex items-center justify-between w-full text-left hover:bg-gray-50 p-1 rounded transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className={`w-3 h-3 transition-transform ${
+                        isSubmissionsExpanded ? "rotate-90" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                    <span className="text-xs font-medium text-gray-700">
+                      Submissions ({taskSubmissions.length})
+                    </span>
+                  </div>
+                </button>
+
+                {isSubmissionsExpanded && (
+                  <div className="mt-2 space-y-2">
+                    {taskSubmissions.map((submission) => {
+                      const submissionAttachments = getSubmissionAttachments(
+                        submission.id
+                      );
+                      const isExpanded = expandedSubmissions.has(submission.id);
+                      const hasAttachments = submissionAttachments.length > 0;
+                      const hasContent = submission.notes || hasAttachments;
+
+                      return (
+                        <div
+                          key={submission.id}
+                          className="bg-gray-25 rounded p-2 border-l border-gray-100"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-gray-100 rounded-full flex items-center justify-center">
+                                <span className="text-xs font-medium text-gray-500">
+                                  {submission.performerName
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="text-xs font-medium text-gray-900">
+                                {submission.performerName}
+                              </span>
+                              <span className="text-xs text-gray-500 capitalize">
+                                ({submission.performerType})
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-xs font-medium ${getSubmissionStatusColor(
+                                  submission.status
+                                )}`}
+                              >
+                                {submission.status}
+                              </span>
+                              {hasContent && (
+                                <button
+                                  onClick={() =>
+                                    toggleSubmission(submission.id)
+                                  }
+                                  className="p-0.5 hover:bg-gray-200 rounded transition-colors"
+                                >
+                                  <svg
+                                    className={`w-3 h-3 transition-transform ${
+                                      isExpanded ? "rotate-90" : ""
+                                    }`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 text-xs text-gray-400 pl-7">
+                            <Clock className="w-3 h-3" />
+                            <span>
+                              {new Date(
+                                submission.submittedAt
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </span>
+                          </div>
+
+                          {isExpanded && hasContent && (
+                            <div className="mt-2 pl-7 space-y-2">
+                              {submission.notes && (
+                                <p className="text-xs text-gray-600">
+                                  {submission.notes}
+                                </p>
+                              )}
+
+                              {hasAttachments && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                                    <PaperClipIcon className="w-3 h-3" />
+                                    <span>
+                                      Attachments (
+                                      {submissionAttachments.length})
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {submissionAttachments.map(
+                                      (attachmentId, index) => {
+                                        const attachmentMetadata =
+                                          submissionAttachmentsMetadata[
+                                            attachmentId
+                                          ];
+                                        const fileName =
+                                          attachmentMetadata?.originalName ||
+                                          `Attachment ${index + 1}`;
+                                        const uploadDate =
+                                          attachmentMetadata?.uploadDate ||
+                                          new Date();
+
+                                        return (
+                                          <div
+                                            key={attachmentId}
+                                            className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
+                                            onClick={() =>
+                                              handleAttachmentClick(
+                                                attachmentId
+                                              )
+                                            }
+                                          >
+                                            <PaperClipIcon className="w-3 h-3 text-blue-500" />
+                                            <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
+                                              {fileName}
+                                            </span>
+                                            <Clock className="w-3 h-3 text-gray-400" />
+                                            <span className="text-gray-400">
+                                              {new Date(
+                                                uploadDate
+                                              ).toLocaleDateString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                              })}
+                                            </span>
+                                            <button
+                                              className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAttachmentClick(
+                                                  attachmentId
+                                                );
+                                              }}
+                                            >
+                                              <svg
+                                                className="w-3 h-3"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                                />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        );
+                                      }
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 

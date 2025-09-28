@@ -10,6 +10,8 @@ import EditTaskModal from "./EditTaskModal";
 import { useTaskStore } from "@/lib/store/useTaskStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
+import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
+import { TaskSubmission } from "@/lib/api";
 
 interface TasksPageClientProps {
   initialTasks: any[];
@@ -21,6 +23,8 @@ interface TasksPageClientProps {
     completedCount: number;
     completionPercentage: number;
   };
+  initialTaskSubmissions?: Record<string, TaskSubmission[]>;
+  initialSubmissionAttachments?: Record<string, string[]>;
   userRole?: string;
 }
 
@@ -30,6 +34,8 @@ export default function TasksPageClient({
   initialSubDepartments,
   initialAttachments,
   initialMetrics,
+  initialTaskSubmissions,
+  initialSubmissionAttachments,
   userRole,
 }: TasksPageClientProps) {
   const { user } = useUserStore();
@@ -45,6 +51,8 @@ export default function TasksPageClient({
   } = useTaskStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
+  const { setAllTaskSubmissions, setAllSubmissionAttachments } =
+    useTaskSubmissionsStore();
 
   useEffect(() => {
     // Initialize with server data only once on mount
@@ -53,6 +61,12 @@ export default function TasksPageClient({
     setSubDepartments(initialSubDepartments);
     if (initialAttachments) {
       setTaskAttachments(initialAttachments);
+    }
+    if (initialTaskSubmissions) {
+      setAllTaskSubmissions(initialTaskSubmissions);
+    }
+    if (initialSubmissionAttachments) {
+      setAllSubmissionAttachments(initialSubmissionAttachments);
     }
   }, []); // Empty dependency array - only run once on mount
 

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import {
   AnswerTicketDto,
   CreateQuestionInputDto,
@@ -650,6 +650,40 @@ export interface UpdateTaskDto {
   reminderInterval?: number;
 }
 
+// Interface for a single Task Submission
+export interface TaskSubmission {
+  id: string;
+  taskId: string;
+  performerId: string;
+  performerType: "admin" | "employee" | "supervisor"; // union type since it's limited
+  performerName: string;
+  notes: string;
+  status: "SUBMITTED" | "APPROVED" | "REJECTED"; // assuming possible statuses
+  submittedAt: string; // ISO date string
+}
+
+// Interface for the overall response
+export interface TaskSubmissionsResponse {
+  taskSubmissions: TaskSubmission[];
+  attachments: Record<string, string[]>;
+}
+
+/**
+ * Approve Task Submission Request
+ */
+export interface ApproveTaskSubmissionRequest {
+  taskSubmissionId: string;
+  feedback?: string;
+}
+
+/**
+ * Reject Task Submission Request
+ */
+export interface RejectTaskSubmissionRequest {
+  taskSubmissionId: string;
+  feedback?: string;
+}
+
 export const TasksService = {
   getDepartmentLevel: async () => {
     const response = await api.get<{
@@ -743,6 +777,39 @@ export const TasksService = {
       await FileService.upload(response.data.data.uploadKey, formData);
     }
     return response.data.data.task;
+  },
+  getTaskSubmissions: async (taskId: string) => {
+    const response = await api.get<{ data: TaskSubmissionsResponse }>(
+      `/task/submission/task/${taskId}`
+    );
+    return response.data.data;
+  },
+  /**
+   * Approve a task submission
+   * POST /task/submission/approve
+   */
+  approveTaskSubmission: async (
+    data: ApproveTaskSubmissionRequest
+  ): Promise<any> => {
+    const response: AxiosResponse<any> = await api.post(
+      "/task/submission/approve",
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Reject a task submission
+   * POST /task/submission/reject
+   */
+  rejectTaskSubmission: async (
+    data: RejectTaskSubmissionRequest
+  ): Promise<any> => {
+    const response: AxiosResponse<any> = await api.post(
+      "/task/submission/reject",
+      data
+    );
+    return response.data;
   },
 };
 

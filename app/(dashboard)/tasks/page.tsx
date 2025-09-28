@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Metadata } from "next";
-import { DepartmentsService, TasksService } from "@/lib/api";
+import api, {
+  DepartmentsService,
+  TasksService,
+  TaskSubmission,
+} from "@/lib/api";
 import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
@@ -28,51 +32,82 @@ export default async function Page() {
   let subDepartments: any[] = [];
   let attachments: any = {};
   let metrics: any = null;
+  let taskSubmissions: Record<string, TaskSubmission[]> = {};
+  let submissionAttachments: Record<string, string[]> = {};
 
   if (userRole === "ADMIN") {
-    const [departmentData, departmentsData] = await Promise.all([
-      TasksService.getDepartmentLevel(),
+    const [_, fetchedDepartments] = await Promise.all([
+      TasksService.getDepartmentLevel().then(async (data) => {
+        await Promise.all(
+          data.data.map(async (task) => {
+            const submissions = await TasksService.getTaskSubmissions(task.id);
+            taskSubmissions[task.id] = submissions.taskSubmissions;
+            // Store submission attachments
+            Object.entries(submissions.attachments).forEach(
+              ([submissionId, attachmentIds]) => {
+                submissionAttachments[submissionId] = attachmentIds;
+              }
+            );
+          })
+        );
+        tasks = data.data;
+        attachments = data.attachments;
+        metrics = data.metrics;
+      }),
       DepartmentsService.getAllDepartments(),
     ]);
-    tasks = departmentData.data;
-    departments = departmentsData;
-    attachments = departmentData.attachments || {};
-    metrics = departmentData.metrics;
-    console.log(departmentData, departmentsData);
+    departments = fetchedDepartments;
+    console.log(taskSubmissions);
   } else if (userRole === "SUPERVISOR") {
-    const [subDepartmentsData, subTasks, empTasks] = await Promise.all([
-      DepartmentsService.getAllSubDepartments(),
-      TasksService.getSubDepartmentLevel(),
-      TasksService.getEmployeeLevel(),
-    ]);
-    tasks = [...subTasks.data, ...empTasks.data];
-    subDepartments = subDepartmentsData;
-    attachments = {
-      ...(subTasks.attachments || {}),
-      ...(empTasks.attachments || {}),
-    };
-    // Combine metrics from both sub-department and employee level tasks
-    metrics = {
-      pendingCount:
-        (subTasks.metrics?.pendingCount || 0) +
-        (empTasks.metrics?.pendingCount || 0),
-      completedCount:
-        (subTasks.metrics?.completedCount || 0) +
-        (empTasks.metrics?.completedCount || 0),
-      completionPercentage: Math.round(
-        (((subTasks.metrics?.completedCount || 0) +
-          (empTasks.metrics?.completedCount || 0)) /
-          Math.max(
+    const [_, fetchedSubDepartments] = await Promise.all([
+      Promise.all([
+        TasksService.getSubDepartmentLevel(),
+        TasksService.getEmployeeLevel(),
+      ]).then(async ([subTasks, empTasks]) => {
+        const allTasks = [...subTasks.data, ...empTasks.data];
+        await Promise.all(
+          allTasks.map(async (task) => {
+            const submissions = await TasksService.getTaskSubmissions(task.id);
+            taskSubmissions[task.id] = submissions.taskSubmissions;
+            // Store submission attachments
+            Object.entries(submissions.attachments).forEach(
+              ([submissionId, attachmentIds]) => {
+                submissionAttachments[submissionId] = attachmentIds;
+              }
+            );
+          })
+        );
+        tasks = allTasks;
+        attachments = {
+          ...(subTasks.attachments || {}),
+          ...(empTasks.attachments || {}),
+        };
+        // Combine metrics from both sub-department and employee level tasks
+        metrics = {
+          pendingCount:
             (subTasks.metrics?.pendingCount || 0) +
-              (empTasks.metrics?.pendingCount || 0) +
-              (subTasks.metrics?.completedCount || 0) +
-              (empTasks.metrics?.completedCount || 0),
-            1
-          )) *
-          100
-      ),
-    };
-    console.log(subDepartmentsData, subTasks, empTasks);
+            (empTasks.metrics?.pendingCount || 0),
+          completedCount:
+            (subTasks.metrics?.completedCount || 0) +
+            (empTasks.metrics?.completedCount || 0),
+          completionPercentage: Math.round(
+            (((subTasks.metrics?.completedCount || 0) +
+              (empTasks.metrics?.completedCount || 0)) /
+              Math.max(
+                (subTasks.metrics?.pendingCount || 0) +
+                  (empTasks.metrics?.pendingCount || 0) +
+                  (subTasks.metrics?.completedCount || 0) +
+                  (empTasks.metrics?.completedCount || 0),
+                1
+              )) *
+              100
+          ),
+        };
+      }),
+      DepartmentsService.getAllSubDepartments(),
+    ]);
+    subDepartments = fetchedSubDepartments;
+    console.log(taskSubmissions);
   }
 
   return (
@@ -89,6 +124,8 @@ export default async function Page() {
           initialSubDepartments={subDepartments}
           initialAttachments={attachments}
           initialMetrics={metrics}
+          initialTaskSubmissions={taskSubmissions}
+          initialSubmissionAttachments={submissionAttachments}
           userRole={userRole}
         />
 
