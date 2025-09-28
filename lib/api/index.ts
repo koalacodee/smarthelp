@@ -811,6 +811,12 @@ export const TasksService = {
     );
     return response.data;
   },
+  markTaskAsSeen: async (taskId: string) => {
+    const response: AxiosResponse<any> = await api.post(
+      `/tasks/${taskId}/seen`
+    );
+    return response.data;
+  },
 };
 
 export const EmployeeRequestsService = {

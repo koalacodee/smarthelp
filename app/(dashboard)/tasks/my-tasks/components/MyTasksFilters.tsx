@@ -3,7 +3,7 @@
 import { useMyTasksStore } from "../store/useMyTasksStore";
 
 export default function MyTasksFilters() {
-  const { filters, setFilters } = useMyTasksStore();
+  const { filters, setFilters, clearFilters } = useMyTasksStore();
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters({ [key]: value });
@@ -31,6 +31,9 @@ export default function MyTasksFilters() {
           <option>All</option>
           <option>Completed</option>
           <option>In Progress</option>
+          <option>Pending Review</option>
+          <option>Seen</option>
+          <option>Rejected</option>
         </select>
         <label className="block mb-1 mt-4 text-xs text-[#4a5568]">
           Priority
@@ -45,6 +48,12 @@ export default function MyTasksFilters() {
           <option>Medium</option>
           <option>Low</option>
         </select>
+        <button
+          onClick={clearFilters}
+          className="w-full mt-4 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+        >
+          Clear Filters
+        </button>
       </div>
     </div>
   );

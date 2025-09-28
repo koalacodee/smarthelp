@@ -13,10 +13,12 @@ import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
 import { useMyTasksStore } from "../store/useMyTasksStore";
-import { FileService } from "@/lib/api";
+import { FileService, TasksService } from "@/lib/api";
 import Check from "@/icons/Check";
 import Eye from "@/icons/Eye";
 import Clock from "@/icons/Clock";
+import ThreeDotMenu from "../../components/ThreeDotMenu";
+import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
@@ -88,6 +90,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { setMetadata } = useMediaMetadataStore();
   const { openPreview } = useMediaPreviewStore();
   const { filteredTasks, total, metrics, setTasks } = useMyTasksStore();
+  const { addToast } = useToastStore();
   const [taskAttachmentsMetadata, setTaskAttachmentsMetadata] = useState<{
     [taskId: string]: { [attachmentId: string]: any };
   }>({});
@@ -197,6 +200,16 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
     }
   };
 
+  const handleMarkAsSeen = async (taskId: string) => {
+    try {
+      await TasksService.markTaskAsSeen(taskId);
+      addToast({ message: "Task marked as seen", type: "success" });
+      // Optionally refresh the task data or update the task status
+    } catch (error) {
+      addToast({ message: "Failed to mark task as seen", type: "error" });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-5 max-w-[1400px] mx-auto">
       {/* Left Column - Dashboard and Filters */}
@@ -244,13 +257,24 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                         <h3 className="font-semibold text-gray-900 text-sm">
                           {task.title}
                         </h3>
-                        <button
-                          onClick={() => handlePreviewClick(task)}
-                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                          title="Preview Task"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handlePreviewClick(task)}
+                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Preview Task"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <ThreeDotMenu
+                            options={[
+                              {
+                                label: "Mark As Seen",
+                                onClick: () => handleMarkAsSeen(task.id),
+                                color: "blue",
+                              },
+                            ]}
+                          />
+                        </div>
                       </div>
 
                       {/* Description */}
@@ -260,6 +284,19 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
 
                       {/* Tags */}
                       <div className="flex flex-wrap gap-2 mb-3">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            task.status === "PENDING_REVIEW"
+                              ? "bg-blue-100 text-blue-800"
+                              : task.status === "SEEN"
+                              ? "bg-amber-100 text-amber-800"
+                              : task.status === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {task.status?.replace("_", " ") || "TODO"}
+                        </span>
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             task.priority === "HIGH"

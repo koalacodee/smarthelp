@@ -18,6 +18,7 @@ import TaskRejectionModal from "./TaskRejectionModal";
 import api from "@/lib/api";
 import { useConfirmationModalStore } from "../../store/useConfirmationStore";
 import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
+import ThreeDotMenu from "./ThreeDotMenu";
 
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
@@ -274,6 +275,30 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
     });
   };
 
+  const handleApproveSubmission = async (submissionId: string) => {
+    try {
+      await api.TasksService.approveTaskSubmission({
+        taskSubmissionId: submissionId,
+      });
+      addToast({ message: "Submission approved", type: "success" });
+      // Refresh the task data or update the submission status
+    } catch (error) {
+      addToast({ message: "Failed to approve submission", type: "error" });
+    }
+  };
+
+  const handleRejectSubmission = async (submissionId: string) => {
+    try {
+      await api.TasksService.rejectTaskSubmission({
+        taskSubmissionId: submissionId,
+      });
+      addToast({ message: "Submission rejected", type: "success" });
+      // Refresh the task data or update the submission status
+    } catch (error) {
+      addToast({ message: "Failed to reject submission", type: "error" });
+    }
+  };
+
   return (
     <>
       <div className="relative bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow">
@@ -525,6 +550,24 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                                   </svg>
                                 </button>
                               )}
+
+                              {/* Three-dot menu */}
+                              <ThreeDotMenu
+                                options={[
+                                  {
+                                    label: "Approve",
+                                    onClick: () =>
+                                      handleApproveSubmission(submission.id),
+                                    color: "green",
+                                  },
+                                  {
+                                    label: "Reject",
+                                    onClick: () =>
+                                      handleRejectSubmission(submission.id),
+                                    color: "red",
+                                  },
+                                ]}
+                              />
                             </div>
                           </div>
 
