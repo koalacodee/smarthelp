@@ -23,13 +23,13 @@ export default async function Page() {
   const cookieStore = await cookies();
   console.log(env("NEXT_PUBLIC_BASE_URL"));
 
-  const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/api/me`, {
+  const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/server/me`, {
     headers: { Cookie: cookieStore.toString() },
   }).then((res) => {
     console.log(res);
     return res.json();
   });
-  const userRole = user.role;
+  const userRole = user.user.role;
 
   if (userRole === "EMPLOYEE") {
     return redirect("/tasks/my-tasks");
