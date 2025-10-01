@@ -10,6 +10,7 @@ import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
+import { env } from "next-runtime-env";
 
 export const metadata: Metadata = {
   title: "Tasks | Task Management System",
@@ -20,7 +21,15 @@ type UserRole = "EMPLOYEE" | "ADMIN" | "SUPERVISOR";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const userRole = cookieStore.get("user-role")?.value as UserRole | undefined;
+  console.log(env("NEXT_PUBLIC_BASE_URL"));
+
+  const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/api/me`, {
+    headers: { Cookie: cookieStore.toString() },
+  }).then((res) => {
+    console.log(res);
+    return res.json();
+  });
+  const userRole = user.role;
 
   if (userRole === "EMPLOYEE") {
     return redirect("/tasks/my-tasks");

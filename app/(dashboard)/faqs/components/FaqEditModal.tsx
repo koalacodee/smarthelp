@@ -12,22 +12,24 @@ import {
 } from "@/app/(dashboard)/store/useAttachmentStore";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
+import { FAQService, UploadService } from "@/lib/api/v2";
 
 export default function FaqEditModal() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [subDepartmentId, setSubDepartmentId] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
+  const [attachmentRefreshKey, setAttachmentRefreshKey] = useState(0);
   const { addToast } = useToastStore();
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
-  const { getFormData } = useAttachmentStore();
-  const { getAttachments } = useAttachmentsStore();
+  const { getFormData, attachments } = useAttachmentStore();
+  const { getAttachments, addAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
   const { addExistingAttachment } = useAttachmentStore();
+
   useEffect(() => {
     Promise.all([
       api.DepartmentsService.getAllDepartments().then(setDepartments),
@@ -39,6 +41,7 @@ export default function FaqEditModal() {
     clearAttachments,
     clearExistingsToDelete,
     setExistingAttachments,
+    // addExistingAttachment,
   } = useAttachmentStore();
 
   const subDepartmentsForCategory = useMemo(() => {
@@ -46,16 +49,37 @@ export default function FaqEditModal() {
     return subDepartments.filter((sd) => sd.parent?.id === departmentId);
   }, [departmentId, subDepartments]);
 
+  // Effect to handle FAQ changes and load initial data
   useEffect(() => {
-    // Clear attachment store state
-    clearAttachments();
-    clearExistingsToDelete();
-    setExistingAttachments({});
     if (faq) {
       const init = async () => {
         setQuestion(faq.text);
         setAnswer(faq.answer || "");
-        setDepartmentId(faq.departmentId);
+        if (departments.find((dept) => dept.id == faq.departmentId)) {
+          setDepartmentId(faq.departmentId);
+        } else {
+          setSubDepartmentId(faq.departmentId);
+        }
+      };
+      init();
+    } else {
+      // Reset for new FAQ, default to first available category
+      setQuestion("");
+      setAnswer("");
+      const firstCatId = departments[0]?.id || "";
+      setDepartmentId(firstCatId);
+      setSubDepartmentId(null);
+    }
+  }, [faq, departments]);
+
+  // Separate effect to handle attachment loading when FAQ changes or attachments are updated
+  useEffect(() => {
+    // Clear existing attachments first
+    clearAttachments();
+    clearExistingsToDelete();
+    setExistingAttachments({});
+    if (faq) {
+      const loadAttachments = async () => {
         const promises = getAttachments("faq", faq.id).map((id) =>
           FileService.getAttachmentMetadata(id).then((m) => {
             setMetadata(id, m);
@@ -66,17 +90,16 @@ export default function FaqEditModal() {
 
         await Promise.all(promises);
       };
-      init();
-    } else {
-      // Reset for new FAQ, default to first available category
-      setQuestion("");
-      setAnswer("");
-      const firstCatId = departments[0]?.id || "";
-      setDepartmentId(firstCatId);
-      setSubDepartmentId(null);
-      setAttachments([]);
+      loadAttachments();
     }
-  }, [faq, departments]);
+  }, [faq?.id, attachmentRefreshKey]); // Include refresh key to reload when attachments are updated
+
+  // Effect to refresh attachments when modal opens
+  useEffect(() => {
+    if (isEditing && faq) {
+      setAttachmentRefreshKey((prev) => prev + 1);
+    }
+  }, [isEditing, faq?.id]);
 
   useEffect(() => {
     // When category changes, reset sub-department if it's no longer valid
@@ -87,6 +110,8 @@ export default function FaqEditModal() {
 
   const handleClose = () => {
     setIsEditing(false);
+    // Reset attachment refresh key when closing
+    setAttachmentRefreshKey(0);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -100,31 +125,54 @@ export default function FaqEditModal() {
 
     const formData = attachments.length > 0 ? getFormData() : undefined;
     if (faq) {
-      api.FAQsService.updateQuestion(
-        faq.id,
-        {
-          text: question,
-          answer,
-          departmentId: deptId,
-          deleteAttachments: Object.keys(existingsToDelete),
-        },
-        formData
-      )
-        .then((response) => {
+      FAQService.updateQuestion(faq.id, {
+        text: question,
+        answer,
+        departmentId: deptId,
+        deleteAttachments: Object.keys(existingsToDelete),
+        attach: attachments.length > 0,
+      })
+        .then(async (response) => {
+          const { question: updated } = response;
           addToast({
             message: "FAQ Updated Successfully!",
             type: "success",
           });
-          updateFAQ(deptId, faq.id, {
+          // Simply update the FAQ in the store
+          updateFAQ(faq.departmentId, faq.id, {
             id: faq.id,
-            text: question,
-            answer,
+            text: updated.text || question,
+            answer: updated.answer || answer,
             departmentId: deptId,
             departmentName: [...departments, ...subDepartments].find(
               (dept) => dept.id === deptId
             )?.name,
           });
           handleClose();
+          if (formData && response.uploadKey) {
+            const uploadedFilesResponse =
+              await UploadService.uploadFromFormData(
+                formData,
+                response.uploadKey
+              );
+
+            console.log(uploadedFilesResponse);
+
+            if (uploadedFilesResponse) {
+              const { data: uploadedFiles } = uploadedFilesResponse;
+              if (Array.isArray(uploadedFiles)) {
+                addAttachments(
+                  "faq",
+                  faq.id,
+                  uploadedFiles.map((file) => file.id)
+                );
+              } else {
+                addAttachments("faq", faq.id, [uploadedFiles.id]);
+              }
+              // Trigger attachment refresh to reload the modal
+              setAttachmentRefreshKey((prev) => prev + 1);
+            }
+          }
         })
         .catch((error) => {
           addToast({
@@ -134,21 +182,55 @@ export default function FaqEditModal() {
           console.error("Update FAQ error:", error);
         });
     } else {
-      api.FAQsService.createQuestion(
-        {
-          text: question,
-          answer,
-          departmentId: subDepartmentId ?? departmentId,
-        },
-        formData
-      )
-        .then((response) => {
+      FAQService.createQuestion({
+        text: question,
+        answer,
+        departmentId: deptId,
+        attach: attachments.length > 0,
+      })
+        .then(async (response) => {
+          const { question: created } = response;
           addToast({
             message: "FAQ Added Successfully!",
             type: "success",
           });
-          addFAQ(deptId, response);
+          // Add the new FAQ to the store
+          addFAQ(deptId, {
+            id: created.id!,
+            text: created.text || question,
+            answer: created.answer || answer,
+            departmentId: deptId,
+            satisfaction: 0,
+            dissatisfaction: 0,
+            views: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
           handleClose();
+          if (formData && response.uploadKey) {
+            const uploadedFilesResponse =
+              await UploadService.uploadFromFormData(
+                formData,
+                response.uploadKey
+              );
+
+            console.log(uploadedFilesResponse);
+
+            if (uploadedFilesResponse) {
+              const { data: uploadedFiles } = uploadedFilesResponse;
+              if (Array.isArray(uploadedFiles)) {
+                addAttachments(
+                  "faq",
+                  created.id!,
+                  uploadedFiles.map((file) => file.id)
+                );
+              } else {
+                addAttachments("faq", created.id!, [uploadedFiles.id]);
+              }
+              // Trigger attachment refresh to reload the modal
+              setAttachmentRefreshKey((prev) => prev + 1);
+            }
+          }
         })
         .catch((error) => {
           addToast({
@@ -160,6 +242,7 @@ export default function FaqEditModal() {
     }
 
     // Clear attachment store state
+
     clearAttachments();
     clearExistingsToDelete();
     setExistingAttachments({});
@@ -271,7 +354,6 @@ export default function FaqEditModal() {
             </div>
             <AttachmentInput
               id="faq-attachment-input"
-              onAttachmentsChange={setAttachments}
               attachmentType="faq"
               attachmentId={faq?.id}
               getAttachmentTokens={getAttachments}

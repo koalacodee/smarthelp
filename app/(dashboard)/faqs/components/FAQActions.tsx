@@ -33,9 +33,9 @@ export default function FAQActions({
   ) as Question;
 
   return (
-    <>
+    <div className="flex items-center space-x-4">
       <button
-        className="text-blue-600 hover:text-blue-900"
+        className="text-blue-600 hover:text-blue-900 transition-colors duration-200 font-medium"
         onClick={() => {
           setFaq(question);
           setIsEditing(true);
@@ -61,10 +61,10 @@ export default function FAQActions({
             },
           })
         }
-        className="text-red-600 hover:text-red-900"
+        className="text-red-600 hover:text-red-900 transition-colors duration-200 font-medium"
       >
         Delete
       </button>
-    </>
+    </div>
   );
 }

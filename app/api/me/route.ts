@@ -11,6 +11,8 @@ export async function GET() {
     cookieName: "user_session",
   });
 
+  console.log(cookieStore);
+
   let user = session.user ?? null;
 
   if (!user) {
