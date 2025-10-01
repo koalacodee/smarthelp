@@ -1,14 +1,13 @@
 "use client";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import api, { UserResponse } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useRejectionModalStore } from "@/app/(dashboard)/store/useRejectionModalStore";
 import RejectionModal from "./RejectionModal";
 import { Datum } from "@/lib/api/employee-requests";
 
 export default function AdminPage() {
-  const { user } = useUserStore();
+  const [user, setUser] = useState<UserResponse | null>(null);
   const { addToast } = useToastStore();
   const [pendingRequests, setPendingRequests] = useState<Datum[]>([]);
   const [resolvedRequests, setResolvedRequests] = useState<Datum[]>([]);
@@ -19,6 +18,12 @@ export default function AdminPage() {
       fetchRequests();
     }
   }, [user?.role]);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   const fetchRequests = async () => {
     try {

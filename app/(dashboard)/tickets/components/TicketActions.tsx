@@ -1,14 +1,19 @@
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
-import api, { Ticket, TicketStatus } from "@/lib/api";
+import api, { Ticket, TicketStatus, UserResponse } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
+import { useEffect, useState } from "react";
 
 export default function TicketActions({ ticket }: { ticket: Ticket }) {
-  const { user } = useUserStore();
-
+  const [user, setUser] = useState<UserResponse | null>(null);
   const isManager = user?.role == "ADMIN" || user?.role == "SUPERVISOR";
   const isAllowedEmployee =
     user?.role == "EMPLOYEE" && user.permissions.includes("CLOSE_TICKETS");
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   const { setTicket } = useCurrentEditingTicketStore();
   const { setHoveredTicket, updateStatus } = useTicketStore();

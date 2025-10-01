@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 import Sidebar from "@/components/Sidebar";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import InitializeUser from "@/components/InitializeUser";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationSystem from "@/components/NotificationSystem";
 import MediaPreviewModal from "@/components/ui/MediaPreviewModal";
@@ -14,7 +13,6 @@ export default async function RootLayout({
   return (
     <>
       <ConfirmationModal />
-      <InitializeUser />
       <div className="min-h-screen bg-muted">
         <div className="flex">
           <Sidebar />

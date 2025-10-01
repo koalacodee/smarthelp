@@ -322,6 +322,14 @@ export const TicketsService = {
   },
 };
 
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[];
+}
+
 export const authService = {
   login: async (data: LoginDto) => {
     const response = await api.post<{
@@ -333,13 +341,7 @@ export const authService = {
 
   getCurrentUser: async () => {
     const response = await api.get<{
-      data: {
-        id: string;
-        name: string;
-        email: string;
-        role: string;
-        permissions: string[];
-      };
+      data: UserResponse;
     }>("/auth/me");
     return response.data.data;
   },

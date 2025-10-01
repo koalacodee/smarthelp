@@ -1,15 +1,19 @@
 "use client";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { useEmployeeRequestsStore } from "@/app/(dashboard)/store/useEmployeeRequestsStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SubmitEmployeeRequestForm from "./SubmitEmployeeRequestForm";
-import CreateNewDriverForm from "./CreateNewDriverForm";
-import api from "@/lib/api";
+import api, { UserResponse } from "@/lib/api";
 
 export default function SupervisorPage() {
-  const { user } = useUserStore();
+  const [user, setUser] = useState<UserResponse | null>(null);
   const { requests, isLoading, error, setRequests, setLoading, setError } =
     useEmployeeRequestsStore();
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   useEffect(() => {
     const fetchRequests = async () => {

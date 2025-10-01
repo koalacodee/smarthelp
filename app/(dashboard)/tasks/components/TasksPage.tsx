@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
-import { DepartmentsService, TasksService } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { DepartmentsService, TasksService, UserResponse } from "@/lib/api";
 import TaskCard from "./TaskCard";
 import DetailedTaskCard from "./DetailedTaskCard";
 import EditTaskModal from "./EditTaskModal";
@@ -11,10 +10,16 @@ import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 
 export default function TasksPage() {
-  const { user } = useUserStore();
+  const [user, setUser] = useState<UserResponse | null>(null);
   const { tasks, setTasks, isLoading, setLoading, error } = useTasksStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   useEffect(() => {
     const fetch = async () => {

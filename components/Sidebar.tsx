@@ -1,14 +1,6 @@
 "use client";
-import React, {
-  JSX,
-  useMemo,
-  Suspense,
-  useState,
-  useEffect,
-  useRef,
-} from "react";
+import React, { JSX, useMemo, Suspense, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import { EmployeePermissions } from "@/lib/api/types";
 import { SupervisorPermissions } from "@/lib/api/supervisors";
 
@@ -29,6 +21,7 @@ import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
 import Car from "@/icons/Car";
 import UserInfo from "./UserInfo";
+import { UserResponse } from "@/lib/api";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -245,7 +238,7 @@ function SidebarContent({
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user } = useUserStore();
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const visibleTabs = useMemo(() => {
@@ -254,6 +247,13 @@ export default function Sidebar() {
   }, [user]);
 
   // Auto-close sidebar when pathname changes (navigation)
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
+
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);

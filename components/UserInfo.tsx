@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
+import React, { useEffect, useState } from "react";
+import { UserResponse } from "@/lib/api";
 
 interface UserInfoProps {
   className?: string;
@@ -27,7 +27,13 @@ const formatRole = (role: string) => {
 };
 
 export default function UserInfo({ className = "" }: UserInfoProps) {
-  const { user } = useUserStore();
+  const [user, setUser] = useState<UserResponse | null>(null);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   if (!user) {
     return null;

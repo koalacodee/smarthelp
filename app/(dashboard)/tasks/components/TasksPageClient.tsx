@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUserStore } from "@/app/(dashboard)/store/useUserStore";
 import TeamTaskCard from "./TeamTaskCard";
 import TeamTasksDashboard from "./TeamTasksDashboard";
 import TeamTasksFilters from "./TeamTasksFilters";
@@ -38,7 +37,6 @@ export default function TasksPageClient({
   initialSubmissionAttachments,
   userRole,
 }: TasksPageClientProps) {
-  const { user } = useUserStore();
   const {
     tasks,
     filteredTasks,
@@ -46,7 +44,6 @@ export default function TasksPageClient({
     setTasks,
     setFilters,
     isLoading,
-    setLoading,
     error,
   } = useTaskStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
