@@ -249,7 +249,7 @@ export default function Sidebar() {
   // Auto-close sidebar when pathname changes (navigation)
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/server/me")
       .then((res) => res.json())
       .then((data) => setUser(data.user));
   }, []);

@@ -16,7 +16,7 @@ export default function TasksPage() {
   const { setTaskAttachments } = useTaskAttachments();
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/server/me")
       .then((res) => res.json())
       .then((data) => setUser(data.user));
   }, []);

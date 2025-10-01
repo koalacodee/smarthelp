@@ -10,7 +10,7 @@ export default function TicketActions({ ticket }: { ticket: Ticket }) {
     user?.role == "EMPLOYEE" && user.permissions.includes("CLOSE_TICKETS");
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/server/me")
       .then((res) => res.json())
       .then((data) => setUser(data.user));
   }, []);

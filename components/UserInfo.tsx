@@ -30,7 +30,7 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
   const [user, setUser] = useState<UserResponse | null>(null);
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/server/me")
       .then((res) => res.json())
       .then((data) => setUser(data.user));
   }, []);
