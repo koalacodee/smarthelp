@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 
 type DayData = {
   day: string;
@@ -53,7 +54,10 @@ export default function BarChartPanel({
   title = "Weekly Overview",
 }: BarChartPanelProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
       className={[
         "w-full rounded-xl bg-white backdrop-blur",
         "shadow-sm ring-1 ring-black/5",
@@ -61,12 +65,20 @@ export default function BarChartPanel({
         className || "",
       ].join(" ")}
     >
-      <div className="mb-4 flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.8 }}
+        className="mb-4 flex items-center justify-between"
+      >
         <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
         <div className="hidden gap-4 md:flex">
-          {SEGMENTS.map((s) => (
-            <div
+          {SEGMENTS.map((s, index) => (
+            <motion.div
               key={s.key}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 1 + index * 0.1 }}
               className="flex items-center gap-2 text-sm text-neutral-700"
             >
               <span
@@ -78,20 +90,31 @@ export default function BarChartPanel({
                 ].join(" ")}
               />
               {s.label}
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-8">
-        {data.map((d) => {
+        {data.map((d, dayIndex) => {
           const total = d.tasks + d.tickets + d.avgResp / 10;
           return (
-            <div key={d.day} className="flex flex-col items-center">
+            <motion.div
+              key={d.day}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 1.2 + dayIndex * 0.1 }}
+              className="flex flex-col items-center"
+            >
               <div className="relative h-64 w-24">
-                <div className="absolute inset-0 rounded-lg bg-neutral-100 shadow-inner ring-1 ring-black/5" />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 1.4 + dayIndex * 0.1 }}
+                  className="absolute inset-0 rounded-lg bg-neutral-100 shadow-inner ring-1 ring-black/5"
+                />
                 <div className="absolute inset-1 flex items-end gap-1">
-                  {SEGMENTS.map((s) => {
+                  {SEGMENTS.map((s, segmentIndex) => {
                     const value =
                       s.key === "avgResp" ? d[s.key] / 10 : d[s.key];
                     const heightPct = total > 0 ? (value / total) * 100 : 0;
@@ -105,19 +128,25 @@ export default function BarChartPanel({
                         colorFrom={s.colorFrom}
                         colorTo={s.colorTo}
                         textColor={s.textColor}
+                        delay={1.6 + dayIndex * 0.1 + segmentIndex * 0.05}
                       />
                     );
                   })}
                 </div>
               </div>
-              <div className="mt-2 text-sm font-medium text-neutral-700">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 1.8 + dayIndex * 0.1 }}
+                className="mt-2 text-sm font-medium text-neutral-700"
+              >
                 {d.day}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -129,6 +158,7 @@ type SegmentProps = {
   colorFrom: string;
   colorTo: string;
   textColor: string;
+  delay?: number;
 };
 
 function Segment({
@@ -139,46 +169,62 @@ function Segment({
   colorFrom,
   colorTo,
   textColor,
+  delay = 0,
 }: SegmentProps) {
-  const [mounted, setMounted] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
 
-  React.useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const heightPercent = Math.max(0, Math.min(100, heightPct));
-  const finalHeight = `${heightPercent}%`;
-  const visibleHeight = mounted
-    ? `${Math.max(heightPercent, value > 0 ? 6 : 0)}%`
-    : "0%"; // ensure visibility
+  const visibleHeight = `${Math.max(heightPercent, value > 0 ? 6 : 0)}%`;
 
   return (
-    <div
+    <motion.div
+      initial={{ height: "0%" }}
+      animate={{ height: visibleHeight }}
+      transition={{
+        duration: 0.8,
+        delay: delay,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
+      whileHover={{
+        scale: 1.05,
+        transition: { duration: 0.2, ease: "easeOut" },
+      }}
       className="relative flex-1 h-full"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Bar */}
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: delay + 0.2 }}
+        whileHover={{
+          boxShadow:
+            "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        }}
         className={[
           "absolute bottom-0 left-0 right-0 rounded-sm bg-gradient-to-br",
           colorFrom,
           colorTo,
           "ring-1 ring-white/70",
-          "shadow-sm transition-[height,transform] duration-700 ease-out",
-          hovered ? "shadow-md scale-[1.01]" : "",
+          "shadow-sm",
         ].join(" ")}
-        style={{ height: visibleHeight }}
+        style={{ height: "100%" }}
       />
 
       {/* Tooltip */}
-      {hovered && (
-        <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-800 px-2 py-1 text-xs text-white shadow-lg">
-          <span className="font-semibold">{day}</span>: {label} — {value}
-        </div>
-      )}
-    </div>
+      <motion.div
+        initial={{ opacity: 0, y: 5, scale: 0.8 }}
+        animate={
+          hovered
+            ? { opacity: 1, y: 0, scale: 1 }
+            : { opacity: 0, y: 5, scale: 0.8 }
+        }
+        transition={{ duration: 0.2 }}
+        className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-800 px-2 py-1 text-xs text-white shadow-lg"
+      >
+        <span className="font-semibold">{day}</span>: {label} — {value}
+      </motion.div>
+    </motion.div>
   );
 }

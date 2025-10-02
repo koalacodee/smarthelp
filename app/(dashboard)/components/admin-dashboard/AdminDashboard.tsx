@@ -13,6 +13,7 @@ import BarChartPanel from "./BarChartPanel";
 import AnalyticsSummary from "./AnalyticsSummary";
 import PendingStaffRequests from "./PendingStaffRequests";
 import RecentActivity from "./RecentActivity";
+import AnimatedHeader from "./AnimatedHeader";
 
 export default async function AdminDashboard() {
   // Fetch unified overview; if unavailable, fall back to individual calls
@@ -87,21 +88,7 @@ export default async function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
-        <div className="relative overflow-hidden rounded-2xl">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10" />
-          <div className="relative rounded-2xl border border-white/20 bg-white/80 p-6 shadow-xl backdrop-blur-sm">
-            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div className="space-y-1">
-                <h1 className="bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-3xl font-bold text-transparent">
-                  Executive Dashboard
-                </h1>
-                <p className="text-slate-600">
-                  Overview of key metrics and quick actions
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AnimatedHeader />
 
         {/* Metrics cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -110,24 +97,28 @@ export default async function AdminDashboard() {
             value={summary.totalUsers}
             accentClassName="bg-indigo-500"
             icon={<User className="h-5 w-5" />}
+            index={0}
           />
           <DashboardCard
             title="Active Tickets"
             value={summary.activeTickets}
             accentClassName="bg-blue-500"
             icon={<Ticket className="h-5 w-5" />}
+            index={1}
           />
           <DashboardCard
             title="Completed Tasks"
             value={summary.completedTasks}
             accentClassName="bg-emerald-500"
             icon={<CheckCircle className="h-5 w-5" />}
+            index={2}
           />
           <DashboardCard
             title="FAQ Satisfaction"
             value={`${summary.faqSatisfaction}%`}
             accentClassName="bg-amber-500"
             icon={<ClipboardList className="h-5 w-5" />}
+            index={3}
           />
         </div>
 
