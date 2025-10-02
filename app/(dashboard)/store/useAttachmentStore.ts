@@ -34,6 +34,7 @@ interface AttachmentStore {
   clearExistingAttachments: () => void;
   getAttachment: (index: number) => Attachment | undefined;
   getFormData: () => FormData;
+  clearAll: () => void;
 }
 
 export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
@@ -162,5 +163,9 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     }
 
     return formData;
+  },
+
+  clearAll: () => {
+    set({ attachments: [], existingAttachments: {}, existingsToDelete: {} });
   },
 }));
