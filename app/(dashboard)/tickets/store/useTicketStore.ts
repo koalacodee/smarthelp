@@ -46,26 +46,47 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   addTicket: (ticket) =>
     set((state) => {
       const newTickets = [...state.tickets, ticket];
-      return { tickets: newTickets };
+      const newFilteredTickets = [...state.filteredTickets, ticket];
+      return {
+        tickets: newTickets,
+        filteredTickets: newFilteredTickets,
+      };
     }),
   updateTicket: (id, updated) =>
-    set((state) => ({
-      tickets: state.tickets.map((t) =>
+    set((state) => {
+      const updatedTickets = state.tickets.map((t) =>
         t.id === id
           ? { ...t, ...updated, updatedAt: new Date().toISOString() }
           : t
-      ),
-    })),
+      );
+      const updatedFilteredTickets = state.filteredTickets.map((t) =>
+        t.id === id
+          ? { ...t, ...updated, updatedAt: new Date().toISOString() }
+          : t
+      );
+      return {
+        tickets: updatedTickets,
+        filteredTickets: updatedFilteredTickets,
+      };
+    }),
   removeTicket: (id) =>
     set((state) => ({
       tickets: state.tickets.filter((t) => t.id !== id),
+      filteredTickets: state.filteredTickets.filter((t) => t.id !== id),
     })),
   updateStatus: (id, status) =>
-    set((state) => ({
-      tickets: state.tickets.map((t) =>
+    set((state) => {
+      const updatedTickets = state.tickets.map((t) =>
         t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
-      ),
-    })),
+      );
+      const updatedFilteredTickets = state.filteredTickets.map((t) =>
+        t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
+      );
+      return {
+        tickets: updatedTickets,
+        filteredTickets: updatedFilteredTickets,
+      };
+    }),
   setHoveredTicket: (id) =>
     set((state) => ({
       hoveredTicket: id ? state.tickets.find((t) => t.id == id) : null,

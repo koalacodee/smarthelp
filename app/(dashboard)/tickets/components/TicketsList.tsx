@@ -1,38 +1,38 @@
 "use client";
 import { Ticket, TicketStatus } from "@/lib/api";
-import TicketActions from "./TicketActions";
-import TicketModal from "./TicketModal";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import TicketActionsDropdown from "./TicketActionsDropdown";
+import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
 
 const getTicketStatusBadge = (status: TicketStatus) => {
   switch (status) {
     case TicketStatus.NEW:
       return (
-        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+        <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs">
           New
         </span>
       );
     case TicketStatus.SEEN:
       return (
-        <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+        <span className="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">
           Seen
         </span>
       );
     case TicketStatus.ANSWERED:
       return (
-        <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
+        <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">
           Answered
         </span>
       );
     case TicketStatus.CLOSED:
       return (
-        <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded">
+        <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs">
           Closed
         </span>
       );
     default:
       return (
-        <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded">
+        <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
           Unknown
         </span>
       );
@@ -45,19 +45,19 @@ const getPriorityBadge = (priority?: string) => {
   switch (priority.toUpperCase()) {
     case "HIGH":
       return (
-        <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded">
+        <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs">
           High
         </span>
       );
     case "MEDIUM":
       return (
-        <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+        <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded text-xs">
           Medium
         </span>
       );
     case "LOW":
       return (
-        <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
+        <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">
           Low
         </span>
       );
@@ -71,72 +71,187 @@ interface TicketsListProps {
 }
 
 export default function TicketsList({ tickets }: TicketsListProps) {
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { setTicket } = useCurrentEditingTicketStore();
 
   const handleTicketClick = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedTicket(null);
+    setTicket(ticket);
   };
 
   return (
     <>
-      <div className="space-y-0">
-        {tickets && tickets.length > 0 ? (
-          tickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="relative bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => handleTicketClick(ticket)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900 text-sm mb-1">
-                    {ticket.subject}
-                  </div>
-                  <div className="text-xs text-gray-600 mb-2">
-                    {ticket.guestName} •{" "}
-                    {new Date(ticket.createdAt).toLocaleDateString()}
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs">
+      {/* Table Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.8 }}
+        className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-6 py-4 border-b border-slate-200"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.9 }}
+          className="grid grid-cols-12 gap-4 text-xs font-semibold text-slate-600 uppercase tracking-wider"
+        >
+          <div className="col-span-4">Subject</div>
+          <div className="col-span-2">Status</div>
+          <div className="col-span-2">Department</div>
+          <div className="col-span-2">Date</div>
+          <div className="col-span-1">Priority</div>
+          <div className="col-span-1">Actions</div>
+        </motion.div>
+      </motion.div>
+
+      {/* Table Body */}
+      <div className="divide-y divide-slate-200">
+        <AnimatePresence>
+          {tickets && tickets.length > 0 ? (
+            tickets.map((ticket, index) => (
+              <motion.div
+                key={ticket.id}
+                initial={{ opacity: 0, x: -20, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 20, scale: 0.98 }}
+                transition={{
+                  duration: 0.3,
+                  delay: 1 + index * 0.05,
+                  ease: "easeOut",
+                }}
+                whileHover={{
+                  backgroundColor: "rgb(248 250 252)",
+                  scale: 1.01,
+                  transition: { duration: 0.2 },
+                }}
+                className="group hover:bg-slate-50 transition-all duration-200 cursor-pointer"
+                onClick={() => handleTicketClick(ticket)}
+              >
+                <div className="grid grid-cols-12 gap-4 px-6 py-4">
+                  {/* Subject */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-4 flex items-start gap-3"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.2, delay: 1.2 + index * 0.05 }}
+                      className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p
+                        className="text-sm font-medium text-slate-900 truncate"
+                        title={ticket.subject}
+                      >
+                        {ticket.subject}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">
+                        {ticket.guestName}
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Status */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-2 flex items-center"
+                  >
                     {getTicketStatusBadge(ticket.status)}
-                    {ticket.department?.name && (
-                      <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
+                  </motion.div>
+
+                  {/* Department */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-2 flex items-center"
+                  >
+                    {ticket.department?.name ? (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                         {ticket.department.name}
                       </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">-</span>
                     )}
-                    {ticket.interaction && (
-                      <span className="text-slate-400 italic">
-                        {ticket.interaction.type === "SATISFACTION"
-                          ? "👍"
-                          : "👎"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <TicketActions ticket={ticket} />
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No tickets found
-          </div>
-        )}
-      </div>
+                  </motion.div>
 
-      <TicketModal
-        ticket={selectedTicket}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+                  {/* Date */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-2 flex items-center"
+                  >
+                    <span className="text-sm text-slate-600">
+                      {new Date(ticket.createdAt).toLocaleDateString()}
+                    </span>
+                  </motion.div>
+
+                  {/* Actions */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-1 flex items-center justify-end"
+                  >
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <TicketActionsDropdown ticket={ticket} />
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 1 }}
+              className="px-6 py-16 text-center"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 1.1 }}
+                className="flex flex-col items-center justify-center space-y-4"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, delay: 1.2, ease: "backOut" }}
+                  className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    className="w-8 h-8 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                    />
+                  </svg>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 1.3 }}
+                  className="text-slate-500"
+                >
+                  <p className="text-lg font-medium mb-2">No tickets found</p>
+                  <p className="text-sm">
+                    Try adjusting your search or filter criteria
+                  </p>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </>
   );
 }
