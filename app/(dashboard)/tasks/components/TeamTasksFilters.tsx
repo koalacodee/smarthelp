@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useTaskStore } from "@/lib/store/useTaskStore";
 
 interface TeamTasksFiltersProps {
@@ -24,22 +25,53 @@ export default function TeamTasksFilters({
 
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
-      <h3 className="text-base font-semibold mb-4 text-[#4a5568]">
+      <motion.h3
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="text-base font-semibold mb-4 text-[#4a5568]"
+      >
         Filters &amp; Search
-      </h3>
-      <input
+      </motion.h3>
+      <motion.input
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        whileFocus={{
+          scale: 1.02,
+          boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+        }}
         type="text"
         value={filters.search}
         onChange={(e) => handleFilterChange("search", e.target.value)}
-        className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-md text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#3b82f6]"
+        className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
         placeholder="Search tasks..."
       />
-      <div className="mt-5">
-        <label className="block mb-1 text-xs text-[#4a5568]">Status</label>
-        <select
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="mt-5"
+      >
+        <motion.label
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="block mb-1 text-xs text-[#4a5568]"
+        >
+          Status
+        </motion.label>
+        <motion.select
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+          whileFocus={{
+            scale: 1.02,
+            boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+          }}
           value={filters.status}
           onChange={(e) => handleFilterChange("status", e.target.value)}
-          className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-md text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6]"
+          className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
         >
           <option>All</option>
           <option>Completed</option>
@@ -47,22 +79,34 @@ export default function TeamTasksFilters({
           <option>Pending Review</option>
           <option>Seen</option>
           <option>Rejected</option>
-        </select>
+        </motion.select>
 
-        <label className="block mb-1 mt-4 text-xs text-[#4a5568]">
+        <motion.label
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.6 }}
+          className="block mb-1 mt-4 text-xs text-[#4a5568]"
+        >
           Priority
-        </label>
-        <select
+        </motion.label>
+        <motion.select
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.7 }}
+          whileFocus={{
+            scale: 1.02,
+            boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+          }}
           value={filters.priority}
           onChange={(e) => handleFilterChange("priority", e.target.value)}
-          className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-md text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6]"
+          className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
         >
           <option>All</option>
           <option>High</option>
           <option>Medium</option>
           <option>Low</option>
-        </select>
-      </div>
+        </motion.select>
+      </motion.div>
     </div>
   );
 }
