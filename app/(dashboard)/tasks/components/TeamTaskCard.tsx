@@ -19,6 +19,7 @@ import api from "@/lib/api";
 import { useConfirmationModalStore } from "../../store/useConfirmationStore";
 import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
 import ThreeDotMenu from "./ThreeDotMenu";
+import { useTaskStore } from "@/lib/store";
 
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
@@ -92,9 +93,10 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   const { openDetails } = useTaskDetailsStore();
   const { setTask, setIsEditing } = useCurrentEditingTaskStore();
   const { getAttachments } = useAttachmentsStore();
+  const taskAttachmentIds = getAttachments("task", task.id);
   const { setMetadata } = useMediaMetadataStore();
   const { openPreview } = useMediaPreviewStore();
-  const { updateTask, deleteTask } = useTasksStore();
+  const { updateTask, deleteTask } = useTaskStore();
   const { openModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
   const { getTaskSubmissions, getSubmissionAttachments } =
@@ -110,9 +112,8 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   // Load attachment metadata for this task
   useEffect(() => {
     const loadAttachmentsMetadata = async () => {
-      const taskAttachments = getAttachments("task", task.id);
-      if (taskAttachments.length > 0) {
-        const attachmentMetadataPromises = taskAttachments.map(
+      if (taskAttachmentIds.length > 0) {
+        const attachmentMetadataPromises = taskAttachmentIds.map(
           async (attachmentId) => {
             try {
               const metadata = await FileService.getAttachmentMetadata(
@@ -146,7 +147,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
     };
 
     loadAttachmentsMetadata();
-  }, [task.id, getAttachments, setMetadata]);
+  }, [task.id, setMetadata, taskAttachmentIds.length]);
 
   // Load submission attachment metadata
   useEffect(() => {
@@ -194,7 +195,13 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
     };
 
     loadSubmissionAttachmentsMetadata();
-  }, [task.id, getTaskSubmissions, getSubmissionAttachments, setMetadata]);
+  }, [
+    task.id,
+    getTaskSubmissions,
+    getSubmissionAttachments,
+    setMetadata,
+    getTaskSubmissions(task.id).length,
+  ]);
 
   const handleApprove = async () => {
     try {
@@ -260,7 +267,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
     }
   };
 
-  const taskAttachments = getAttachments("task", task.id);
+  const taskAttachments = taskAttachmentIds;
   const taskSubmissions = getTaskSubmissions(task.id);
 
   const toggleSubmission = (submissionId: string) => {

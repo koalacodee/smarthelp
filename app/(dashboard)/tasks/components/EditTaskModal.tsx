@@ -6,7 +6,6 @@ import api, { UpdateTaskDto, FileService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingTaskStore } from "../store/useCurrentEditingTaskStore";
 import { Department } from "@/lib/api/departments";
-import { useTasksStore } from "../../store/useTasksStore";
 import {
   Attachment,
   useAttachmentStore,
@@ -14,6 +13,7 @@ import {
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { TicketAssignee } from "@/lib/api";
+import { useTaskStore } from "@/lib/store";
 
 type EditTaskModalProps = {
   role: "admin" | "supervisor";
@@ -71,10 +71,11 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
 
   const { addToast } = useToastStore();
   const { task, setIsEditing, isEditing } = useCurrentEditingTaskStore();
-  const { updateTask } = useTasksStore();
+  const { updateTask } = useTaskStore();
   const { getFormData } = useAttachmentStore();
-  const { getAttachments } = useAttachmentsStore();
-  const { setMetadata } = useMediaMetadataStore();
+  const { getAttachments, removeAttachments } = useAttachmentsStore();
+  const { setMetadata, clearMetadata } = useMediaMetadataStore();
+  const { addAttachments } = useAttachmentsStore();
   const { addExistingAttachment } = useAttachmentStore();
 
   useEffect(() => {
@@ -239,7 +240,46 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         formData
       );
 
-      updateTask(task.id, updatedTask);
+      updateTask(task.id, updatedTask.task);
+
+      // Store newly uploaded attachments (if any) from the update response
+      const uploaded = updatedTask?.uploaded;
+      if (uploaded) {
+        if (Array.isArray(uploaded)) {
+          addAttachments(
+            "task",
+            task.id,
+            uploaded.map((f: any) => f.id)
+          );
+          uploaded.forEach((f: any) =>
+            setMetadata(f.id, {
+              fileType: f.fileType,
+              originalName: f.originalName,
+              sizeInBytes: f.sizeInBytes,
+              expiryDate: (f.expirationDate ?? null) as any,
+              contentType: f.contentType,
+            })
+          );
+        } else if (uploaded.id) {
+          addAttachments("task", task.id, [uploaded.id]);
+          setMetadata(uploaded.id, {
+            fileType: uploaded.fileType,
+            originalName: uploaded.originalName,
+            sizeInBytes: uploaded.sizeInBytes,
+            expiryDate: (uploaded.expirationDate ?? null) as any,
+            contentType: uploaded.contentType,
+          });
+        }
+      }
+
+      // Reflect deleted attachments in stores
+      if (
+        updateTaskDto.deleteAttachments &&
+        updateTaskDto.deleteAttachments.length > 0
+      ) {
+        removeAttachments("task", task.id, updateTaskDto.deleteAttachments);
+        updateTaskDto.deleteAttachments.forEach((id) => clearMetadata(id));
+      }
 
       addToast({
         message: "Task updated successfully!",

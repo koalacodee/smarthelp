@@ -40,6 +40,10 @@ import {
 } from "@/app/(dashboard)/user-activity/components/UserPerformanceTable";
 import { env } from "next-runtime-env";
 import { Configuration, KnowledgeChunkApiFactory } from "./sdk";
+import {
+  UploadMultipleFilesResponse,
+  UploadSingleFileResponse,
+} from "./v2/services/shared/upload";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -713,10 +717,17 @@ export const TasksService = {
       attach: !!formData,
     });
 
+    let uploaded:
+      | UploadMultipleFilesResponse
+      | UploadSingleFileResponse
+      | undefined = undefined;
+
     if (response.data.data.uploadKey && formData) {
-      await FileService.upload(response.data.data.uploadKey, formData);
+      uploaded = (
+        await FileService.upload(response.data.data.uploadKey, formData)
+      )?.data;
     }
-    return response.data.data.task;
+    return { task: response.data.data.task, uploaded };
   },
   deleteTask: async (id: string) => {
     return api.delete(`/tasks/${id}`);
@@ -774,11 +785,17 @@ export const TasksService = {
       ...dto,
       attach: !!formData,
     });
+    let uploaded:
+      | UploadMultipleFilesResponse
+      | UploadSingleFileResponse
+      | undefined = undefined;
 
     if (response.data.data.uploadKey && formData) {
-      await FileService.upload(response.data.data.uploadKey, formData);
+      uploaded = (
+        await FileService.upload(response.data.data.uploadKey, formData)
+      )?.data;
     }
-    return response.data.data.task;
+    return { task: response.data.data.task, uploaded };
   },
   getTaskSubmissions: async (taskId: string) => {
     const response = await api.get<{ data: TaskSubmissionsResponse }>(
@@ -988,11 +1005,11 @@ export const FileService = {
       return null;
     }
     if (data.has("files")) {
-      await api.post("/files/multiple", data, {
+      return api.post<UploadMultipleFilesResponse>("/files/multiple", data, {
         headers: { "x-upload-key": uploadKey },
       });
     } else {
-      await api.post("/files/single", data, {
+      return api.post<UploadSingleFileResponse>("/files/single", data, {
         headers: { "x-upload-key": uploadKey },
       });
     }

@@ -75,31 +75,39 @@ export const useTaskStore = create<TaskStore>()(
         set({ tasks, filteredTasks: tasks });
       },
 
-      addTask: (task) =>
+      addTask: (task) => {
         set((state) => {
           const newTasks = [...state.tasks, task];
           return { tasks: newTasks };
-        }),
+        });
+        get().applyFilters();
+      },
 
-      addTasks: (tasks) =>
+      addTasks: (tasks) => {
         set((state) => {
           const newTasks = [...state.tasks, ...tasks];
           return { tasks: newTasks };
-        }),
+        });
+        get().applyFilters();
+      },
 
-      updateTask: (taskId, updates) =>
+      updateTask: (taskId, updates) => {
         set((state) => ({
           tasks: state.tasks.map((task) =>
             task.id === taskId
               ? { ...task, ...updates, updatedAt: new Date().toISOString() }
               : task
           ),
-        })),
+        }));
+        get().applyFilters();
+      },
 
-      deleteTask: (taskId) =>
+      deleteTask: (taskId) => {
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== taskId),
-        })),
+        }));
+        get().applyFilters();
+      },
 
       clearTasks: () => set({ tasks: [], filteredTasks: [] }),
 

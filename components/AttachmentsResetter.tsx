@@ -11,10 +11,10 @@ export default function StoreResetter() {
   const { clearAll } = useAttachmentStore();
   const { clearAttachments } = useAttachmentsStore();
 
-  useEffect(() => {
-    clearAll();
-    clearAttachments();
-  }, [pathname, clearAll, clearAttachments]);
+  // useEffect(() => {
+  //   clearAll();
+  //   clearAttachments();
+  // }, [pathname, clearAll, clearAttachments]);
 
   return null;
 }

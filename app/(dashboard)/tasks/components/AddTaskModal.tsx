@@ -17,7 +17,6 @@ import { TicketAssignee } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import Plus from "@/icons/Plus";
 import CheckCircle from "@/icons/CheckCircle";
-import { useTasksStore } from "../../store/useTasksStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import AttachmentInput from "@/components/ui/AttachmentInput";
 import {
@@ -25,6 +24,8 @@ import {
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
+import { useTaskStore } from "@/lib/store";
+import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -85,7 +86,8 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     clearExistingsToDelete,
     setExistingAttachments,
   } = useAttachmentStore();
-  const { getAttachments } = useAttachmentsStore();
+  const { getAttachments, addAttachments, removeAttachments } =
+    useAttachmentsStore();
   const {
     register,
     handleSubmit,
@@ -98,12 +100,17 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     ),
     defaultValues: {
       priority: "MEDIUM",
+      // Keep numeric defaults; treat 0/0/0 as no reminder at submit time
+      reminderDays: 0,
+      reminderHours: 0,
+      reminderMinutes: 0,
     },
   });
 
   const { isOpen, setOpen, subDepartments, departments } = useTaskModalStore();
 
-  const { addTask } = useTasksStore();
+  const { addTask } = useTaskStore();
+  const { setMetadata } = useMediaMetadataStore();
   const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
     TicketAssignee[]
   >([]);
@@ -174,7 +181,42 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       // Get FormData from attachment store
       const formData = attachments.length > 0 ? getFormData() : undefined;
 
-      await api.TasksService.createTask(createTaskDto, formData).then(addTask);
+      const createdResp = await api.TasksService.createTask(
+        createTaskDto,
+        formData
+      );
+      const createdTask = createdResp?.task ?? createdResp;
+      addTask(createdTask);
+
+      // Store newly uploaded attachments from API response (no refetch)
+      const uploaded = createdResp?.uploaded;
+      if (uploaded) {
+        if (Array.isArray(uploaded)) {
+          addAttachments(
+            "task",
+            createdTask.id,
+            uploaded.map((f: any) => f.id)
+          );
+          uploaded.forEach((f: any) =>
+            setMetadata(f.id, {
+              fileType: f.fileType,
+              originalName: f.originalName,
+              sizeInBytes: f.sizeInBytes,
+              expiryDate: (f.expirationDate ?? null) as any,
+              contentType: f.contentType,
+            })
+          );
+        } else if (uploaded.id) {
+          addAttachments("task", createdTask.id, [uploaded.id]);
+          setMetadata(uploaded.id, {
+            fileType: uploaded.fileType,
+            originalName: uploaded.originalName,
+            sizeInBytes: uploaded.sizeInBytes,
+            expiryDate: (uploaded.expirationDate ?? null) as any,
+            contentType: uploaded.contentType,
+          });
+        }
+      }
 
       addToast({
         message: "Task created successfully!",
@@ -385,6 +427,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           min="0"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                          defaultValue={0}
                         />
                       </div>
                       <div>
@@ -404,6 +447,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           max="23"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                          defaultValue={0}
                         />
                       </div>
                       <div>
@@ -423,6 +467,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           max="59"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
+                          defaultValue={0}
                         />
                       </div>
                     </div>

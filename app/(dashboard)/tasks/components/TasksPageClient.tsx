@@ -11,7 +11,10 @@ import { useTaskStore } from "@/lib/store/useTaskStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
+import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
+import { FileService } from "@/lib/api";
 import { TaskSubmission } from "@/lib/api";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 
 interface TasksPageClientProps {
   initialTasks: any[];
@@ -49,6 +52,8 @@ export default function TasksPageClient({
   } = useTaskStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
+  const { setAttachments } = useAttachmentsStore();
+  const { setMetadata } = useMediaMetadataStore();
   const { setAllTaskSubmissions, setAllSubmissionAttachments } =
     useTaskSubmissionsStore();
 
@@ -59,6 +64,20 @@ export default function TasksPageClient({
     setSubDepartments(initialSubDepartments);
     if (initialAttachments) {
       setTaskAttachments(initialAttachments);
+      setAttachments("task", initialAttachments);
+      // Prefill metadata cache so names/previews show immediately
+      const allIds: string[] = Object.values(initialAttachments)
+        .flat()
+        .filter(Boolean) as string[];
+      if (allIds.length > 0) {
+        Promise.all(
+          allIds.map((id) =>
+            FileService.getAttachmentMetadata(id)
+              .then((m) => setMetadata(id, m))
+              .catch(() => null)
+          )
+        );
+      }
     }
     if (initialTaskSubmissions) {
       setAllTaskSubmissions(initialTaskSubmissions);
