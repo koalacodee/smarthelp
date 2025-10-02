@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import AttachmentInput from "@/components/ui/AttachmentInput";
 import api, { FileService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -255,128 +256,237 @@ export default function FaqEditModal() {
   if (!isEditing) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={handleClose}
-      aria-modal="true"
-      role="dialog"
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        onClick={handleClose}
+        aria-modal="true"
+        role="dialog"
       >
-        <form onSubmit={handleSave}>
-          <h3 className="text-xl font-bold mb-6 text-slate-800">
-            {modalTitle}
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="faq-question"
-                className="block text-sm font-medium text-slate-700 mb-1"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 50 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <form onSubmit={handleSave}>
+            <motion.h3
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="text-2xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent"
+            >
+              {modalTitle}
+            </motion.h3>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="space-y-6"
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
               >
-                Question
-              </label>
-              <input
-                id="faq-question"
-                type="text"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="faq-answer"
-                className="block text-sm font-medium text-slate-700 mb-1"
-              >
-                Answer
-              </label>
-              <textarea
-                id="faq-answer"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                rows={4}
-                className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-                placeholder="Provide a detailed answer to the question."
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="faq-category-modal"
-                  className="block text-sm font-medium text-slate-700 mb-1"
+                <motion.label
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                  htmlFor="faq-question"
+                  className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Main Category
-                </label>
-                <select
-                  id="faq-category-modal"
-                  value={departmentId}
-                  onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  Question
+                </motion.label>
+                <motion.input
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                  whileFocus={{
+                    scale: 1.02,
+                    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                  }}
+                  id="faq-question"
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                   required
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+              >
+                <motion.label
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                  htmlFor="faq-answer"
+                  className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  {departments.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  Answer
+                </motion.label>
+                <motion.textarea
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.6 }}
+                  whileFocus={{
+                    scale: 1.02,
+                    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                  }}
+                  id="faq-answer"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  rows={4}
+                  className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
+                  required
+                  placeholder="Provide a detailed answer to the question."
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+              >
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+                >
+                  <motion.label
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.7 }}
+                    htmlFor="faq-category-modal"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
+                    Main Category
+                  </motion.label>
+                  <motion.select
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.8 }}
+                    whileFocus={{
+                      scale: 1.02,
+                      boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                    }}
+                    id="faq-category-modal"
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                    className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all duration-200"
+                    required
+                  >
+                    {departments.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </motion.select>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+                >
+                  <motion.label
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.7 }}
+                    htmlFor="faq-subdepartment-modal"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
+                    Sub-department (Optional)
+                  </motion.label>
+                  <motion.select
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.8 }}
+                    whileFocus={{
+                      scale: 1.02,
+                      boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                    }}
+                    id="faq-subdepartment-modal"
+                    value={subDepartmentId || ""}
+                    onChange={(e) => setSubDepartmentId(e.target.value || null)}
+                    className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 disabled:bg-slate-100 disabled:opacity-50 transition-all duration-200"
+                    disabled={subDepartmentsForCategory.length == 0}
+                  >
+                    <option value="">
+                      {subDepartmentsForCategory.length !== 0
+                        ? `All of ${selectedCategoryName}`
+                        : "No Sub-Departments"}
                     </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label
-                  htmlFor="faq-subdepartment-modal"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  Sub-department (Optional)
-                </label>
-                <select
-                  id="faq-subdepartment-modal"
-                  value={subDepartmentId || ""}
-                  onChange={(e) => setSubDepartmentId(e.target.value || null)}
-                  className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-slate-50 disabled:opacity-50"
-                  disabled={subDepartmentsForCategory.length == 0}
-                >
-                  <option value="">
-                    {subDepartmentsForCategory.length !== 0
-                      ? `All of ${selectedCategoryName}`
-                      : "No Sub-Departments"}
-                  </option>
-                  {subDepartmentsForCategory.map((sd) => (
-                    <option key={sd.id} value={sd.id}>
-                      {sd.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <AttachmentInput
-              id="faq-attachment-input"
-              attachmentType="faq"
-              attachmentId={faq?.id}
-              getAttachmentTokens={getAttachments}
-            />
-          </div>
-          <div className="mt-8 flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
+                    {subDepartmentsForCategory.map((sd) => (
+                      <option key={sd.id} value={sd.id}>
+                        {sd.name}
+                      </option>
+                    ))}
+                  </motion.select>
+                </motion.div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              >
+                <AttachmentInput
+                  id="faq-attachment-input"
+                  attachmentType="faq"
+                  attachmentId={faq?.id}
+                  getAttachmentTokens={getAttachments}
+                />
+              </motion.div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.8 }}
+              className="mt-8 flex justify-end gap-4"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.9 }}
+                whileHover={{
+                  scale: 1.05,
+                  backgroundColor: "rgb(148 163 184)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleClose}
+                className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                type="submit"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 1 }}
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 8px 20px -5px rgba(59, 130, 246, 0.4)",
+                  backgroundColor: "rgb(37 99 235)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSave}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Save Changes
+              </motion.button>
+            </motion.div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
