@@ -204,7 +204,8 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
     try {
       await TasksService.markTaskAsSeen(taskId);
       addToast({ message: "Task marked as seen", type: "success" });
-      // Optionally refresh the task data or update the task status
+      // Optimistically update store to reflect new status and reapply filters/metrics
+      useMyTasksStore.getState().updateTask(taskId, { status: "SEEN" });
     } catch (error) {
       addToast({ message: "Failed to mark task as seen", type: "error" });
     }

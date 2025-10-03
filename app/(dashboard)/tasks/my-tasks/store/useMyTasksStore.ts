@@ -66,22 +66,104 @@ export const useMyTasksStore = create<MyTasksStore>()(
 
       // Data actions
       setTasks: (data) => {
-        set({
-          tasks: data.data,
-          filteredTasks: data.data,
-          total: data.total,
-          metrics: data.metrics,
+        set((state) => {
+          const nextTasks = data.data;
+          // Keep filters as-is; recompute filteredTasks accordingly
+          const nextState = {
+            tasks: nextTasks,
+            total: data.total,
+            metrics: data.metrics,
+          } as Partial<MyTasksStore>;
+          // Derive filteredTasks using current filters
+          const { filters } = state;
+          let filtered = [...nextTasks];
+          if (filters.search) {
+            filtered = filtered.filter(
+              (task) =>
+                task.title
+                  ?.toLowerCase()
+                  .includes(filters.search.toLowerCase()) ||
+                task.description
+                  ?.toLowerCase()
+                  .includes(filters.search.toLowerCase())
+            );
+          }
+          if (filters.status !== "All") {
+            const statusMap: { [key: string]: string } = {
+              Completed: "COMPLETED",
+              "In Progress": "TODO",
+              "Pending Review": "PENDING_REVIEW",
+              Seen: "SEEN",
+              Rejected: "REJECTED",
+            };
+            filtered = filtered.filter(
+              (task) => task.status === statusMap[filters.status]
+            );
+          }
+          if (filters.priority !== "All") {
+            filtered = filtered.filter(
+              (task) => task.priority === filters.priority.toUpperCase()
+            );
+          }
+          // Category kept as placeholder
+          nextState.filteredTasks = filtered;
+          return nextState as MyTasksStore;
         });
       },
 
       updateTask: (taskId, updates) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
+        set((state) => {
+          const nextTasks = state.tasks.map((task) =>
             task.id === taskId
               ? { ...task, ...updates, updatedAt: new Date().toISOString() }
               : task
-          ),
-        })),
+          );
+          // Re-derive filteredTasks with same filters
+          const { filters } = state;
+          let filtered = [...nextTasks];
+          if (filters.search) {
+            filtered = filtered.filter(
+              (task) =>
+                task.title
+                  ?.toLowerCase()
+                  .includes(filters.search.toLowerCase()) ||
+                task.description
+                  ?.toLowerCase()
+                  .includes(filters.search.toLowerCase())
+            );
+          }
+          if (filters.status !== "All") {
+            const statusMap: { [key: string]: string } = {
+              Completed: "COMPLETED",
+              "In Progress": "TODO",
+              "Pending Review": "PENDING_REVIEW",
+              Seen: "SEEN",
+              Rejected: "REJECTED",
+            };
+            filtered = filtered.filter(
+              (task) => task.status === statusMap[filters.status]
+            );
+          }
+          if (filters.priority !== "All") {
+            filtered = filtered.filter(
+              (task) => task.priority === filters.priority.toUpperCase()
+            );
+          }
+          // Recompute metrics and total from nextTasks to keep dashboard in sync
+          const total = nextTasks.length;
+          const completedCount = nextTasks.filter(
+            (t) => t.status === "COMPLETED"
+          ).length;
+          const pendingCount = total - completedCount;
+          const completionPercentage =
+            total === 0 ? 0 : Math.round((completedCount / total) * 100);
+          return {
+            tasks: nextTasks,
+            filteredTasks: filtered,
+            total,
+            metrics: { completedCount, pendingCount, completionPercentage },
+          } as Partial<MyTasksStore> as MyTasksStore;
+        }),
 
       // Filter actions
       setFilters: (newFilters) => {

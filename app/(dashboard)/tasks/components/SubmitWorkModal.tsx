@@ -8,6 +8,9 @@ import {
   Attachment,
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
+import { useMyTasksStore } from "../my-tasks/store/useMyTasksStore";
+import { useAdminTasksStore } from "../store/useAdminTasksStore";
+import { TaskStatus } from "@/lib/api/tasks";
 
 export default function SubmitWorkModal() {
   const { isOpen, task, isSubmitting, closeModal, setNotes, setIsSubmitting } =
@@ -39,6 +42,17 @@ export default function SubmitWorkModal() {
         { notes: task.notes },
         formData
       );
+      // Optimistically update task status in any relevant store
+      try {
+        useMyTasksStore
+          .getState()
+          .updateTask(task.id!, { status: TaskStatus.PENDING_REVIEW });
+      } catch {}
+      try {
+        useAdminTasksStore
+          .getState()
+          .updateTask(task.id!, { status: TaskStatus.PENDING_REVIEW });
+      } catch {}
       addToast({
         message: "Task submitted for review successfully!",
         type: "success",
