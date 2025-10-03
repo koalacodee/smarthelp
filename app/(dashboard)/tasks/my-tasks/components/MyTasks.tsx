@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { MyTasksResponse } from "@/lib/api";
 import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
-import MyTasksActions from "./MyTasksActions";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
 import SubmitWorkModal from "../../components/SubmitWorkModal";
 import { useTaskDetailsStore } from "../../store/useTaskDetailsStore";
@@ -19,6 +18,7 @@ import Eye from "@/icons/Eye";
 import Clock from "@/icons/Clock";
 import ThreeDotMenu from "../../components/ThreeDotMenu";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import { TaskStatus } from "@/lib/api/tasks";
 
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
@@ -205,7 +205,9 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
       await TasksService.markTaskAsSeen(taskId);
       addToast({ message: "Task marked as seen", type: "success" });
       // Optimistically update store to reflect new status and reapply filters/metrics
-      useMyTasksStore.getState().updateTask(taskId, { status: "SEEN" });
+      useMyTasksStore
+        .getState()
+        .updateTask(taskId, { status: TaskStatus.SEEN });
     } catch (error) {
       addToast({ message: "Failed to mark task as seen", type: "error" });
     }
