@@ -8,11 +8,13 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import { SupervisorPermissions } from "@/lib/api/supervisors";
-import { DepartmentsService, SupervisorsService } from "@/lib/api";
+import { DepartmentsService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingSupervisorStore } from "../store/useCurrentEditingSupervisorStore";
 import { useSupervisorsStore } from "../store/useSupervisorsStore";
+import { useSupervisorInvitationsStore } from "../store/useSupervisorInvitationsStore";
 import { Department } from "@/lib/api/departments";
+import { SupervisorService } from "@/lib/api/v2";
 
 interface SupervisorEditModalProps {
   onSuccess?: () => void;
@@ -21,17 +23,17 @@ interface SupervisorEditModalProps {
 export default function SupervisorEditModal({
   onSuccess,
 }: SupervisorEditModalProps) {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [employeeId, setEmployeeId] = useState("");
-  const [password, setPassword] = useState("");
   const [permissions, setPermissions] = useState<SupervisorPermissions[]>([]);
   const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
   const { addToast } = useToastStore();
   const { supervisor, isEditing, setIsEditing } =
     useCurrentEditingSupervisorStore();
   const { addSupervisor, updateSupervisor } = useSupervisorsStore();
+  const { addInvitation } = useSupervisorInvitationsStore();
   const [departments, setDepartments] = useState<Department[]>([]);
 
   const permissionOptions = Object.values(SupervisorPermissions);
@@ -50,17 +52,16 @@ export default function SupervisorEditModal({
 
   useEffect(() => {
     if (supervisor) {
-      setUsername(supervisor.user.username || "");
+      setName((supervisor.user as any).name || supervisor.user.username || "");
       setEmail(supervisor.user.email || "");
       setEmployeeId(supervisor.user.employeeId || "");
       setJobTitle(supervisor.user.jobTitle || "");
       setPermissions(supervisor.permissions || []);
       setAssignedCategories(supervisor.departments.map(({ id }) => id) || []);
     } else {
-      setUsername("");
+      setName("");
       setEmail("");
       setEmployeeId("");
-      setPassword("");
       setPermissions([]);
       setAssignedCategories([]);
       setJobTitle("");
@@ -70,7 +71,7 @@ export default function SupervisorEditModal({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !email) {
+    if (!name || !email || !jobTitle) {
       addToast({
         message: "Please fill all required fields",
         type: "error",
@@ -79,50 +80,34 @@ export default function SupervisorEditModal({
     }
 
     const supervisorData = {
-      username: username,
-      name: username,
+      name: name,
       email: email,
-      password: password,
       permissions: permissions,
       departmentIds: assignedCategories,
       jobTitle: jobTitle,
-      employeeId: employeeId,
+      employeeId: employeeId || undefined,
     };
 
     try {
       if (supervisor) {
-        const response = await SupervisorsService.updateSupervisor(
-          supervisor.id,
-          {
-            username: !!username ? username : undefined,
-            name: !!username ? username : undefined,
-            email: !!email ? email : undefined,
-            password: !!password ? password : undefined,
-            permissions: permissions,
-            departmentIds: assignedCategories,
-            jobTitle: !!jobTitle ? jobTitle : undefined,
-            employeeId: !!employeeId ? employeeId : undefined,
-          }
-        );
+        const response = await SupervisorService.update(supervisor.id, {
+          name: name,
+          email: email,
+          permissions: Object.values(SupervisorPermissions),
+          departmentIds: assignedCategories,
+          jobTitle: jobTitle,
+          employeeId: !!employeeId ? employeeId : undefined,
+        });
         updateSupervisor(supervisor.id, response);
         addToast({
-          message: "Supervisor updated successfully",
+          message: "Invitation details updated successfully",
           type: "success",
         });
       } else {
-        if (!password) {
-          addToast({
-            message: "Password is required for new supervisors",
-            type: "error",
-          });
-          return;
-        }
-        const response = await SupervisorsService.createSupervisor(
-          supervisorData
-        );
-        addSupervisor(response);
+        const response = await SupervisorService.addByAdmin(supervisorData);
+        addInvitation(response.invitation);
         addToast({
-          message: "Supervisor created successfully",
+          message: "Supervisor invitation sent successfully",
           type: "success",
         });
       }
@@ -152,7 +137,9 @@ export default function SupervisorEditModal({
     );
   };
 
-  const modalTitle = supervisor ? "Edit Supervisor" : "Add New Supervisor";
+  const modalTitle = supervisor
+    ? "Edit Supervisor Invitation"
+    : "Invite New Supervisor via Email";
 
   return (
     <Transition appear show={isEditing} as={Fragment}>
@@ -196,18 +183,18 @@ export default function SupervisorEditModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label
-                        htmlFor="user-username"
+                        htmlFor="user-name"
                         className="block text-sm font-medium text-gray-700 mb-1"
                       >
-                        Username
+                        Full Name
                       </label>
                       <input
-                        id="user-username"
+                        id="user-name"
                         className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
                         required
                         type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                       />
                     </div>
                     <div>
@@ -215,7 +202,7 @@ export default function SupervisorEditModal({
                         htmlFor="user-email"
                         className="block text-sm font-medium text-gray-700 mb-1"
                       >
-                        Email
+                        Email to Invite
                       </label>
                       <input
                         id="user-email"
@@ -234,7 +221,7 @@ export default function SupervisorEditModal({
                         htmlFor="user-employee-id"
                         className="block text-sm font-medium text-gray-700 mb-1"
                       >
-                        Employee ID
+                        Employee ID (optional)
                       </label>
                       <input
                         id="user-employee-id"
@@ -257,33 +244,16 @@ export default function SupervisorEditModal({
                         placeholder="e.g., Shipping Supervisor"
                         className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
                         type="text"
+                        required
                         value={jobTitle}
                         onChange={(e) => setJobTitle(e.target.value)}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="user-password"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Set New Password
-                    </label>
-                    <input
-                      id="user-password"
-                      placeholder="Leave blank to keep unchanged"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required={!supervisor}
-                    />
-                  </div>
-
-                  <div className="pt-4 border-t mt-4">
+                  <div className="pt-4 mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Assigned Categories
+                      Assign Departments
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
                       {departments.map((department) => (
@@ -306,9 +276,9 @@ export default function SupervisorEditModal({
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t mt-4">
+                  <div className="pt-4 mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Grant Admin-Level Permissions
+                      Choose Permissions
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {permissionOptions.map((permission) => (
@@ -350,7 +320,7 @@ export default function SupervisorEditModal({
                       type="submit"
                       className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
                     >
-                      {supervisor ? "Save Changes" : "Create Supervisor"}
+                      {supervisor ? "Save Changes" : "Send Invitation"}
                     </button>
                   </div>
                 </form>

@@ -1,14 +1,12 @@
 import { User } from "./tasks";
 
 export interface CreateSupervisorDto {
-  departmentIds: string[];
-  email: string;
-  jobTitle: string;
   name: string;
-  password: string;
-  permissions: SupervisorPermissions[];
-  username: string;
+  email: string;
   employeeId?: string;
+  jobTitle: string;
+  departmentIds: string[];
+  permissions: SupervisorPermissions[];
 }
 
 export interface UpdateSupervisorDto extends Partial<CreateSupervisorDto> {}

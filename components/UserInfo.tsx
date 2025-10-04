@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { UserResponse } from "@/lib/api";
+import api, { UserResponse } from "@/lib/api";
 
 interface UserInfoProps {
   className?: string;
@@ -28,12 +28,20 @@ const formatRole = (role: string) => {
 
 export default function UserInfo({ className = "" }: UserInfoProps) {
   const [user, setUser] = useState<UserResponse | null>(null);
-
+  const [profilePic, setProfilePic] = useState("");
   useEffect(() => {
     fetch("/server/me")
       .then((res) => res.json())
       .then((data) => setUser(data.user));
   }, []);
+
+  useEffect(() => {
+    if (user && user.profilePicture) {
+      setProfilePic(
+        `${api.client.defaults.baseURL}/profile/pictures/${user.profilePicture}`
+      );
+    }
+  }, [user]);
 
   if (!user) {
     return null;
@@ -41,18 +49,38 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
 
   return (
     <div className={`p-4 border-t border-gray-200 bg-gray-50 ${className}`}>
-      <div className="flex flex-col space-y-2">
-        {/* Name and Role Badge in a row */}
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-900 truncate">
-            {user.name}
-          </span>
-          <span className={getRoleBadgeStyles(user.role)}>
-            {formatRole(user.role)}
-          </span>
+      <div className="flex items-center space-x-3">
+        {/* Profile Picture */}
+        <div className="flex-shrink-0">
+          {profilePic ? (
+            <img
+              src={profilePic}
+              alt={`${user.name}'s profile`}
+              className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center border-2 border-gray-200">
+              <span className="text-gray-600 text-sm font-medium">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
         </div>
-        {/* User Email below */}
-        <div className="text-xs text-gray-500 truncate">{user.email}</div>
+
+        {/* User Info */}
+        <div className="flex flex-col space-y-1 min-w-0 flex-1">
+          {/* Name and Role Badge in a row */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-900 truncate">
+              {user.name}
+            </span>
+            <span className={getRoleBadgeStyles(user.role)}>
+              {formatRole(user.role)}
+            </span>
+          </div>
+          {/* User Email below */}
+          <div className="text-xs text-gray-500 truncate">{user.email}</div>
+        </div>
       </div>
     </div>
   );

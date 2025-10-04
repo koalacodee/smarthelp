@@ -5,17 +5,22 @@ import SupervisorEditModal from "./SupervisorEditModal";
 import SupervisorsTable from "./SupervisorsTable";
 import { useSupervisorStore } from "@/lib/store/useSupervisorStore";
 import { useCurrentEditingSupervisorStore } from "../store/useCurrentEditingSupervisorStore";
+import { useSupervisorInvitationsStore } from "../store/useSupervisorInvitationsStore";
 import { SupervisorsService } from "@/lib/api/index";
+import { SupervisorInvitationStatus } from "@/lib/api/v2/services/supervisor";
 
 interface SupervisorsPageClientProps {
   initialSupervisors: any[];
+  initialInvitations: SupervisorInvitationStatus[];
 }
 
 export default function SupervisorsPageClient({
   initialSupervisors,
+  initialInvitations,
 }: SupervisorsPageClientProps) {
   const { entities: supervisors, setEntities: setSupervisors } =
     useSupervisorStore();
+  const { invitations, setInvitations } = useSupervisorInvitationsStore();
   const { setSupervisor, setIsEditing, isEditing } =
     useCurrentEditingSupervisorStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +28,8 @@ export default function SupervisorsPageClient({
   // Initialize with server data
   useEffect(() => {
     setSupervisors(initialSupervisors);
-  }, [initialSupervisors, setSupervisors]);
+    setInvitations(initialInvitations);
+  }, [initialSupervisors, setSupervisors, initialInvitations, setInvitations]);
 
   const refreshSupervisors = () => {
     SupervisorsService.getSupervisors()
@@ -60,7 +66,7 @@ export default function SupervisorsPageClient({
           }}
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium cursor-pointer hover:bg-blue-700"
         >
-          Add Supervisor
+          Invite New Supervisor
         </button>
       </div>
 
@@ -97,6 +103,62 @@ export default function SupervisorsPageClient({
       </div>
 
       <SupervisorsTable supervisors={filteredSupervisors} />
+
+      {/* Invitations Section */}
+      {invitations.length > 0 && (
+        <div className="mt-8">
+          <h4 className="text-lg font-semibold text-slate-800 mb-4">
+            Pending Invitations ({invitations.length})
+          </h4>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="space-y-3">
+              {invitations.map((invitation) => (
+                <div
+                  key={invitation.token}
+                  className="flex items-center justify-between bg-white p-3 rounded-md border border-slate-200"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {invitation.name}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          {invitation.email}
+                        </p>
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        <p>Job Title: {invitation.jobTitle}</p>
+                        <p>
+                          Departments: {invitation.departmentNames.join(", ")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        invitation.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : invitation.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {invitation.status}
+                    </span>
+                    <p className="text-xs text-slate-500">
+                      Expires:{" "}
+                      {new Date(invitation.expiresAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {isEditing && <SupervisorEditModal onSuccess={refreshSupervisors} />}
     </div>
   );

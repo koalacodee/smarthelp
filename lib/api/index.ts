@@ -332,6 +332,7 @@ export interface UserResponse {
   email: string;
   role: string;
   permissions: string[];
+  profilePicture?: string;
 }
 
 export const authService = {

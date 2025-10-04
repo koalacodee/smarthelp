@@ -3,6 +3,8 @@ import { env } from "next-runtime-env";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const excludedPages = ["/login", "/register/supervisor"];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -11,7 +13,7 @@ export async function middleware(request: NextRequest) {
   headers.set("x-current-path", pathname);
 
   // Skip auth check for login page
-  if (pathname !== "/login") {
+  if (!excludedPages.includes(pathname)) {
     const url = `${env("NEXT_PUBLIC_API_URL")}/auth/refresh`;
     const cookie = request.headers.get("cookie");
 
