@@ -3,15 +3,15 @@ import SupervisorRegistrationForm from "./components/SupervisorRegistrationForm"
 import AnimatedErrorPage from "./components/AnimatedErrorPage";
 
 interface SupervisorRegistrationPageProps {
-  searchParams: {
+  searchParams: Promise<{
     token?: string;
-  };
+  }>;
 }
 
 export default async function SupervisorRegistrationPage({
   searchParams,
 }: SupervisorRegistrationPageProps) {
-  const { token } = searchParams;
+  const { token } = await searchParams;
 
   // Check if token exists
   if (!token) {

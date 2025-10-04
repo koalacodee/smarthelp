@@ -40,6 +40,7 @@ export interface User {
   id: string;
   name: string;
   role: string;
+  profilePicture?: string;
 }
 
 export interface Assigner {
