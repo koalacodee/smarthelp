@@ -25,7 +25,8 @@ const getProfilePictureUrl = (
 export default function SupervisorsTable({
   supervisors,
 }: SupervisorsTableProps) {
-  const { setSupervisor, setIsEditing } = useCurrentEditingSupervisorStore();
+  const { setSupervisor, setIsEditing, setIsDelegating } =
+    useCurrentEditingSupervisorStore();
   const { removeSupervisor } = useSupervisorsStore();
   const { addToast } = useToastStore();
   const { openModal } = useConfirmationModalStore();
@@ -56,6 +57,19 @@ export default function SupervisorsTable({
         type: "error",
       });
     }
+  };
+
+  const handleForceDelete = (supervisor: Supervisor) => {
+    openModal({
+      title: "Force Delete Supervisor",
+      message: `Are you sure you want to force delete supervisor ${supervisor.username}? This will delete them regardless of active assignments and cannot be undone.`,
+      onConfirm: () => confirmDelete(supervisor.id),
+    });
+  };
+
+  const handleDelegate = (supervisor: Supervisor) => {
+    setSupervisor(supervisor);
+    setIsDelegating(true);
   };
 
   const confirmDelete = async (supervisorId: string) => {
@@ -339,8 +353,18 @@ export default function SupervisorsTable({
                           color: "blue",
                         },
                         {
+                          label: "Delegate",
+                          onClick: () => handleDelegate(supervisor),
+                          color: "green",
+                        },
+                        {
                           label: "Delete",
                           onClick: () => handleDelete(supervisor),
+                          color: "red",
+                        },
+                        {
+                          label: "Force Delete",
+                          onClick: () => handleForceDelete(supervisor),
                           color: "red",
                         },
                       ]}

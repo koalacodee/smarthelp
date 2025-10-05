@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import SupervisorEditModal from "./SupervisorEditModal";
+import DelegateSupervisorModal from "./DelegateSupervisorModal";
 import SupervisorsTable from "./SupervisorsTable";
 import SupervisorsFilters from "./SupervisorsFilters";
 import { useSupervisorStore } from "@/lib/store/useSupervisorStore";
@@ -36,8 +37,13 @@ export default function SupervisorsPageClient({
   const { entities: supervisors, setEntities: setSupervisors } =
     useSupervisorStore();
   const { invitations, setInvitations } = useSupervisorInvitationsStore();
-  const { setSupervisor, setIsEditing, isEditing } =
-    useCurrentEditingSupervisorStore();
+  const {
+    setSupervisor,
+    setIsEditing,
+    isEditing,
+    isDelegating,
+    setIsDelegating,
+  } = useCurrentEditingSupervisorStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
@@ -505,6 +511,13 @@ export default function SupervisorsPageClient({
       </div>
 
       {isEditing && <SupervisorEditModal onSuccess={refreshSupervisors} />}
+      {isDelegating && (
+        <DelegateSupervisorModal
+          isOpen={isDelegating}
+          onClose={() => setIsDelegating(false)}
+          onSuccess={refreshSupervisors}
+        />
+      )}
     </motion.div>
   );
 }

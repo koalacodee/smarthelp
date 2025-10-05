@@ -50,6 +50,11 @@ export interface Department {
   updatedAt: IsoDateString;
 }
 
+export interface DelegateSupervisorRequest {
+  fromSupervisorUserId: string;
+  toSupervisorUserId: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -187,6 +192,14 @@ export class SupervisorService {
   ): Promise<AddSupervisorByAdminData> {
     const res = await this.http.post<JSendSuccess<AddSupervisorByAdminData>>(
       "/supervisors",
+      request
+    );
+    return res.data.data;
+  }
+
+  async delegate(request: DelegateSupervisorRequest): Promise<null> {
+    const res = await this.http.post<JSendSuccess<null>>(
+      "/supervisors/delegate",
       request
     );
     return res.data.data;
