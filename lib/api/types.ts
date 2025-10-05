@@ -46,6 +46,7 @@ export enum EmployeePermissions {
   ADD_FAQS = "ADD_FAQS",
   VIEW_ANALYTICS = "VIEW_ANALYTICS",
   CLOSE_TICKETS = "CLOSE_TICKETS",
+  MANAGE_KNOWLEDGE_CHUNKS = "MANAGE_KNOWLEDGE_CHUNKS",
 }
 
 export enum AdminPermissions {

@@ -7,9 +7,11 @@ import { EmployeeService } from "@/lib/api";
 import PencilIcon from "@/icons/Pencil";
 import TrashIcon from "@/icons/Trash";
 import { useEmployeesStore } from "@/app/(dashboard)/store/useEmployeesStore";
+import { EmployeeResponse } from "@/lib/api/v2/services/employee";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 interface EmployeeActionsProps {
-  employee: Entity;
+  employee: EmployeeResponse;
 }
 
 export default function EmployeeActions({ employee }: EmployeeActionsProps) {
@@ -61,21 +63,20 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
   };
 
   return (
-    <div className="flex items-center space-x-3">
-      <button
-        onClick={handleEdit}
-        className="text-blue-600 hover:text-blue-900 text-sm font-medium inline-flex items-center"
-      >
-        <PencilIcon className="w-4 h-4 mr-1" />
-        Edit
-      </button>
-      <button
-        onClick={handleDelete}
-        className="text-red-600 hover:text-red-900 text-sm font-medium inline-flex items-center"
-      >
-        <TrashIcon className="w-4 h-4 mr-1" />
-        Delete
-      </button>
-    </div>
+    <ThreeDotMenu
+      options={[
+        {
+          label: "Edit",
+          onClick: handleEdit,
+          color: "blue",
+        },
+        {
+          label: "Delete",
+          onClick: handleDelete,
+          color: "red",
+        },
+      ]}
+      className="opacity-0 group-hover:opacity-100 transition-all duration-200"
+    />
   );
 }

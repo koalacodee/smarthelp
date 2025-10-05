@@ -3,7 +3,7 @@ import { env } from "next-runtime-env";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const excludedPages = ["/login", "/register/supervisor"];
+const excludedPages = ["/login", "/register/supervisor", "/register/employee"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

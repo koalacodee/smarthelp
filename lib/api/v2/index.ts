@@ -11,6 +11,7 @@ import {
   createSupervisorService,
 } from "./services/supervisor";
 import { createProfilePictureService } from "./services/profile";
+import { createEmployeeService } from "./services/employee";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -21,3 +22,4 @@ export const SupervisorService = createSupervisorService(api);
 export const SupervisorInvitationService =
   createSupervisorInvitationService(api);
 export const ProfilePictureService = createProfilePictureService(api);
+export const EmployeeService = createEmployeeService(api);

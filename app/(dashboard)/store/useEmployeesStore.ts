@@ -1,15 +1,15 @@
-import { create } from 'zustand';
-import { Entity } from '@/lib/api/employees';
+import { create } from "zustand";
+import { EmployeeResponse } from "@/lib/api/v2/services/employee";
 
 interface EmployeesStore {
-  employees: Entity[];
+  employees: EmployeeResponse[];
   isLoading: boolean;
   error: string | null;
-  setEmployees: (employees: Entity[]) => void;
+  setEmployees: (employees: EmployeeResponse[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  addEmployee: (employee: Entity) => void;
-  updateEmployee: (id: string, employee: Entity) => void;
+  addEmployee: (employee: EmployeeResponse) => void;
+  updateEmployee: (id: string, employee: EmployeeResponse) => void;
   deleteEmployee: (id: string) => void;
 }
 
@@ -20,15 +20,18 @@ export const useEmployeesStore = create<EmployeesStore>((set) => ({
   setEmployees: (employees) => set({ employees }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  addEmployee: (employee) => set((state) => ({
-    employees: [...state.employees, employee]
-  })),
-  updateEmployee: (id, updatedEmployee) => set((state) => ({
-    employees: state.employees.map(emp => 
-      emp.id === id ? updatedEmployee : emp
-    )
-  })),
-  deleteEmployee: (id) => set((state) => ({
-    employees: state.employees.filter(emp => emp.id !== id)
-  })),
+  addEmployee: (employee) =>
+    set((state) => ({
+      employees: [...state.employees, employee],
+    })),
+  updateEmployee: (id, updatedEmployee) =>
+    set((state) => ({
+      employees: state.employees.map((emp) =>
+        emp.id === id ? updatedEmployee : emp
+      ),
+    })),
+  deleteEmployee: (id) =>
+    set((state) => ({
+      employees: state.employees.filter((emp) => emp.id !== id),
+    })),
 }));

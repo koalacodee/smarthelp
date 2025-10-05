@@ -35,6 +35,13 @@ export interface Supervisor {
   updatedAt: IsoDateString;
 }
 
+export interface SupervisorSummary {
+  name: string;
+  profilePicture: string;
+  username: string;
+  id: string;
+}
+
 export interface Department {
   id: string;
   name: string;
@@ -189,6 +196,14 @@ export class SupervisorService {
     const res = await this.http.get<JSendSuccess<SearchSupervisorsData>>(
       "/supervisors/search",
       { params: { search: query.search } }
+    );
+    return res.data.data;
+  }
+
+  async getSummaries(departmentIds?: string[]): Promise<SupervisorSummary[]> {
+    const res = await this.http.get<JSendSuccess<SupervisorSummary[]>>(
+      "/supervisors/summaries",
+      { params: { departmentIds } }
     );
     return res.data.data;
   }

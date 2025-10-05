@@ -1,4 +1,5 @@
 import { EmployeePermissions } from "./types";
+import { EmployeePermissionsEnum } from "./v2/services/employee";
 
 interface User {
   id: string;
@@ -29,7 +30,7 @@ export interface Entity {
 }
 
 export class UpdateEmployeeDto {
-  permissions?: EmployeePermissions[];
+  permissions?: EmployeePermissionsEnum[];
   subDepartmentIds?: string[];
   jobTitle?: string;
   employeeId?: string;
