@@ -68,19 +68,8 @@ export default function SupervisorRegistrationForm({
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    // Enhanced password validation
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`])/;
-    if (!passwordRegex.test(formData.password)) {
-      setError(
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-      );
+    if (formData.password.length < 4) {
+      setError("Password must be at least 4 characters long");
       setLoading(false);
       return;
     }
@@ -577,17 +566,6 @@ export default function SupervisorRegistrationForm({
                   required={field.required}
                   minLength={field.minLength}
                 />
-                {field.name === "password" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 1.4 + index * 0.1 }}
-                    className="mt-2 text-xs text-slate-500"
-                  >
-                    Password must contain: uppercase, lowercase, number, and
-                    special character (!@#$%^&* etc.)
-                  </motion.div>
-                )}
               </motion.div>
             ))}
 
