@@ -140,12 +140,10 @@ export default function CreatePromotionForm() {
           value={audience}
           onChange={(e) => setAudience(e.target.value as AudienceType)}
         >
-          <option value={AudienceType.ALL}>
-            All Users (Customers, Supervisors, Employees)
-          </option>
-          <option value={AudienceType.CUSTOMER}>Customers Only</option>
-          <option value={AudienceType.SUPERVISOR}>Supervisors Only</option>
-          <option value={AudienceType.EMPLOYEE}>Employees Only</option>
+          <option value={AudienceType.ALL}>All</option>
+          <option value={AudienceType.CUSTOMER}>Customer</option>
+          <option value={AudienceType.SUPERVISOR}>Supervisor</option>
+          <option value={AudienceType.EMPLOYEE}>Employee</option>
         </select>
         {errors.audience && (
           <p className="mt-1 text-sm text-red-700">{errors.audience}</p>
