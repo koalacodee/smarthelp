@@ -14,8 +14,14 @@ import {
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FAQService, UploadService } from "@/lib/api/v2";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function FaqEditModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "question",
+    "answer",
+    "departmentId",
+  ]);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [departmentId, setDepartmentId] = useState("");
@@ -117,8 +123,10 @@ export default function FaqEditModal() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
+
     if (!question || !answer || !departmentId) {
-      alert("Please fill all fields.");
+      setRootError("Please fill all required fields.");
       return;
     }
 
@@ -176,11 +184,23 @@ export default function FaqEditModal() {
           }
         })
         .catch((error) => {
-          addToast({
-            message: "Failed to update FAQ",
-            type: "error",
-          });
           console.error("Update FAQ error:", error);
+          console.log("Update FAQ error:", error);
+          console.log("Error response data:", error?.response?.data);
+
+          if (error?.response?.data?.data?.details) {
+            console.log(
+              "Setting field errors:",
+              error?.response?.data?.data?.details
+            );
+            setErrors(error?.response?.data?.data?.details);
+          } else {
+            console.log("Setting root error");
+            setRootError(
+              error?.response?.data?.message ||
+                "Failed to update FAQ. Please try again."
+            );
+          }
         });
     } else {
       FAQService.createQuestion({
@@ -234,11 +254,23 @@ export default function FaqEditModal() {
           }
         })
         .catch((error) => {
-          addToast({
-            message: "Failed to add FAQ",
-            type: "error",
-          });
           console.error("Create FAQ error:", error);
+          console.log("Create FAQ error:", error);
+          console.log("Error response data:", error?.response?.data);
+
+          if (error?.response?.data?.data?.details) {
+            console.log(
+              "Setting field errors:",
+              error?.response?.data?.data?.details
+            );
+            setErrors(error?.response?.data?.data?.details);
+          } else {
+            console.log("Setting root error");
+            setRootError(
+              error?.response?.data?.message ||
+                "Failed to add FAQ. Please try again."
+            );
+          }
         });
     }
 
@@ -284,6 +316,54 @@ export default function FaqEditModal() {
             >
               {modalTitle}
             </motion.h3>
+
+            <AnimatePresence>
+              {errors.root && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <motion.svg
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.2,
+                        ease: "backOut",
+                      }}
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
+                    </motion.svg>
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      {errors.root}
+                    </motion.span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -319,6 +399,16 @@ export default function FaqEditModal() {
                   className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                   required
                 />
+                {errors.question && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="mt-1 text-sm text-red-700"
+                  >
+                    {errors.question}
+                  </motion.p>
+                )}
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -350,6 +440,16 @@ export default function FaqEditModal() {
                   required
                   placeholder="Provide a detailed answer to the question."
                 />
+                {errors.answer && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="mt-1 text-sm text-red-700"
+                  >
+                    {errors.answer}
+                  </motion.p>
+                )}
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -391,6 +491,16 @@ export default function FaqEditModal() {
                       </option>
                     ))}
                   </motion.select>
+                  {errors.departmentId && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                      className="mt-1 text-sm text-red-700"
+                    >
+                      {errors.departmentId}
+                    </motion.p>
+                  )}
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}

@@ -14,6 +14,7 @@ import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { TicketAssignee } from "@/lib/api";
 import { useTaskStore } from "@/lib/store";
+import useFormErrors from "@/hooks/useFormErrors";
 
 type EditTaskModalProps = {
   role: "admin" | "supervisor";
@@ -52,6 +53,12 @@ const convertMillisecondsToTime = (milliseconds?: number) => {
 };
 
 export default function EditTaskModal({ role }: EditTaskModalProps) {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "title",
+    "description",
+    "departmentId",
+    "targetSubDepartmentId",
+  ]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [departmentId, setDepartmentId] = useState("");
@@ -186,18 +193,20 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
+
     if (!title || !description) {
-      alert("Please fill all required fields.");
+      setRootError("Please fill all required fields.");
       return;
     }
 
     if (role === "admin" && !departmentId) {
-      alert("Please select a department.");
+      setRootError("Please select a department.");
       return;
     }
 
     if (role === "supervisor" && !targetSubDepartmentId) {
-      alert("Please select a sub-department.");
+      setRootError("Please select a sub-department.");
       return;
     }
 
@@ -292,12 +301,24 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       setExistingAttachments({});
 
       handleClose();
-    } catch (error) {
-      addToast({
-        message: "Failed to update task. Please try again.",
-        type: "error",
-      });
+    } catch (error: any) {
       console.error("Update task error:", error);
+      console.log("Update task error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to update task. Please try again."
+        );
+      }
     }
   };
 
@@ -322,6 +343,28 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
           <h3 className="text-xl font-bold mb-6 text-slate-800">
             {modalTitle}
           </h3>
+
+          {errors.root && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <span>{errors.root}</span>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label
@@ -338,6 +381,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-700">{errors.title}</p>
+              )}
             </div>
 
             <div>
@@ -356,6 +402,11 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 required
                 placeholder="Provide a detailed description of the task."
               />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-700">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
             {role === "admin" ? (
@@ -380,6 +431,11 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     </option>
                   ))}
                 </select>
+                {errors.departmentId && (
+                  <p className="mt-1 text-sm text-red-700">
+                    {errors.departmentId}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -404,6 +460,11 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                       </option>
                     ))}
                   </select>
+                  {errors.targetSubDepartmentId && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.targetSubDepartmentId}
+                    </p>
+                  )}
                 </div>
 
                 <div>

@@ -9,6 +9,7 @@ import {
 import { useRouter } from "next/navigation";
 import ImageCropModal from "@/app/(dashboard)/supervisors/components/ImageCropModal";
 import { useImageCropStore } from "@/app/(dashboard)/supervisors/store/useImageCropStore";
+import useFormErrors from "@/hooks/useFormErrors";
 
 interface SupervisorRegistrationFormProps {
   invitation: any;
@@ -21,6 +22,11 @@ export default function SupervisorRegistrationForm({
 }: SupervisorRegistrationFormProps) {
   const router = useRouter();
   const { openCropModal, croppedImageFile } = useImageCropStore();
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "username",
+    "password",
+    "confirmPassword",
+  ]);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -28,7 +34,6 @@ export default function SupervisorRegistrationForm({
   });
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,24 +57,24 @@ export default function SupervisorRegistrationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    clearErrors();
     setLoading(true);
 
     // Validation
     if (!formData.username || !formData.password) {
-      setError("Username and password are required");
+      setRootError("Username and password are required");
       setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setRootError("Passwords do not match");
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 4) {
-      setError("Password must be at least 4 characters long");
+      setRootError("Password must be at least 4 characters long");
       setLoading(false);
       return;
     }
@@ -108,9 +113,22 @@ export default function SupervisorRegistrationForm({
       router.push("/");
     } catch (err: any) {
       console.error("Registration failed:", err);
-      setError(
-        err?.response?.data?.message || "Registration failed. Please try again."
-      );
+      console.log("Registration error:", err);
+      console.log("Error response data:", err?.response?.data);
+
+      if (err?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          err?.response?.data?.data?.details
+        );
+        setErrors(err?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          err?.response?.data?.message ||
+            "Registration failed. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -459,7 +477,7 @@ export default function SupervisorRegistrationForm({
             className="space-y-6"
           >
             <AnimatePresence>
-              {error && (
+              {errors.root && (
                 <motion.div
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -498,7 +516,7 @@ export default function SupervisorRegistrationForm({
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3, delay: 0.3 }}
                     >
-                      {error}
+                      {errors.root}
                     </motion.span>
                   </motion.div>
                 </motion.div>
@@ -566,6 +584,16 @@ export default function SupervisorRegistrationForm({
                   required={field.required}
                   minLength={field.minLength}
                 />
+                {errors[field.name as keyof typeof errors] && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="mt-1 text-sm text-red-700"
+                  >
+                    {errors[field.name as keyof typeof errors]}
+                  </motion.p>
+                )}
               </motion.div>
             ))}
 

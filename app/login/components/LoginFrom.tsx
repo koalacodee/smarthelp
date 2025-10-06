@@ -1,18 +1,26 @@
 "use client";
+import useFormErrors from "@/hooks/useFormErrors";
 import Ticket from "@/icons/Ticket";
 import api from "@/lib/api";
 import { setCookie } from "@/lib/api/cookies";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const router = useRouter();
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "username",
+    "password",
+  ]);
+
+  // Debug: Log errors whenever they change
+  console.log("Current errors:", errors);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    clearErrors();
 
     try {
       const response = await api.authService.login({ username, password });
@@ -20,90 +28,277 @@ export default function LoginForm() {
       // window.location.href = "/";
       router.push("/");
     } catch (error: any) {
-      setError(
-        error?.response?.data?.message ||
-          "Invalid username or password. Please try again"
-      );
+      console.log("Login error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError("Invalid username or password. Please try again");
+      }
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-slate-100 p-4">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-slate-200">
-        <div>
-          <div className="flex justify-center">
-            <Ticket className="h-12 w-12 text-blue-600" />
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-            Admin & Supervisor Login
-          </h2>
-          <p className="mt-2 text-center text-sm text-slate-600">
-            Access your dashboard
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-slate-700"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-md w-full space-y-8"
+      >
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-6 py-4 rounded-2xl shadow-xl border border-white/20"
+        >
+          <div className="flex items-center gap-3">
+            <motion.div
+              initial={{ rotate: -90, scale: 0 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.1, ease: "backOut" }}
+              className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"
             >
-              Username
-            </label>
-            <div className="mt-1">
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="w-4 h-4 text-white"
+              >
+                <Ticket className="h-4 w-4" />
+              </motion.div>
+            </motion.div>
+            <div>
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="text-2xl font-bold text-slate-800"
+              >
+                Admin & Supervisor Login
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="text-sm text-slate-600"
+              >
+                Access your dashboard
+              </motion.p>
             </div>
           </div>
+        </motion.div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-700"
+        {/* Login Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          whileHover={{
+            y: -2,
+            transition: { duration: 0.2 },
+          }}
+          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+            className="flex items-center gap-3 mb-6"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.4, delay: 0.6, ease: "backOut" }}
+              className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center"
             >
-              Password
-            </label>
-            <div className="mt-1">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-              <div className="flex">
-                <div className="py-1">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
+              <motion.svg
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+                className="w-4 h-4 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                />
+              </motion.svg>
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
+              className="text-lg font-semibold text-slate-800"
             >
-              Sign in
-            </button>
-          </div>
-        </form>
-      </div>
+              Sign In
+            </motion.h2>
+          </motion.div>
+
+          <motion.form
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.8 }}
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
+            <AnimatePresence>
+              {errors.root && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <motion.svg
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.2,
+                        ease: "backOut",
+                      }}
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
+                    </motion.svg>
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      {errors.root}
+                    </motion.span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {[
+              {
+                id: "username",
+                name: "username",
+                label: "Username",
+                type: "text",
+                placeholder: "Enter your username",
+                required: true,
+                value: username,
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setUsername(e.target.value),
+              },
+              {
+                id: "password",
+                name: "password",
+                label: "Password",
+                type: "password",
+                placeholder: "Enter your password",
+                required: true,
+                value: password,
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPassword(e.target.value),
+              },
+            ].map((field, index) => (
+              <motion.div
+                key={field.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.9 + index * 0.1 }}
+              >
+                <motion.label
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 1.0 + index * 0.1 }}
+                  htmlFor={field.id}
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  {field.label} *
+                </motion.label>
+                <motion.input
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 1.1 + index * 0.1 }}
+                  whileFocus={{
+                    scale: 1.02,
+                    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                  }}
+                  type={field.type}
+                  id={field.id}
+                  name={field.name}
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
+                  placeholder={field.placeholder}
+                  required={field.required}
+                  autoComplete={
+                    field.type === "password" ? "current-password" : "username"
+                  }
+                />
+                {errors[field.name as keyof typeof errors] && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="mt-1 text-sm text-red-700"
+                  >
+                    {errors[field.name as keyof typeof errors]}
+                  </motion.p>
+                )}
+              </motion.div>
+            ))}
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 1.1 }}
+              className="pt-4"
+            >
+              <motion.button
+                whileHover={{
+                  scale: 1.02,
+                  boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
+                }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Sign In
+                </motion.span>
+              </motion.button>
+            </motion.div>
+          </motion.form>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

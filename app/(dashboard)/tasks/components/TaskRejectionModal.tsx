@@ -11,6 +11,7 @@ import {
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { TasksService } from "@/lib/api";
 import { useTasksStore } from "../../store/useTasksStore";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function TaskRejectionModal({
   taskId,
@@ -21,12 +22,16 @@ export default function TaskRejectionModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "feedback",
+  ]);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addToast } = useToastStore();
   const { updateTask } = useTasksStore();
 
   const handleSubmit = async () => {
+    clearErrors();
     try {
       setIsSubmitting(true);
       await TasksService.rejectTask(taskId, feedback).then((val) =>
@@ -37,11 +42,24 @@ export default function TaskRejectionModal({
         type: "success",
       });
       onClose();
-    } catch (error) {
-      addToast({
-        message: "Failed to reject task",
-        type: "error",
-      });
+    } catch (error: any) {
+      console.error("Reject task error:", error);
+      console.log("Reject task error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to reject task. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -81,6 +99,27 @@ export default function TaskRejectionModal({
                   Reject Task
                 </DialogTitle>
 
+                {errors.root && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                      <span>{errors.root}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4 space-y-4">
                   <div>
                     <label
@@ -96,6 +135,11 @@ export default function TaskRejectionModal({
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
                     />
+                    {errors.feedback && (
+                      <p className="mt-1 text-sm text-red-700">
+                        {errors.feedback}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-end gap-2">

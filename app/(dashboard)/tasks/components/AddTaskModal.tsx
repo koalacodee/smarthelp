@@ -26,6 +26,7 @@ import {
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useTaskStore } from "@/lib/store";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
+import useFormErrors from "@/hooks/useFormErrors";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -78,6 +79,17 @@ const calculateReminderMilliseconds = (
 };
 
 export default function AddTaskModal({ role }: AddTaskModalProps) {
+  const {
+    clearErrors,
+    setErrors,
+    setRootError,
+    errors: formErrors,
+  } = useFormErrors([
+    "title",
+    "description",
+    "departmentId",
+    "targetSubDepartmentId",
+  ]);
   const { addToast } = useToastStore();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const {
@@ -139,6 +151,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
   };
 
   const onSubmit = async (data: AdminTaskFormData | SupervisorTaskFormData) => {
+    clearErrors();
     try {
       let createTaskDto: CreateTaskDto;
 
@@ -230,11 +243,24 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
 
       reset();
       setOpen(false);
-    } catch (error) {
-      addToast({
-        message: "Failed to create task. Please try again.",
-        type: "error",
-      });
+    } catch (error: any) {
+      console.error("Create task error:", error);
+      console.log("Create task error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to create task. Please try again."
+        );
+      }
     }
   };
 
@@ -277,6 +303,27 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   Assign New Task
                 </DialogTitle>
 
+                {formErrors.root && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                      <span>{formErrors.root}</span>
+                    </div>
+                  </div>
+                )}
+
                 <form
                   onSubmit={handleSubmit(onSubmit)}
                   className="mt-4 space-y-4"
@@ -291,6 +338,11 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     {errors.title && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.title.message}
+                      </p>
+                    )}
+                    {formErrors.title && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {formErrors.title}
                       </p>
                     )}
                   </div>
@@ -320,6 +372,11 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           {(errors as any).departmentId.message}
                         </p>
                       )}
+                      {formErrors.departmentId && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {formErrors.departmentId}
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -345,6 +402,11 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         {(errors as any).targetSubDepartmentId && (
                           <p className="text-red-500 text-xs mt-1">
                             {(errors as any).targetSubDepartmentId.message}
+                          </p>
+                        )}
+                        {formErrors.targetSubDepartmentId && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {formErrors.targetSubDepartmentId}
                           </p>
                         )}
                       </div>
@@ -486,6 +548,11 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     {errors.description && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.description.message}
+                      </p>
+                    )}
+                    {formErrors.description && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {formErrors.description}
                       </p>
                     )}
                   </div>

@@ -7,8 +7,14 @@ import api from "@/lib/api";
 import { EmployeePermissionsEnum } from "@/lib/api/v2/services/employee";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { EmployeeService } from "@/lib/api/v2";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function EditEmployeeModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "jobTitle",
+    "employeeId",
+    "password",
+  ]);
   const {
     isOpen,
     currentEmployee,
@@ -47,6 +53,7 @@ export default function EditEmployeeModal() {
     e.preventDefault();
     if (!currentEmployee) return;
 
+    clearErrors();
     setIsSubmitting(true);
     try {
       await EmployeeService.updateEmployee(currentEmployee.id, formData);
@@ -71,8 +78,24 @@ export default function EditEmployeeModal() {
 
       addToast({ message: "Employee updated successfully", type: "success" });
       closeModal();
-    } catch (error) {
-      addToast({ message: "Failed to update employee", type: "error" });
+    } catch (error: any) {
+      console.error("Update employee error:", error);
+      console.log("Update employee error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to update employee. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -137,6 +160,27 @@ export default function EditEmployeeModal() {
                 {currentEmployee.user.username}
               </span>
             </motion.p>
+
+            {errors.root && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <span>{errors.root}</span>
+                </div>
+              </div>
+            )}
 
             <motion.div
               initial={{ opacity: 0 }}
@@ -457,6 +501,11 @@ export default function EditEmployeeModal() {
                       handleInputChange("jobTitle", e.target.value)
                     }
                   />
+                  {errors.jobTitle && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.jobTitle}
+                    </p>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -490,6 +539,11 @@ export default function EditEmployeeModal() {
                       handleInputChange("employeeId", e.target.value)
                     }
                   />
+                  {errors.employeeId && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.employeeId}
+                    </p>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -524,6 +578,11 @@ export default function EditEmployeeModal() {
                       handleInputChange("password", e.target.value)
                     }
                   />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.password}
+                    </p>
+                  )}
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

@@ -13,8 +13,16 @@ import apiOld from "@/lib/api";
 import { SupervisorSummary } from "@/lib/api/v2/services/supervisor";
 import { SupervisorService } from "@/lib/api/v2";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function InviteEmployeeModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "email",
+    "fullName",
+    "jobTitle",
+    "employeeId",
+    "selectedSupervisorId",
+  ]);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -109,6 +117,7 @@ export default function InviteEmployeeModal() {
   }, [supervisors, supervisorSearchTerm]);
 
   const handleClose = () => {
+    clearErrors();
     closeModal();
     resetForm();
     setEmail("");
@@ -184,6 +193,7 @@ export default function InviteEmployeeModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
 
     if (
       !email ||
@@ -191,20 +201,15 @@ export default function InviteEmployeeModal() {
       !jobTitle ||
       selectedSubDepartmentIds.length === 0
     ) {
-      addToast({
-        message:
-          "Please fill all required fields and select at least one sub-department.",
-        type: "error",
-      });
+      setRootError(
+        "Please fill all required fields and select at least one sub-department."
+      );
       return;
     }
 
     // Require supervisor selection for admins
     if (userRole === "ADMIN" && !selectedSupervisorId) {
-      addToast({
-        message: "Please select a supervisor for the new employee.",
-        type: "error",
-      });
+      setRootError("Please select a supervisor for the new employee.");
       return;
     }
 
@@ -242,14 +247,26 @@ export default function InviteEmployeeModal() {
       }
 
       handleClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Invitation error:", error);
-      addToast({
-        message: `Failed to ${
-          invitationType === "direct" ? "invite" : "request invitation for"
-        } employee`,
-        type: "error",
-      });
+      console.log("Invitation error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            `Failed to ${
+              invitationType === "direct" ? "invite" : "request invitation for"
+            } employee. Please try again.`
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -295,6 +312,27 @@ export default function InviteEmployeeModal() {
               {modalTitle}
             </motion.h3>
 
+            {errors.root && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <span>{errors.root}</span>
+                </div>
+              </div>
+            )}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -333,6 +371,9 @@ export default function InviteEmployeeModal() {
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     required
                   />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-700">{errors.email}</p>
+                  )}
                 </div>
 
                 <div>
@@ -360,6 +401,11 @@ export default function InviteEmployeeModal() {
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     required
                   />
+                  {errors.fullName && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.fullName}
+                    </p>
+                  )}
                 </div>
               </motion.div>
 
@@ -394,6 +440,11 @@ export default function InviteEmployeeModal() {
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     required
                   />
+                  {errors.jobTitle && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.jobTitle}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -420,6 +471,11 @@ export default function InviteEmployeeModal() {
                     onChange={(e) => setEmployeeId(e.target.value)}
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                   />
+                  {errors.employeeId && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.employeeId}
+                    </p>
+                  )}
                 </div>
               </motion.div>
 

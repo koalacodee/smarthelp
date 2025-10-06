@@ -10,6 +10,7 @@ import { useSupervisorInvitationsStore } from "../store/useSupervisorInvitations
 import { Department } from "@/lib/api/departments";
 import { SupervisorService } from "@/lib/api/v2";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import useFormErrors from "@/hooks/useFormErrors";
 
 interface SupervisorEditModalProps {
   onSuccess?: () => void;
@@ -18,6 +19,11 @@ interface SupervisorEditModalProps {
 export default function SupervisorEditModal({
   onSuccess,
 }: SupervisorEditModalProps) {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "name",
+    "email",
+    "jobTitle",
+  ]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -65,12 +71,10 @@ export default function SupervisorEditModal({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
 
     if (!name || !email || !jobTitle) {
-      addToast({
-        message: "Please fill all required fields",
-        type: "error",
-      });
+      setRootError("Please fill all required fields");
       return;
     }
 
@@ -109,10 +113,15 @@ export default function SupervisorEditModal({
       setIsEditing(false);
       onSuccess?.();
     } catch (error: any) {
-      addToast({
-        message: error?.response?.data?.message || "Operation failed",
-        type: "error",
-      });
+      console.error("Supervisor save error:", error);
+      if (error?.response?.data?.data?.details) {
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        setRootError(
+          error?.response?.data?.message ||
+            "Operation failed. Please try again."
+        );
+      }
     }
   };
 
@@ -168,6 +177,27 @@ export default function SupervisorEditModal({
               {modalTitle}
             </motion.h3>
 
+            {errors.root && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <span>{errors.root}</span>
+                </div>
+              </div>
+            )}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -205,6 +235,9 @@ export default function SupervisorEditModal({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-700">{errors.name}</p>
+                  )}
                 </div>
                 <div>
                   <motion.label
@@ -231,6 +264,9 @@ export default function SupervisorEditModal({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-700">{errors.email}</p>
+                  )}
                 </div>
               </motion.div>
 
@@ -292,6 +328,11 @@ export default function SupervisorEditModal({
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
                   />
+                  {errors.jobTitle && (
+                    <p className="mt-1 text-sm text-red-700">
+                      {errors.jobTitle}
+                    </p>
+                  )}
                 </div>
               </motion.div>
 

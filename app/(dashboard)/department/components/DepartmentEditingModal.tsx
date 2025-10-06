@@ -10,8 +10,13 @@ import {
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useState, useEffect } from "react";
 import { useDepartmentsStore } from "../store/useDepartmentsStore";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function DepartmentEditingModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "name",
+    "visibility",
+  ]);
   const { department, isOpen, mode, closeModal } =
     useCurrentEditingDepartment();
   const { addToast } = useToastStore();
@@ -35,6 +40,7 @@ export default function DepartmentEditingModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
     setIsLoading(true);
 
     try {
@@ -71,11 +77,20 @@ export default function DepartmentEditingModal() {
       }
 
       closeModal();
-    } catch (error) {
-      addToast({
-        type: "error",
-        message: `Failed to ${mode} department`,
-      });
+    } catch (error: any) {
+      console.error("Department save error:", error);
+      console.log("Department save error:", error);
+      console.log("Error response data:", error?.response?.data);
+      
+      if (error?.response?.data?.data?.details) {
+        console.log("Setting field errors:", error?.response?.data?.data?.details);
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message || `Failed to ${mode} department. Please try again.`
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +114,26 @@ export default function DepartmentEditingModal() {
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
+          {errors.root && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <span>{errors.root}</span>
+              </div>
+            </div>
+          )}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -112,6 +147,11 @@ export default function DepartmentEditingModal() {
                 placeholder="Enter department name"
                 required
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-700">
+                  {errors.name}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -127,6 +167,11 @@ export default function DepartmentEditingModal() {
                 <option value="PUBLIC">Public</option>
                 <option value="PRIVATE">Private</option>
               </select>
+              {errors.visibility && (
+                <p className="mt-1 text-sm text-red-700">
+                  {errors.visibility}
+                </p>
+              )}
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-3">

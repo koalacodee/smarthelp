@@ -6,6 +6,7 @@ import { useCurrentEditingSupervisorStore } from "../store/useCurrentEditingSupe
 import { SupervisorService } from "@/lib/api/v2";
 import { SupervisorSummary } from "@/lib/api/v2/services/supervisor";
 import { env } from "next-runtime-env";
+import useFormErrors from "@/hooks/useFormErrors";
 
 interface DelegateSupervisorModalProps {
   isOpen: boolean;
@@ -27,6 +28,9 @@ export default function DelegateSupervisorModal({
   onClose,
   onSuccess,
 }: DelegateSupervisorModalProps) {
+  const { clearErrors, setRootError, errors } = useFormErrors([
+    // no field-specific errors needed; root only
+  ]);
   const [selectedSupervisor, setSelectedSupervisor] =
     useState<SupervisorSummary | null>(null);
   const [supervisors, setSupervisors] = useState<SupervisorSummary[]>([]);
@@ -90,6 +94,7 @@ export default function DelegateSupervisorModal({
   );
 
   const handleClose = () => {
+    clearErrors();
     setSelectedSupervisor(null);
     setSupervisorSearchTerm("");
     setShowSupervisorDropdown(false);
@@ -135,8 +140,12 @@ export default function DelegateSupervisorModal({
   };
 
   const handleDelegate = async () => {
-    if (!currentSupervisor || !selectedSupervisor) return;
+    if (!currentSupervisor || !selectedSupervisor) {
+      setRootError("Please select a supervisor to delegate to.");
+      return;
+    }
 
+    clearErrors();
     setIsSubmitting(true);
     try {
       await SupervisorService.delegate({
@@ -152,11 +161,11 @@ export default function DelegateSupervisorModal({
       handleClose();
       onSuccess?.();
     } catch (error: any) {
-      addToast({
-        message:
-          error?.response?.data?.message || "Failed to delegate supervisor",
-        type: "error",
-      });
+      console.error("Delegate supervisor error:", error);
+      setRootError(
+        error?.response?.data?.message ||
+          "Failed to delegate supervisor. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -192,6 +201,27 @@ export default function DelegateSupervisorModal({
           >
             Delegate Supervisor
           </motion.h3>
+
+          {errors.root && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <span>{errors.root}</span>
+              </div>
+            </div>
+          )}
 
           <motion.div
             initial={{ opacity: 0 }}

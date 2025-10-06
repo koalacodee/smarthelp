@@ -11,8 +11,12 @@ import {
 import { useMyTasksStore } from "../my-tasks/store/useMyTasksStore";
 import { useAdminTasksStore } from "../store/useAdminTasksStore";
 import { TaskStatus } from "@/lib/api/tasks";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function SubmitWorkModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "notes",
+  ]);
   const { isOpen, task, isSubmitting, closeModal, setNotes, setIsSubmitting } =
     useSubmitWorkModalStore();
 
@@ -25,9 +29,10 @@ export default function SubmitWorkModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
 
     if (!task.notes?.trim()) {
-      addToast({ message: "Please add completion notes", type: "error" });
+      setRootError("Please add completion notes");
       return;
     }
 
@@ -58,8 +63,24 @@ export default function SubmitWorkModal() {
         type: "success",
       });
       closeModal();
-    } catch (error) {
-      addToast({ message: "Failed to submit task for review", type: "error" });
+    } catch (error: any) {
+      console.error("Submit work error:", error);
+      console.log("Submit work error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to submit task for review. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +92,27 @@ export default function SubmitWorkModal() {
         <h3 className="text-xl font-bold mb-4 text-slate-800">
           Submit Task for Review: {task.title}
         </h3>
+
+        {errors.root && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              <span>{errors.root}</span>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
           <div>
@@ -98,6 +140,9 @@ export default function SubmitWorkModal() {
               onChange={(e) => setNotes(e.target.value)}
               required
             />
+            {errors.notes && (
+              <p className="mt-1 text-sm text-red-700">{errors.notes}</p>
+            )}
           </div>
 
           <AttachmentInput

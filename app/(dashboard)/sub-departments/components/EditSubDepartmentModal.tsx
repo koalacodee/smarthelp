@@ -5,8 +5,13 @@ import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartment
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { DepartmentsService } from "@/lib/api";
 import { UpdateSubDepartmentInputDto } from "@/lib/api/departments";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function EditSubDepartmentModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "name",
+    "parentId",
+  ]);
   const { isOpen, currentSubDepartment, closeModal } =
     useEditSubDepartmentStore();
   const { updateSubDepartment } = useSubDepartmentsStore();
@@ -47,6 +52,7 @@ export default function EditSubDepartmentModal() {
     e.preventDefault();
     if (!currentSubDepartment) return;
 
+    clearErrors();
     setIsSubmitting(true);
     try {
       const updateDto: UpdateSubDepartmentInputDto = {
@@ -65,8 +71,24 @@ export default function EditSubDepartmentModal() {
         type: "success",
       });
       closeModal();
-    } catch (error) {
-      addToast({ message: "Failed to update sub-department", type: "error" });
+    } catch (error: any) {
+      console.error("Update sub-department error:", error);
+      console.log("Update sub-department error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to update sub-department. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -78,6 +100,27 @@ export default function EditSubDepartmentModal() {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in">
       <div className="bg-white rounded-lg p-6 w-full max-w-md animate-scale-in">
         <h3 className="text-lg font-semibold mb-4">Edit Sub-department</h3>
+
+        {errors.root && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              <span>{errors.root}</span>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -93,6 +136,9 @@ export default function EditSubDepartmentModal() {
               className="w-full p-2 border border-slate-300 rounded-md"
               required
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-700">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -114,6 +160,9 @@ export default function EditSubDepartmentModal() {
                 </option>
               ))}
             </select>
+            {errors.parentId && (
+              <p className="mt-1 text-sm text-red-700">{errors.parentId}</p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

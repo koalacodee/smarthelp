@@ -10,8 +10,12 @@ import {
   Attachment,
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
+import useFormErrors from "@/hooks/useFormErrors";
 
 export default function ReplyToTicketModal() {
+  const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
+    "answer",
+  ]);
   const { ticket, setTicket } = useCurrentEditingTicketStore();
   const { addToast } = useToastStore();
   const { updateStatus } = useTicketStore();
@@ -22,6 +26,13 @@ export default function ReplyToTicketModal() {
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
     e.preventDefault();
+    clearErrors();
+
+    if (!answer.trim()) {
+      setRootError("Please provide a reply message.");
+      return;
+    }
+
     try {
       // Get FormData from attachment store
       const formData = attachments.length > 0 ? getFormData() : undefined;
@@ -39,11 +50,24 @@ export default function ReplyToTicketModal() {
         type: "success",
       });
       updateStatus(ticket.id, TicketStatus.ANSWERED);
-    } catch (error) {
-      addToast({
-        message: "Failed to reply to ticket.",
-        type: "error",
-      });
+    } catch (error: any) {
+      console.error("Reply to ticket error:", error);
+      console.log("Reply to ticket error:", error);
+      console.log("Error response data:", error?.response?.data);
+
+      if (error?.response?.data?.data?.details) {
+        console.log(
+          "Setting field errors:",
+          error?.response?.data?.data?.details
+        );
+        setErrors(error?.response?.data?.data?.details);
+      } else {
+        console.log("Setting root error");
+        setRootError(
+          error?.response?.data?.message ||
+            "Failed to reply to ticket. Please try again."
+        );
+      }
     }
   };
   return (
@@ -73,6 +97,54 @@ export default function ReplyToTicketModal() {
             >
               Ticket Details #{ticket.subject}
             </motion.h3>
+
+            <AnimatePresence>
+              {errors.root && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <motion.svg
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.2,
+                        ease: "backOut",
+                      }}
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
+                    </motion.svg>
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      {errors.root}
+                    </motion.span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -172,6 +244,16 @@ export default function ReplyToTicketModal() {
                     defaultValue={ticket.answer || ""}
                     onChange={(e) => setAnswer(e.target.value)}
                   />
+                  {errors.answer && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                      className="mt-1 text-sm text-red-700"
+                    >
+                      {errors.answer}
+                    </motion.p>
+                  )}
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
