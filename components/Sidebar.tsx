@@ -112,23 +112,14 @@ const tabs: Tab[] = [
     href: "/manage-team",
     allowed: (r) => r !== "EMPLOYEE",
   },
-  {
-    id: "subDepartments",
-    label: "Sub-departments",
-    icon: <DocumentDuplicate className={ICON_SIZE} />,
-    href: "/sub-departments",
-    allowed: (r, p) =>
-      r === "ADMIN" ||
-      (r === "SUPERVISOR" &&
-        p.includes(SupervisorPermissions.MANAGE_SUB_DEPARTMENTS)),
-  },
-  {
-    id: "staffRequests",
-    label: "Staff Requests",
-    icon: <UserPlus className={ICON_SIZE} />,
-    href: "/staff-requests",
-    allowed: (r) => r !== "EMPLOYEE",
-  },
+
+  // {
+  //   id: "staffRequests",
+  //   label: "Staff Requests",
+  //   icon: <UserPlus className={ICON_SIZE} />,
+  //   href: "/staff-requests",
+  //   allowed: (r) => r !== "EMPLOYEE",
+  // },
   {
     id: "promotions",
     label: "Promotions",

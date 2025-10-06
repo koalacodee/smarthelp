@@ -1,103 +1,66 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import XMarkIcon from "@/icons/XCircle";
-import { useCurrentEditingDepartment } from "@/app/(dashboard)/department/store/useCurrentEditingDepartment";
-import { DepartmentsService } from "@/lib/api";
-import {
-  CreateDepartmentInputDto,
-  DepartmentVisibility,
-} from "@/lib/api/departments";
-import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import { useState, useEffect } from "react";
-import { useDepartmentsStore } from "../store/useDepartmentsStore";
+import { Department } from "@/lib/api/departments";
+import { useCreateSubDepartmentStore } from "@/app/(dashboard)/store/useCreateSubDepartmentStore";
 import useFormErrors from "@/hooks/useFormErrors";
+import api from "@/lib/api";
+import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartmentsStore";
+import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 
-export default function DepartmentEditingModal() {
+export default function CreateSubDepartmentModal() {
+  const { isOpen, closeModal } = useCreateSubDepartmentStore();
+  const { addSubDepartment } = useSubDepartmentsStore();
+  const { addToast } = useToastStore();
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "name",
-    "visibility",
+    "parentCategory",
   ]);
-  const { department, isOpen, mode, closeModal } =
-    useCurrentEditingDepartment();
-  const { addToast } = useToastStore();
+
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [name, setName] = useState("");
-  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
-  const [isLoading, setIsLoading] = useState(false);
-  const addDepartment = useDepartmentsStore((state) => state.addDepartment);
-  const updateDepartment = useDepartmentsStore(
-    (state) => state.updateDepartment
-  );
+  const [parentId, setParentId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (department) {
-      setName(department.name);
-      setVisibility(department.visibility);
-    } else {
-      setName("");
-      setVisibility("PUBLIC");
-    }
-  }, [department]);
+    if (!isOpen) return;
+    api.DepartmentsService.getAllDepartments().then(setDepartments);
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
-    setIsLoading(true);
-
+    setIsSubmitting(true);
     try {
-      const dto: CreateDepartmentInputDto = {
+      const dept = await api.DepartmentsService.createSubDepartment({
         name,
-        visibility: DepartmentVisibility[visibility],
-      };
-
-      if (mode === "add") {
-        await DepartmentsService.createDepartment(dto).then((dept) =>
-          addDepartment({
-            id: dept.id,
-            name: dept.name,
-            visibility: dept.visibility,
-          })
-        );
-        addToast({
-          type: "success",
-          message: "Department created successfully",
-        });
-      } else if (department) {
-        await DepartmentsService.updateMainDepartment(department.id, dto).then(
-          (dept) => {
-            updateDepartment(dept.id, {
-              name: dept.name,
-              visibility: dept.visibility,
-            });
-          }
-        );
-        addToast({
-          type: "success",
-          message: "Department updated successfully",
-        });
-      }
-
+        parentId,
+      });
+      addSubDepartment({
+        id: dept.id,
+        name: dept.name,
+        parent: dept?.parent,
+        visibility: dept.visibility,
+      });
+      addToast({
+        message: `Sub-Department ${dept.name} Created Successfully`,
+        type: "success",
+      });
       closeModal();
+      setName("");
+      setParentId("");
     } catch (error: any) {
-      console.error("Department save error:", error);
-      console.log("Department save error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
-            `Failed to ${mode} department. Please try again.`
+            `Failed to Create Sub-Department ${name}. Please try again.`
         );
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -111,9 +74,9 @@ export default function DepartmentEditingModal() {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
         className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
-        onClick={closeModal}
         aria-modal="true"
         role="dialog"
+        onClick={closeModal}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 40 }}
@@ -124,18 +87,9 @@ export default function DepartmentEditingModal() {
           onClick={(e) => e.stopPropagation()}
         >
           <form onSubmit={handleSubmit}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-                {mode === "add" ? "Add New Department" : "Edit Department"}
-              </h3>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent mb-4">
+              Create Sub-department
+            </h3>
             {errors.root && (
               <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
                 <div className="flex items-center gap-2">
@@ -156,17 +110,18 @@ export default function DepartmentEditingModal() {
                 </div>
               </div>
             )}
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Department Name
+                  Sub-department Name
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50"
-                  placeholder="Enter department name"
+                  placeholder="e.g., Domestic Shipping"
                   required
                 />
                 {errors.name && (
@@ -175,25 +130,31 @@ export default function DepartmentEditingModal() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Visibility
+                  Parent Category
                 </label>
                 <select
-                  value={visibility}
-                  onChange={(e) =>
-                    setVisibility(e.target.value as "PUBLIC" | "PRIVATE")
-                  }
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                  required
                 >
-                  <option value="PUBLIC">Public</option>
-                  <option value="PRIVATE">Private</option>
+                  <option value="" disabled>
+                    Select a parent category
+                  </option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
                 </select>
-                {errors.visibility && (
+                {errors.parentCategory && (
                   <p className="mt-1 text-sm text-red-700">
-                    {errors.visibility}
+                    {errors.parentCategory}
                   </p>
                 )}
               </div>
             </div>
+
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
@@ -204,14 +165,10 @@ export default function DepartmentEditingModal() {
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading
-                  ? "Saving..."
-                  : mode === "add"
-                  ? "Add Department"
-                  : "Save Changes"}
+                {isSubmitting ? "Creating..." : "Create Sub-department"}
               </button>
             </div>
           </form>

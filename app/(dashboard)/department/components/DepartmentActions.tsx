@@ -1,13 +1,11 @@
 import { Department } from "@/lib/api/departments";
 import { useCurrentEditingDepartment } from "../store/useCurrentEditingDepartment";
 import { useDepartmentsStore } from "../store/useDepartmentsStore";
-import PencilIcon from "@/icons/Pencil";
-import TrashIcon from "@/icons/Trash";
-import LinkIcon from "@/icons/Link";
 import { DepartmentsService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { env } from "next-runtime-env";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 export default function DepartmentActions({
   department,
@@ -18,6 +16,7 @@ export default function DepartmentActions({
   const { openModal } = useConfirmationModalStore();
   const { deleteDepartment } = useDepartmentsStore();
   const { addToast } = useToastStore();
+
   const handleDelete = async (id: string) => {
     const canDelete = await DepartmentsService.canDeleteMainDepartment(id);
     if (canDelete) {
@@ -34,10 +33,7 @@ export default function DepartmentActions({
         },
       });
     } else {
-      addToast({
-        message: "Cannot Delete this department",
-        type: "error",
-      });
+      addToast({ message: "Cannot Delete this department", type: "error" });
     }
   };
 
@@ -46,41 +42,29 @@ export default function DepartmentActions({
       const key = await DepartmentsService.shareDepartment(id);
       const shareUrl = `${env("NEXT_PUBLIC_CLIENT_URL")}/share?key=${key}`;
       await navigator.clipboard.writeText(shareUrl);
-      addToast({
-        message: "Share link copied to clipboard!",
-        type: "success",
-      });
+      addToast({ message: "Share link copied to clipboard!", type: "success" });
     } catch (error) {
-      addToast({
-        message: "Failed to generate share link",
-        type: "error",
-      });
+      addToast({ message: "Failed to generate share link", type: "error" });
     }
   };
 
-  return (
-    <>
-      <button
-        className="p-1 text-slate-600 hover:text-blue-600 transition-colors"
-        title="Edit department"
-        onClick={() => openEditing("edit", department)}
-      >
-        <PencilIcon className="w-4 h-4" />
-      </button>
-      <button
-        className="p-1 text-slate-600 hover:text-green-600 transition-colors"
-        title="Share department"
-        onClick={() => handleShare(department.id)}
-      >
-        <LinkIcon className="w-4 h-4" />
-      </button>
-      <button
-        className="p-1 text-slate-600 hover:text-red-600 transition-colors"
-        title="Delete department"
-        onClick={() => handleDelete(department.id)}
-      >
-        <TrashIcon className="w-4 h-4" />
-      </button>
-    </>
-  );
+  const options = [
+    {
+      label: "Edit",
+      onClick: () => openEditing("edit", department),
+      color: "blue" as const,
+    },
+    {
+      label: "Share",
+      onClick: () => handleShare(department.id),
+      color: "green" as const,
+    },
+    {
+      label: "Delete",
+      onClick: () => handleDelete(department.id),
+      color: "red" as const,
+    },
+  ];
+
+  return <ThreeDotMenu options={options} />;
 }

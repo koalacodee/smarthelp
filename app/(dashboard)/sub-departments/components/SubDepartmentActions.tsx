@@ -5,8 +5,7 @@ import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmati
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { DepartmentsService } from "@/lib/api";
 import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartmentsStore";
-import PencilIcon from "@/icons/Pencil";
-import TrashIcon from "@/icons/Trash";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 interface SubDepartmentActionsProps {
   subDepartment: Department;
@@ -64,22 +63,10 @@ export default function SubDepartmentActions({
     }
   };
 
-  return (
-    <div className="flex items-center space-x-3">
-      <button
-        onClick={handleEdit}
-        className="text-blue-600 hover:text-blue-900 text-sm font-medium inline-flex items-center"
-      >
-        <PencilIcon className="w-4 h-4 mr-1" />
-        Edit
-      </button>
-      <button
-        onClick={handleDelete}
-        className="text-red-600 hover:text-red-900 text-sm font-medium inline-flex items-center"
-      >
-        <TrashIcon className="w-4 h-4 mr-1" />
-        Delete
-      </button>
-    </div>
-  );
+  const options = [
+    { label: "Edit", onClick: handleEdit, color: "blue" as const },
+    { label: "Delete", onClick: handleDelete, color: "red" as const },
+  ];
+
+  return <ThreeDotMenu options={options} />;
 }
