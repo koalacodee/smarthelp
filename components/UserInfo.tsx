@@ -74,12 +74,11 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
             <span className="text-sm font-medium text-gray-900 truncate">
               {user.name}
             </span>
-            <span className={getRoleBadgeStyles(user.role)}>
-              {formatRole(user.role)}
-            </span>
           </div>
           {/* User Email below */}
-          <div className="text-xs text-gray-500 truncate">{user.email}</div>
+          <div className="text-xs text-gray-500 truncate">
+            {user?.jobTitle || "No job title"}
+          </div>
         </div>
       </div>
     </div>
