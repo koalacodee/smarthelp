@@ -2,6 +2,9 @@ import axios from "axios";
 import { env } from "next-runtime-env";
 import { getCookie, setCookie } from "../cookies";
 
+// Check if we're running on the server
+const isServer = typeof window === "undefined";
+
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
   withCredentials: true,
@@ -10,10 +13,17 @@ const api = axios.create({
 // Request interceptor → inject accessToken
 api.interceptors.request.use(
   async (config) => {
-    const accessToken = await getCookie("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    // Both client-side and server-side: Get token from cookie
+    try {
+      const accessToken = await getCookie("accessToken");
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch (error) {
+      // Ignore cookie errors in SSR context
+      console.error("Cookie access error:", error);
     }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -23,6 +33,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Skip token refresh on server-side (middleware handles it)
+    if (isServer) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
 
     if (error.response?.status !== 401 || originalRequest._retry) {

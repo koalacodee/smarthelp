@@ -12,21 +12,46 @@ export async function middleware(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
 
-  // Skip auth check for login page
+  // Skip auth check for excluded pages
   if (!excludedPages.includes(pathname)) {
     const url = `${env("NEXT_PUBLIC_API_URL")}/auth/refresh`;
     const cookie = request.headers.get("cookie");
 
-    // fetch response
-    const apiResponse = await fetch(url, {
-      method: "POST",
-      headers: cookie ? { cookie } : {},
-    });
+    try {
+      // Attempt to refresh token
+      const apiResponse = await fetch(url, {
+        method: "POST",
+        headers: cookie ? { cookie } : {},
+      });
 
-    // parse body separately
-    const data = await apiResponse.json();
+      if (!apiResponse.ok) {
+        // If refresh fails, redirect to login
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
 
-    if (!apiResponse.ok) {
+      // Parse response to get new token
+      const data = await apiResponse.json();
+      const accessToken = data?.data?.accessToken;
+
+      // Create response with the next middleware
+      const response = NextResponse.next({ headers });
+
+      // Set the access token in a client-accessible cookie
+      if (accessToken) {
+        // Set cookie with path=/, httpOnly=false so client JS can access it
+        response.cookies.set({
+          name: "accessToken",
+          value: accessToken,
+          path: "/",
+          httpOnly: false, // Allow client-side access
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Token refresh error:", error);
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
