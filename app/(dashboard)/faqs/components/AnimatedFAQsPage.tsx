@@ -6,6 +6,7 @@ import FaqEditModal from "./FaqEditModal";
 import FaqsTable from "./FaqsTable";
 import FaqsFilters from "./FaqsFilters";
 import AnimatedFAQsHeader from "./AnimatedFAQsHeader";
+import AddNewFaqButton from "./AddNewFaqButton";
 import { GroupedFAQs } from "../page";
 
 interface AnimatedFAQsPageProps {
@@ -50,7 +51,7 @@ export default function AnimatedFAQsPage({
 
         <FaqEditModal />
       </div>
+      <AddNewFaqButton />
     </motion.div>
   );
 }
-

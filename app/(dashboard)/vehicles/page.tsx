@@ -18,7 +18,6 @@ export default async function Page() {
       <div className="bg-white p-6 rounded-lg shadow space-y-6">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-bold text-slate-800">Vehicle Fleet</h3>
-          <AddNewVehicle />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -26,6 +25,7 @@ export default async function Page() {
         </div>
       </div>
       <VehicleEditingModal />
+      <AddNewVehicle />
     </>
   );
 }

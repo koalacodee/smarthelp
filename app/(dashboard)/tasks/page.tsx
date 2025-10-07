@@ -12,6 +12,7 @@ import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
 import { env } from "next-runtime-env";
 
+// Add the button back to the JSX
 export const metadata: Metadata = {
   title: "Tasks | Task Management System",
   description: "Manage and track team tasks, assignments, and project progress",
@@ -124,7 +125,6 @@ export default async function Page() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-foreground">Team Tasks</h2>
-          <AddTaskButton />
         </div>
 
         <TasksPageClient
@@ -141,6 +141,7 @@ export default async function Page() {
         <AddTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />
         <SubmitWorkModal />
       </div>
+      <AddTaskButton />
     </>
   );
 }

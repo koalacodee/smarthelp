@@ -177,8 +177,6 @@ export default function EmployeePageClient({
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <InvitationButtons />
-
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -706,6 +704,7 @@ export default function EmployeePageClient({
 
       <EditEmployeeModal />
       <InviteEmployeeModal />
+      <InvitationButtons />
     </motion.div>
   );
 }

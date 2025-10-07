@@ -72,9 +72,6 @@ export default function CombinedDepartmentsPage({
               Manage main categories and their sections in one unified view.
             </p>
           </div>
-          <div className="flex justify-start md:justify-end">
-            <AddDepartmentButton />
-          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-8">
@@ -161,14 +158,6 @@ export default function CombinedDepartmentsPage({
                   <p className="text-xs text-slate-600">Manage your sections</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={openCreateSubDepartment}
-                  className="px-3 py-2 text-xs font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700"
-                >
-                  Add Sub-department
-                </button>
-              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
@@ -232,6 +221,7 @@ export default function CombinedDepartmentsPage({
         <EditSubDepartmentModal />
         <CreateSubDepartmentModal />
       </div>
+      <AddDepartmentButton />
     </motion.div>
   );
 }

@@ -8,6 +8,7 @@ import PromotionEditModal from "./PromotionEditModal";
 import PromotionsTable from "./PromotionsTable";
 import PromotionFilters from "./PromotionFilters";
 import AnimatedPromotionsHeader from "./AnimatedPromotionsHeader";
+import AddNewPromotionButton from "./AddNewPromotionButton";
 
 interface AnimatedPromotionsPageProps {
   promotions: PromotionDTO[];
@@ -60,6 +61,7 @@ export default function AnimatedPromotionsPage({
 
         <PromotionEditModal />
       </div>
+      <AddNewPromotionButton />
     </motion.div>
   );
 }

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import AddNewPromotionButton from "./AddNewPromotionButton";
 
 export default function AnimatedPromotionsHeader() {
   return (
@@ -43,14 +42,6 @@ export default function AnimatedPromotionsHeader() {
               Create and manage promotional campaigns for your customers
             </motion.p>
           </div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-            className="flex-shrink-0"
-          >
-            <AddNewPromotionButton />
-          </motion.div>
         </div>
       </motion.div>
     </motion.div>
