@@ -157,6 +157,13 @@ const tabs: Tab[] = [
     href: "/knowledge-chunks",
     allowed: (r) => r === "ADMIN",
   },
+  {
+    id: "files",
+    label: "My Files",
+    icon: <DocumentDuplicate className={ICON_SIZE} />,
+    href: "/files",
+    allowed: (r, p) => true, // Allow all users to access their files
+  },
 ];
 
 /* --- OVERLAY COMPONENT -------------------------------------------------- */

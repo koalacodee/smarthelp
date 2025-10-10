@@ -15,6 +15,24 @@ export default async function Page() {
     return res.json();
   });
   const userRole = user.user.role;
+  // Get user's attachments with pagination
+  const response = await fetch(
+    `${env("NEXT_PUBLIC_API_URL")}/files/my-attachments?limit=20&offset=0`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${cookieStore.get("accessToken")?.value}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json().then((res) => res.data);
+  console.log(data);
+  console.log("My attachments:", data.attachments);
+  console.log("Total count:", data.totalCount);
+  console.log("Has more:", data.hasMore);
+  console.log("Pagination:", data.pagination);
 
   if (userRole === "ADMIN") {
     return <AdminDashboard />;

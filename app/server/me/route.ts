@@ -9,6 +9,12 @@ export async function GET() {
   const session = await getIronSession<{ user?: UserResponse }>(cookieStore, {
     password: env("NEXT_PUBLIC_AUTH_SECRET")!,
     cookieName: "user_session",
+    cookieOptions: {
+      maxAge: undefined, // Session cookie expires on browser close
+      httpOnly: true,
+      secure: env("NODE_ENV") === "production",
+      sameSite: "lax",
+    },
   });
 
   console.log(cookieStore);

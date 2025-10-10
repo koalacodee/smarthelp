@@ -27,6 +27,26 @@ export interface UploadSingleFileResponse {
   contentType: string;
 }
 
+export interface AttachmentResponse {
+  attachments: Attachment[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface Attachment {
+  id: string;
+  type: string; // e.g. "png"
+  originalName: string;
+  expirationDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  targetId: string;
+  isGlobal: boolean;
+  fileType: string; // e.g. "image"
+  contentType: string; // e.g. "image/png"
+  size: number;
+}
+
 // POST /files/multiple
 export interface UploadMultipleFilesRequest {
   files: File[];
@@ -208,6 +228,12 @@ export class UploadService {
         }
       );
     }
+  }
+
+  async getMyAttachments(): Promise<AttachmentResponse> {
+    return this.http
+      .get<{ data: AttachmentResponse }>("/files/my-attachments")
+      .then((res) => res.data.data);
   }
 }
 
