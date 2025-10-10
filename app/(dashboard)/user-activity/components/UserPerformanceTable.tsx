@@ -116,100 +116,118 @@ const UserPerformanceTable: React.FC<UserPerformanceTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto border border-slate-200 rounded-lg">
-      <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-100">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              User
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Role
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Answered
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Satisfied 👍
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Dissatisfied 👎
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Avg Response Time
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
-            >
-              Satisfaction Rate
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-slate-200">
-          {performanceData.map((stat) => (
-            <tr key={stat.name} className="hover:bg-slate-50 transition-colors">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                {stat.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 capitalize">
-                {stat.role}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center font-semibold">
-                {stat.answered}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-center font-semibold">
-                {stat.satisfied}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-center font-semibold">
-                {stat.dissatisfied}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center">
-                <span className="font-semibold">
-                  {formatResponseTime(stat.avgResponseTime)}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-slate-200 rounded-full h-2.5">
-                    <div
-                      className={`${
-                        stat.satisfactionRate >= 75
-                          ? "bg-green-500"
-                          : stat.satisfactionRate >= 50
-                          ? "bg-yellow-400"
-                          : "bg-red-500"
-                      } h-2.5 rounded-full`}
-                      style={{ width: `${stat.satisfactionRate}%` }}
-                    ></div>
-                  </div>
-                  <span className="font-semibold text-slate-700 w-12 text-right">
-                    {stat.satisfactionRate.toFixed(0)}%
-                  </span>
-                </div>
-              </td>
+    <div className="overflow-x-auto">
+      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm">
+        <table className="min-w-full">
+          <thead className="bg-gradient-to-r from-slate-50/80 to-slate-100/50">
+            <tr>
+              <th
+                scope="col"
+                className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                User
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Role
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Answered
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Satisfied 👍
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Dissatisfied 👎
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Avg Response Time
+              </th>
+              <th
+                scope="col"
+                className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Satisfaction Rate
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-200/50">
+            {performanceData.map((stat, index) => (
+              <tr
+                key={stat.name}
+                className="hover:bg-slate-50/50 transition-colors duration-200 group"
+                style={{
+                  animationDelay: `${index * 0.1}s`,
+                }}
+              >
+                <td className="px-8 py-5 whitespace-nowrap text-sm font-semibold text-slate-900 group-hover:text-slate-800">
+                  {stat.name}
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600 capitalize">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      stat.role === "ADMIN"
+                        ? "bg-purple-100 text-purple-800"
+                        : stat.role === "SUPERVISOR"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {stat.role}
+                  </span>
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-700 text-center font-bold">
+                  {stat.answered}
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-green-600 text-center font-bold">
+                  {stat.satisfied}
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-red-600 text-center font-bold">
+                  {stat.dissatisfied}
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600 text-center">
+                  <span className="font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full">
+                    {formatResponseTime(stat.avgResponseTime)}
+                  </span>
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600">
+                  <div className="flex items-center gap-3">
+                    <div className="w-full bg-slate-200 rounded-full h-3 shadow-inner">
+                      <div
+                        className={`h-3 rounded-full shadow-sm transition-all duration-300 ${
+                          stat.satisfactionRate >= 75
+                            ? "bg-gradient-to-r from-green-400 to-green-600"
+                            : stat.satisfactionRate >= 50
+                            ? "bg-gradient-to-r from-yellow-400 to-yellow-600"
+                            : "bg-gradient-to-r from-red-400 to-red-600"
+                        }`}
+                        style={{ width: `${stat.satisfactionRate}%` }}
+                      ></div>
+                    </div>
+                    <span className="font-bold text-slate-800 w-12 text-right">
+                      {stat.satisfactionRate.toFixed(0)}%
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

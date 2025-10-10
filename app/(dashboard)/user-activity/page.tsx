@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { UserActivityService } from "@/lib/api";
-import UserActivityReport from "./components/UserActivityReport";
-import UserPerformanceTable from "./components/UserPerformanceTable";
+import AnimatedUserActivityPage from "./components/AnimatedUserActivityPage";
 
 export const metadata: Metadata = {
   title: "User Activity | Performance Analytics",
@@ -14,18 +13,11 @@ export default async function Page() {
   const performance = await UserActivityService.getPerformance();
 
   return (
-    <div className="space-y-8">
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">
-          User Performance Analytics
-        </h2>
-        <UserPerformanceTable
-          users={performance.users}
-          tickets={performance.tickets}
-        />
-      </div>
-      <UserActivityReport report={report.data} />
-    </div>
+    <AnimatedUserActivityPage
+      report={report.data}
+      users={performance.users}
+      tickets={performance.tickets}
+    />
   );
 }
 

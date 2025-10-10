@@ -68,64 +68,73 @@ const ActivitySection: React.FC<{
   if (items.length === 0) return null;
 
   return (
-    <div className="border border-slate-200 rounded-lg">
+    <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
       <button
-        className="w-full flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-t-lg"
+        className="w-full flex justify-between items-center p-6 bg-gradient-to-r from-slate-50/80 to-slate-100/50 hover:from-slate-100/80 hover:to-slate-150/50 transition-all duration-300 rounded-t-2xl"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-3">
-          {icon}
-          <h4 className="font-bold text-slate-800">{title}</h4>
-          <span className="text-sm font-semibold bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            {React.cloneElement(icon as React.ReactElement, {
+              className: "w-5 h-5 text-white",
+            })}
+          </div>
+          <h4 className="font-bold text-slate-800 text-lg">{title}</h4>
+          <span className="text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1.5 rounded-full shadow-md">
             {items.length}
           </span>
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${
+          className={`w-6 h-6 text-slate-500 transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
       {isOpen && (
-        <div className="p-2">
+        <div className="p-4">
           <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="border-b border-slate-200">
-                <tr>
-                  {columns.map((col) => (
-                    <th
-                      key={col.header}
-                      scope="col"
-                      className={`px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider ${
-                        col.className || ""
-                      }`}
-                    >
-                      {col.header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
+              <table className="min-w-full">
+                <thead className="bg-slate-50/80">
+                  <tr>
                     {columns.map((col) => (
-                      <td
+                      <th
                         key={col.header}
-                        className={`px-4 py-3 text-sm text-slate-600 align-top ${
+                        scope="col"
+                        className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
                           col.className || ""
                         }`}
                       >
-                        {col.accessor(item)}
-                      </td>
+                        {col.header}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200/50">
+                  {items.map((item, index) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-slate-50/50 transition-colors duration-200"
+                      style={{
+                        animationDelay: `${index * 0.1}s`,
+                      }}
+                    >
+                      {columns.map((col) => (
+                        <td
+                          key={col.header}
+                          className={`px-6 py-4 text-sm text-slate-700 align-top ${
+                            col.className || ""
+                          }`}
+                        >
+                          {col.accessor(item)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -174,8 +183,9 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
         header: "Response Time",
         accessor: (item: ActivityItem) => {
           const repliedInSeconds = item.meta.repliedInSeconds;
-          if (!repliedInSeconds) return <span className="text-slate-400">N/A</span>;
-          
+          if (!repliedInSeconds)
+            return <span className="text-slate-400">N/A</span>;
+
           return (
             <span className="font-semibold text-slate-700">
               {formatResponseTime(repliedInSeconds)}
@@ -189,7 +199,7 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
         accessor: (item: ActivityItem) => {
           const rating = item.meta.rating;
           if (!rating) return <span className="text-slate-400">N/A</span>;
-          
+
           return (
             <span
               className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -229,8 +239,9 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
         header: "Completion Time",
         accessor: (item: ActivityItem) => {
           const performedInSeconds = item.meta.performedInSeconds;
-          if (!performedInSeconds) return <span className="text-slate-400">N/A</span>;
-          
+          if (!performedInSeconds)
+            return <span className="text-slate-400">N/A</span>;
+
           return (
             <span className="font-semibold text-slate-700">
               {formatResponseTime(performedInSeconds)}
@@ -359,15 +370,8 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow space-y-8">
-      <div>
-        <h3 className="text-xl font-bold text-slate-800">Activity Report</h3>
-        <p className="text-sm text-slate-600 mt-1">
-          View all recorded user activities.
-        </p>
-      </div>
-
-      <div className="space-y-6">
+    <div className="space-y-8">
+      <div className="space-y-4">
         <ActivitySection
           title="Answered Tickets"
           icon={<Ticket className="w-6 h-6 text-blue-500" />}
