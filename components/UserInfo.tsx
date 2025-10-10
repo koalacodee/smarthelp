@@ -75,9 +75,36 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
               {user.name}
             </span>
           </div>
-          {/* User Email below */}
-          <div className="text-xs text-gray-500 truncate">
-            {user?.jobTitle || "No job title"}
+          <div className="flex flex-wrap gap-2 mt-1">
+            {user.role === "ADMIN"
+              ? user.jobTitle && (
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                    {user.jobTitle}
+                  </span>
+                )
+              : (() => {
+                  const departments = user.departmentNames ?? [];
+                  const maxVisible = 2;
+                  const extraCount = departments.length - maxVisible;
+
+                  return (
+                    <div className="">
+                      {departments.slice(0, maxVisible).map((dept, idx) => (
+                        <span
+                          key={dept + idx}
+                          className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+                        >
+                          {dept}
+                        </span>
+                      ))}
+                      {extraCount > 0 && (
+                        <span className="inline-block bg-green-200 text-green-900 text-xs font-semibold px-2.5 py-0.5 rounded">
+                          +{extraCount}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
           </div>
         </div>
       </div>

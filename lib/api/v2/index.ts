@@ -13,6 +13,7 @@ import {
 import { createProfilePictureService } from "./services/profile";
 import { createEmployeeService } from "./services/employee";
 import { createPromotionService } from "./services/promotion";
+import { createTaskService } from "./services/task";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -25,3 +26,4 @@ export const SupervisorInvitationService =
 export const ProfilePictureService = createProfilePictureService(api);
 export const EmployeeService = createEmployeeService(api);
 export const PromotionService = createPromotionService(api);
+export const TaskService = createTaskService(api);

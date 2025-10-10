@@ -11,24 +11,28 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateTaskDto, TaskAssignmentType } from "@/lib/api/tasks";
-import api from "@/lib/api";
-import { TicketAssignee } from "@/lib/api";
+import { TaskService } from "@/lib/api/v2";
+import { useTaskPresetsStore } from "../store/useTaskPresetsStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import Plus from "@/icons/Plus";
+import { useTaskStore } from "@/lib/store";
+import { FileService, TicketAssignee } from "@/lib/api";
+import api from "@/lib/api";
 import CheckCircle from "@/icons/CheckCircle";
-import { useTaskModalStore } from "../store/useTaskModalStore";
 import AttachmentInput from "@/components/ui/AttachmentInput";
 import {
   Attachment,
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { useTaskStore } from "@/lib/store";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
+import { useTaskModalStore } from "../store/useTaskModalStore";
 import useFormErrors from "@/hooks/useFormErrors";
+import {
+  UploadMultipleFilesResponse,
+  UploadSingleFileResponse,
+} from "@/lib/api/v2/services/shared/upload";
 
-const adminTaskSchema = z.object({
+const adminTaskFromPresetSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is Required"),
   departmentId: z.string().min(1, "Department is required"),
@@ -37,10 +41,9 @@ const adminTaskSchema = z.object({
   reminderDays: z.number().min(0).optional(),
   reminderHours: z.number().min(0).max(23).optional(),
   reminderMinutes: z.number().min(0).max(59).optional(),
-  saveAsPreset: z.boolean().optional(),
 });
 
-const supervisorTaskSchema = z.object({
+const supervisorTaskFromPresetSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is Required"),
   targetSubDepartmentId: z.string().min(1, "Sub-department is required"),
@@ -50,15 +53,12 @@ const supervisorTaskSchema = z.object({
   reminderDays: z.number().min(0).optional(),
   reminderHours: z.number().min(0).max(23).optional(),
   reminderMinutes: z.number().min(0).max(59).optional(),
-  saveAsPreset: z.boolean().optional(),
 });
 
-type AdminTaskFormData = z.infer<typeof adminTaskSchema>;
-type SupervisorTaskFormData = z.infer<typeof supervisorTaskSchema>;
-
-type AddTaskModalProps = {
-  role: "admin" | "supervisor";
-};
+type AdminTaskFromPresetFormData = z.infer<typeof adminTaskFromPresetSchema>;
+type SupervisorTaskFromPresetFormData = z.infer<
+  typeof supervisorTaskFromPresetSchema
+>;
 
 // Helper function to calculate reminder in milliseconds
 const calculateReminderMilliseconds = (
@@ -80,7 +80,13 @@ const calculateReminderMilliseconds = (
   return daysInMs + hoursInMs + minutesInMs;
 };
 
-export default function AddTaskModal({ role }: AddTaskModalProps) {
+type CreateTaskFromPresetModalProps = {
+  role: "admin" | "supervisor";
+};
+
+export default function CreateTaskFromPresetModal({
+  role,
+}: CreateTaskFromPresetModalProps) {
   const {
     clearErrors,
     setErrors,
@@ -92,6 +98,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     "departmentId",
     "targetSubDepartmentId",
   ]);
+
   const { addToast } = useToastStore();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const {
@@ -100,36 +107,93 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     clearExistingsToDelete,
     setExistingAttachments,
   } = useAttachmentStore();
-  const { getAttachments, addAttachments, removeAttachments } =
-    useAttachmentsStore();
+
+  const { getAttachments, addAttachments } = useAttachmentsStore();
+  const { setMetadata } = useMediaMetadataStore();
+  const { addTask } = useTaskStore();
+  const { departments, subDepartments } = useTaskModalStore();
+
+  const {
+    isCreateFromPresetModalOpen,
+    setCreateFromPresetModalOpen,
+    selectedPreset,
+    reset: resetPresetStore,
+  } = useTaskPresetsStore();
+
+  const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
+    TicketAssignee[]
+  >([]);
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
     reset,
-  } = useForm<AdminTaskFormData | SupervisorTaskFormData>({
+    setValue,
+  } = useForm<AdminTaskFromPresetFormData | SupervisorTaskFromPresetFormData>({
     resolver: zodResolver(
-      role === "admin" ? adminTaskSchema : supervisorTaskSchema
+      role === "admin"
+        ? adminTaskFromPresetSchema
+        : supervisorTaskFromPresetSchema
     ),
     defaultValues: {
       priority: "MEDIUM",
-      // Keep numeric defaults; treat 0/0/0 as no reminder at submit time
       reminderDays: 0,
       reminderHours: 0,
       reminderMinutes: 0,
     },
   });
 
-  const { isOpen, setOpen, subDepartments, departments } = useTaskModalStore();
-
-  const { addTask } = useTaskStore();
-  const { setMetadata } = useMediaMetadataStore();
-  const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
-    TicketAssignee[]
-  >([]);
-
   const selectedSubDepartmentId = watch("targetSubDepartmentId");
+
+  // Initialize form with preset data
+  useEffect(() => {
+    if (selectedPreset && isCreateFromPresetModalOpen) {
+      // Common fields
+      setValue("title", selectedPreset.title);
+      setValue("description", selectedPreset.description);
+      setValue("priority", selectedPreset.priority);
+
+      if (selectedPreset.dueDate) {
+        setValue("dueDate", selectedPreset.dueDate);
+      }
+
+      if (selectedPreset.reminderInterval) {
+        const totalMs = selectedPreset.reminderInterval;
+        const days = Math.floor(totalMs / (24 * 60 * 60 * 1000));
+        const hours = Math.floor(
+          (totalMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+        );
+        const minutes = Math.floor((totalMs % (60 * 60 * 1000)) / (60 * 1000));
+
+        setValue("reminderDays", days);
+        setValue("reminderHours", hours);
+        setValue("reminderMinutes", minutes);
+      }
+
+      // Role-specific fields
+      if (role === "admin" && selectedPreset.targetDepartmentId) {
+        setValue("departmentId", selectedPreset.targetDepartmentId);
+      } else if (role === "supervisor") {
+        if (selectedPreset.targetSubDepartmentId) {
+          setValue(
+            "targetSubDepartmentId",
+            selectedPreset.targetSubDepartmentId
+          );
+        }
+        if (selectedPreset.assigneeId) {
+          setValue("assigneeId", selectedPreset.assigneeId);
+        }
+      }
+    }
+  }, [selectedPreset, isCreateFromPresetModalOpen, setValue, role]);
+
+  // Track field changes
+  const handleFieldChange = (fieldName: string) => {
+    setChangedFields((prev) => new Set(prev).add(fieldName));
+  };
 
   useEffect(() => {
     if (selectedSubDepartmentId) {
@@ -149,14 +213,24 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
 
     // Reset form and close modal
     reset();
-    setOpen(false);
+    setCreateFromPresetModalOpen(false);
+    resetPresetStore();
+    setChangedFields(new Set());
   };
 
-  const onSubmit = async (data: AdminTaskFormData | SupervisorTaskFormData) => {
+  const onSubmit = async (
+    data: AdminTaskFromPresetFormData | SupervisorTaskFromPresetFormData
+  ) => {
+    if (!selectedPreset) {
+      addToast({
+        message: "No preset selected. Please try again.",
+        type: "error",
+      });
+      return;
+    }
+
     clearErrors();
     try {
-      let createTaskDto: CreateTaskDto;
-
       // Calculate reminder in milliseconds
       const reminderMs = calculateReminderMilliseconds(
         data.reminderDays,
@@ -164,79 +238,100 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
         data.reminderMinutes
       );
 
-      if (role === "admin") {
-        const adminData = data as AdminTaskFormData;
-        createTaskDto = {
-          assignmentType: TaskAssignmentType.DEPARTMENT,
-          title: adminData.title,
-          description: adminData.description || "",
-          targetDepartmentId: adminData.departmentId,
-          priority: adminData.priority,
-          dueDate: adminData.dueDate || undefined,
-          reminderInterval: reminderMs,
-          savePreset: adminData.saveAsPreset,
-        };
-      } else {
-        const supervisorData = data as SupervisorTaskFormData;
-        const assignmentType = supervisorData.assigneeId
-          ? TaskAssignmentType.INDIVIDUAL
-          : TaskAssignmentType.SUB_DEPARTMENT;
+      // Prepare request object with only changed fields
+      const requestData: any = {
+        presetId: selectedPreset.id,
+      };
 
-        createTaskDto = {
-          assignmentType,
-          title: supervisorData.title,
-          description: supervisorData.description || "",
-          targetSubDepartmentId: supervisorData.targetSubDepartmentId,
-          assigneeId: supervisorData.assigneeId || undefined,
-          priority: supervisorData.priority,
-          dueDate: supervisorData.dueDate || undefined,
-          reminderInterval: reminderMs,
-          savePreset: supervisorData.saveAsPreset,
-        };
+      // Add changed fields to request
+      if (changedFields.has("title")) requestData.title = data.title;
+      if (changedFields.has("description"))
+        requestData.description = data.description;
+      if (changedFields.has("priority")) requestData.priority = data.priority;
+      if (changedFields.has("dueDate"))
+        requestData.dueDate = data.dueDate || undefined;
+      if (
+        changedFields.has("reminderDays") ||
+        changedFields.has("reminderHours") ||
+        changedFields.has("reminderMinutes")
+      ) {
+        requestData.reminderInterval = reminderMs;
+      }
+
+      if (role === "admin") {
+        const adminData = data as AdminTaskFromPresetFormData;
+        if (changedFields.has("departmentId")) {
+          requestData.targetDepartmentId = adminData.departmentId;
+        }
+      } else {
+        const supervisorData = data as SupervisorTaskFromPresetFormData;
+        if (changedFields.has("targetSubDepartmentId")) {
+          requestData.targetSubDepartmentId =
+            supervisorData.targetSubDepartmentId;
+        }
+        if (changedFields.has("assigneeId")) {
+          requestData.assigneeId = supervisorData.assigneeId || undefined;
+          if (supervisorData.assigneeId) {
+            requestData.assignmentType = "INDIVIDUAL";
+          } else {
+            requestData.assignmentType = "SUB_DEPARTMENT";
+          }
+        }
       }
 
       // Get FormData from attachment store
       const formData = attachments.length > 0 ? getFormData() : undefined;
+      if (attachments.length > 0) {
+        requestData.attach = true;
+      }
 
-      const createdResp = await api.TasksService.createTask(
-        createTaskDto,
-        formData
-      );
-      const createdTask = createdResp?.task ?? createdResp;
-      addTask(createdTask);
+      const response = await TaskService.createTaskFromPreset(requestData);
+      const createdTask = response.task;
+      addTask(createdTask as any);
 
-      // Store newly uploaded attachments from API response (no refetch)
-      const uploaded = createdResp?.uploaded;
-      if (uploaded) {
-        if (Array.isArray(uploaded)) {
-          addAttachments(
-            "task",
-            createdTask.id,
-            uploaded.map((f: any) => f.id)
-          );
-          uploaded.forEach((f: any) =>
-            setMetadata(f.id, {
-              fileType: f.fileType,
-              originalName: f.originalName,
-              sizeInBytes: f.sizeInBytes,
-              expiryDate: (f.expirationDate ?? null) as any,
-              contentType: f.contentType,
-            })
-          );
-        } else if (uploaded.id) {
-          addAttachments("task", createdTask.id, [uploaded.id]);
-          setMetadata(uploaded.id, {
-            fileType: uploaded.fileType,
-            originalName: uploaded.originalName,
-            sizeInBytes: uploaded.sizeInBytes,
-            expiryDate: (uploaded.expirationDate ?? null) as any,
-            contentType: uploaded.contentType,
-          });
+      // Handle attachments if any
+      if (response.uploadKey && formData) {
+        let uploaded:
+          | UploadMultipleFilesResponse
+          | UploadSingleFileResponse
+          | undefined = undefined;
+
+        if (response.uploadKey && formData) {
+          uploaded = (await FileService.upload(response.uploadKey, formData))
+            ?.data;
+        }
+
+        if (uploaded && uploaded) {
+          if (Array.isArray(uploaded)) {
+            addAttachments(
+              "task",
+              createdTask.id,
+              uploaded.map((f: any) => f.id)
+            );
+            uploaded.forEach((f: any) =>
+              setMetadata(f.id, {
+                fileType: f.fileType,
+                originalName: f.originalName,
+                sizeInBytes: f.sizeInBytes,
+                expiryDate: (f.expirationDate ?? null) as any,
+                contentType: f.contentType,
+              })
+            );
+          } else if (uploaded.id) {
+            addAttachments("task", createdTask.id, [uploaded.id]);
+            setMetadata(uploaded.id, {
+              fileType: uploaded.fileType,
+              originalName: uploaded.originalName,
+              sizeInBytes: uploaded.sizeInBytes,
+              expiryDate: (uploaded.expirationDate ?? null) as any,
+              contentType: uploaded.contentType,
+            });
+          }
         }
       }
 
       addToast({
-        message: "Task created successfully!",
+        message: "Task created successfully from preset!",
         type: "success",
       });
 
@@ -245,35 +340,31 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       clearExistingsToDelete();
       setExistingAttachments({});
 
+      // Reset and close
       reset();
-      setOpen(false);
+      setCreateFromPresetModalOpen(false);
+      resetPresetStore();
+      setChangedFields(new Set());
     } catch (error: any) {
-      console.error("Create task error:", error);
-      console.log("Create task error:", error);
-      console.log("Error response data:", error?.response?.data);
+      console.error("Create task from preset error:", error);
 
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
-            "Failed to create task. Please try again."
+            "Failed to create task from preset. Please try again."
         );
       }
     }
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
+    <Transition appear show={isCreateFromPresetModalOpen} as={Fragment}>
       <Dialog
         as="div"
         className="relative z-[1000]"
-        onClose={() => setOpen(false)}
+        onClose={() => setCreateFromPresetModalOpen(false)}
       >
         <TransitionChild
           as={Fragment}
@@ -303,8 +394,8 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 flex items-center gap-2"
                 >
-                  <Plus className="w-5 h-5 text-primary" />
-                  Assign New Task
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  Create Task from Preset: {selectedPreset?.name}
                 </DialogTitle>
 
                 {formErrors.root && (
@@ -338,6 +429,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                       className="w-full border border-border rounded-md p-2 bg-background"
                       placeholder="Task Title"
                       type="text"
+                      onChange={(e) => {
+                        register("title").onChange(e);
+                        handleFieldChange("title");
+                      }}
                     />
                     {errors.title && (
                       <p className="text-red-500 text-xs mt-1">
@@ -363,6 +458,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         {...register("departmentId")}
                         id="team-task-dept"
                         className="w-full border border-border rounded-md p-2 bg-background"
+                        onChange={(e) => {
+                          register("departmentId").onChange(e);
+                          handleFieldChange("departmentId");
+                        }}
                       >
                         <option value="">Select Department</option>
                         {departments?.map((dept) => (
@@ -395,6 +494,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           {...register("targetSubDepartmentId")}
                           id="team-task-subdept"
                           className="w-full border border-border rounded-md p-2 bg-background"
+                          onChange={(e) => {
+                            register("targetSubDepartmentId").onChange(e);
+                            handleFieldChange("targetSubDepartmentId");
+                          }}
                         >
                           <option value="">Select Sub-department</option>
                           {subDepartments.map((dept) => (
@@ -427,6 +530,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           id="team-task-employee"
                           className="w-full border border-border rounded-md p-2 bg-background"
                           disabled={!selectedSubDepartmentId}
+                          onChange={(e) => {
+                            register("assigneeId").onChange(e);
+                            handleFieldChange("assigneeId");
+                          }}
                         >
                           <option value="">(Entire Sub-department)</option>
                           {subDepartmentEmployees.map((employee) => (
@@ -451,6 +558,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         {...register("priority")}
                         id="team-task-priority"
                         className="w-full border border-border rounded-md p-2 bg-background"
+                        onChange={(e) => {
+                          register("priority").onChange(e);
+                          handleFieldChange("priority");
+                        }}
                       >
                         <option value="LOW">Low</option>
                         <option value="MEDIUM">Medium</option>
@@ -470,6 +581,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         id="team-task-due-date"
                         type="date"
                         className="w-full border border-border rounded-md p-2 bg-background"
+                        onChange={(e) => {
+                          register("dueDate").onChange(e);
+                          handleFieldChange("dueDate");
+                        }}
                       />
                     </div>
                   </div>
@@ -493,7 +608,12 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           min="0"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
+                          onChange={(e) => {
+                            register("reminderDays", {
+                              valueAsNumber: true,
+                            }).onChange(e);
+                            handleFieldChange("reminderDays");
+                          }}
                         />
                       </div>
                       <div>
@@ -513,7 +633,12 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           max="23"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
+                          onChange={(e) => {
+                            register("reminderHours", {
+                              valueAsNumber: true,
+                            }).onChange(e);
+                            handleFieldChange("reminderHours");
+                          }}
                         />
                       </div>
                       <div>
@@ -533,7 +658,12 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           max="59"
                           placeholder="0"
                           className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
+                          onChange={(e) => {
+                            register("reminderMinutes", {
+                              valueAsNumber: true,
+                            }).onChange(e);
+                            handleFieldChange("reminderMinutes");
+                          }}
                         />
                       </div>
                     </div>
@@ -548,6 +678,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                       rows={3}
                       className="w-full border border-border rounded-md p-2"
                       placeholder="Description"
+                      onChange={(e) => {
+                        register("description").onChange(e);
+                        handleFieldChange("description");
+                      }}
                     />
                     {errors.description && (
                       <p className="text-red-500 text-xs mt-1">
@@ -567,28 +701,6 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     attachmentType="task"
                     getAttachmentTokens={getAttachments}
                   />
-
-                  {/* Save as Preset Checkbox & Description */}
-                  <div className="mt-6 mb-2">
-                    <label className="inline-flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="accent-primary w-5 h-5 rounded"
-                        {...register("saveAsPreset")}
-                      />
-                      <span className="font-medium text-primary select-none">
-                        Save Task As Preset
-                      </span>
-                    </label>
-                    <p className="text-xs mt-2 text-muted-foreground max-w-xl">
-                      <span className="block">
-                        <b>What is a Preset?</b> Save this task as a reusable
-                        template to quickly create similar tasks in the future.
-                        Presets let you predefine task fields, so you can assign
-                        recurring or standardized tasks with just a few clicks.
-                      </span>
-                    </p>
-                  </div>
 
                   <div className="flex justify-end gap-2">
                     <button

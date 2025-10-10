@@ -334,6 +334,7 @@ export interface UserResponse {
   permissions: string[];
   profilePicture?: string;
   jobTitle: string;
+  departmentNames?: string[];
 }
 
 export const authService = {

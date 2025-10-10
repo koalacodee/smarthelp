@@ -8,9 +8,12 @@ import api, {
 } from "@/lib/api";
 import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
+import TaskPresetsModal from "./components/TaskPresetsModal";
+import CreateTaskFromPresetModal from "./components/CreateTaskFromPresetModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
 import { env } from "next-runtime-env";
+import { TaskService } from "@/lib/api/v2";
 
 // Add the button back to the JSX
 export const metadata: Metadata = {
@@ -139,6 +142,10 @@ export default async function Page() {
         />
 
         <AddTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />
+        <TaskPresetsModal />
+        <CreateTaskFromPresetModal
+          role={userRole === "ADMIN" ? "admin" : "supervisor"}
+        />
         <SubmitWorkModal />
       </div>
       <AddTaskButton />

@@ -141,6 +141,7 @@ export interface CreateTaskDto {
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate?: string;
   reminderInterval?: number;
+  savePreset?: boolean;
 }
 
 export enum TaskAssignmentType {
