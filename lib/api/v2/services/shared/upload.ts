@@ -1,5 +1,6 @@
+// Request/Response interfaces and axios functions for file endpoints
+
 import type { AxiosInstance } from "axios";
-import { JSend } from "../../models/jsend";
 
 export type UUID = string;
 
@@ -79,6 +80,25 @@ export interface GetAttachmentMetadataResponse {
   updatedAt: string;
   contentType: string;
   size: number;
+}
+
+// POST /files/share/:attachmentId
+export interface ShareAttachmentRequest {
+  attachmentId: string;
+  expirationDate?: string; // ISO date string, optional
+}
+export interface ShareAttachmentResponse {
+  shareKey: string;
+  expiresAt: string; // ISO date string
+}
+
+export interface GenerateUploadKeyResponse {
+  uploadKey: string;
+  message: string;
+}
+
+export interface AttachmentSignedUrlResponse {
+  signedUrl: string;
 }
 
 /* =========================
@@ -167,10 +187,10 @@ export class UploadService {
   async getAttachmentMetadata(
     request: GetAttachmentMetadataRequest
   ): Promise<GetAttachmentMetadataResponse> {
-    const { data } = await this.http.get<GetAttachmentMetadataResponse>(
-      `/attachment/${request.tokenOrId}/metadata`
-    );
-    return data;
+    const { data } = await this.http.get<{
+      data: GetAttachmentMetadataResponse;
+    }>(`/attachment/${request.tokenOrId}/metadata`);
+    return data.data;
   }
 
   // Convenience method to get attachment with metadata
@@ -234,6 +254,36 @@ export class UploadService {
     return this.http
       .get<{ data: AttachmentResponse }>("/files/my-attachments")
       .then((res) => res.data.data);
+  }
+
+  async getAttachmentSignedUrl(
+    tokenOrId: string
+  ): Promise<AttachmentSignedUrlResponse> {
+    return this.http
+      .get<{ data: AttachmentSignedUrlResponse }>(
+        `/attachment/signed/${tokenOrId}`
+      )
+      .then((res) => res.data.data);
+  }
+
+  // POST /files/share/:attachmentId
+  async shareAttachment(
+    request: ShareAttachmentRequest
+  ): Promise<ShareAttachmentResponse> {
+    const { data } = await this.http.post<{ data: ShareAttachmentResponse }>(
+      `/files/share/${request.attachmentId}`,
+      request
+    );
+    return data.data;
+  }
+
+  // POST /files/generate-upload-key
+  async generateUploadKey(): Promise<GenerateUploadKeyResponse> {
+    const { data } = await this.http.post<{ data: GenerateUploadKeyResponse }>(
+      "/files/generate-upload-key",
+      {}
+    );
+    return data.data;
   }
 }
 

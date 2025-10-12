@@ -5,6 +5,8 @@ import X from "@/icons/X";
 import RefreshCw from "@/icons/RefreshCw";
 import api from "@/lib/api";
 import { usePathname } from "next/navigation";
+import { env } from "next-runtime-env";
+import { UploadService } from "@/lib/api/v2";
 
 export default function MediaPreviewModal() {
   const baseUrl = api.client.defaults.baseURL;
@@ -15,22 +17,33 @@ export default function MediaPreviewModal() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isOpen && mediaInfo) {
-      // Check if it's already a blob URL (for new attachments)
-      if (mediaInfo.tokenOrId.startsWith("blob:")) {
-        setMediaUrl(mediaInfo.tokenOrId);
+    const loadMedia = async () => {
+      if (isOpen && mediaInfo) {
+        // Check if it's already a blob URL (for new attachments)
+        if (mediaInfo.tokenOrId.startsWith("blob:")) {
+          setMediaUrl(mediaInfo.tokenOrId);
+        } else {
+          // For existing attachments, construct the URL directly
+          const mediaRetrievalType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");
+          if (mediaRetrievalType === "signed-url") {
+            const signedUrl = await UploadService.getAttachmentSignedUrl(
+              mediaInfo.tokenOrId
+            );
+            setMediaUrl(signedUrl.signedUrl);
+          } else {
+            setMediaUrl(`${baseUrl}/attachment/${mediaInfo.tokenOrId}`);
+          }
+        }
+        setError(null);
+        setIsLoading(false);
       } else {
-        // For existing attachments, construct the URL directly
-        setMediaUrl(`${baseUrl}/attachment/${mediaInfo.tokenOrId}`);
+        // Reset state when modal closes
+        setMediaUrl(null);
+        setError(null);
+        setIsLoading(false);
       }
-      setError(null);
-      setIsLoading(false);
-    } else {
-      // Reset state when modal closes
-      setMediaUrl(null);
-      setError(null);
-      setIsLoading(false);
-    }
+    };
+    loadMedia();
   }, [isOpen, mediaInfo, baseUrl]);
 
   useEffect(() => {

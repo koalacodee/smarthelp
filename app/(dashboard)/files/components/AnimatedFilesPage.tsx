@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import FilesTable from "./FilesTable";
+import UploadModal from "./UploadModal";
+import ShareModal from "./ShareModal";
 import { Attachment } from "@/lib/api/v2/services/shared/upload";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
+import Plus from "@/icons/Plus";
 
 interface AnimatedFilesPageProps {
   attachments: Attachment[];
@@ -17,6 +20,11 @@ export default function AnimatedFilesPage({
   totalCount,
   hasMore,
 }: AnimatedFilesPageProps) {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [shareModalAttachment, setShareModalAttachment] =
+    useState<Attachment | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -113,6 +121,18 @@ export default function AnimatedFilesPage({
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-lg shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Upload Files
+            </motion.button>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -209,10 +229,32 @@ export default function AnimatedFilesPage({
                 </motion.span>
               </motion.h2>
             </motion.div>
-            <FilesTable attachments={attachments} />
+            <FilesTable
+              attachments={attachments}
+              onShare={(attachment) => {
+                setShareModalAttachment(attachment);
+                setIsShareModalOpen(true);
+              }}
+            />
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setShareModalAttachment(null);
+        }}
+        attachment={shareModalAttachment}
+      />
     </motion.div>
   );
 }

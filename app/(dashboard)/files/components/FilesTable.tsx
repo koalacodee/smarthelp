@@ -6,9 +6,11 @@ import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewSto
 import { Attachment } from "@/lib/api/v2/services/shared/upload";
 import Eye from "@/icons/Eye";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
+import Link from "@/icons/Link";
 
 interface FilesTableProps {
   attachments: Attachment[];
+  onShare: (attachment: Attachment) => void;
 }
 
 const formatFileSize = (bytes: number) => {
@@ -73,7 +75,7 @@ const getFileIcon = (fileType: string) => {
   }
 };
 
-export default function FilesTable({ attachments }: FilesTableProps) {
+export default function FilesTable({ attachments, onShare }: FilesTableProps) {
   const { openPreview } = useMediaPreviewStore();
 
   const handlePreview = (attachment: Attachment) => {
@@ -177,13 +179,15 @@ export default function FilesTable({ attachments }: FilesTableProps) {
                 >
                   <td className="px-8 py-5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="text-2xl">{getFileIcon(fileType)}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 group-hover:text-slate-800 truncate">
+                      <div className="text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center">
+                        {getFileIcon(fileType)}
+                      </div>
+                      <div className="min-w-0 flex-1 max-w-58">
+                        <p
+                          className="text-sm font-semibold text-slate-900 group-hover:text-slate-800 truncate"
+                          title={attachment.originalName}
+                        >
                           {attachment.originalName}
-                        </p>
-                        <p className="text-xs text-slate-500 truncate">
-                          ID: {attachment.id.slice(0, 8)}...
                         </p>
                       </div>
                     </div>
@@ -234,20 +238,36 @@ export default function FilesTable({ attachments }: FilesTableProps) {
                     )}
                   </td>
                   <td className="px-8 py-5 whitespace-nowrap text-center text-sm font-medium">
-                    <motion.button
-                      onClick={() => handlePreview(attachment)}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        expired
-                          ? "text-slate-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                      }`}
-                      disabled={expired}
-                      whileHover={!expired ? { scale: 1.05 } : {}}
-                      whileTap={!expired ? { scale: 0.95 } : {}}
-                    >
-                      <Eye className="w-4 h-4" />
-                      {expired ? "Expired" : "Preview"}
-                    </motion.button>
+                    <div className="flex items-center justify-center gap-2">
+                      <motion.button
+                        onClick={() => handlePreview(attachment)}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          expired
+                            ? "text-slate-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        }`}
+                        disabled={expired}
+                        whileHover={!expired ? { scale: 1.05 } : {}}
+                        whileTap={!expired ? { scale: 0.95 } : {}}
+                      >
+                        <Eye className="w-4 h-4" />
+                        {expired ? "Expired" : "Preview"}
+                      </motion.button>
+                      <motion.button
+                        onClick={() => onShare(attachment)}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          expired
+                            ? "text-slate-400 cursor-not-allowed"
+                            : "text-green-600 hover:text-green-800 hover:bg-green-50"
+                        }`}
+                        disabled={expired}
+                        whileHover={!expired ? { scale: 1.05 } : {}}
+                        whileTap={!expired ? { scale: 0.95 } : {}}
+                      >
+                        <Link className="w-4 h-4" />
+                        {expired ? "Expired" : "Share"}
+                      </motion.button>
+                    </div>
                   </td>
                 </motion.tr>
               );
