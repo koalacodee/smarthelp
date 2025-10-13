@@ -21,7 +21,8 @@ export default function ReplyToTicketModal() {
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData } = useAttachmentStore();
+  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
+    useAttachmentStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
@@ -41,6 +42,7 @@ export default function ReplyToTicketModal() {
         ticket.id,
         {
           content: answer,
+          chooseAttachments: Array.from(selectedAttachmentIds),
         },
         formData
       );
@@ -50,6 +52,7 @@ export default function ReplyToTicketModal() {
         type: "success",
       });
       updateStatus(ticket.id, TicketStatus.ANSWERED);
+      moveAllSelectedToExisting();
     } catch (error: any) {
       console.error("Reply to ticket error:", error);
       console.log("Reply to ticket error:", error);

@@ -106,6 +106,8 @@ export default function CreateTaskFromPresetModal({
     clearAttachments,
     clearExistingsToDelete,
     setExistingAttachments,
+    selectedAttachmentIds,
+    moveAllSelectedToExisting,
   } = useAttachmentStore();
 
   const { getAttachments, addAttachments } = useAttachmentsStore();
@@ -283,6 +285,7 @@ export default function CreateTaskFromPresetModal({
       const formData = attachments.length > 0 ? getFormData() : undefined;
       if (attachments.length > 0) {
         requestData.attach = true;
+        requestData.chooseAttachments = Array.from(selectedAttachmentIds);
       }
 
       const response = await TaskService.createTaskFromPreset(requestData);
@@ -339,7 +342,7 @@ export default function CreateTaskFromPresetModal({
       clearAttachments();
       clearExistingsToDelete();
       setExistingAttachments({});
-
+      moveAllSelectedToExisting();
       // Reset and close
       reset();
       setCreateFromPresetModalOpen(false);

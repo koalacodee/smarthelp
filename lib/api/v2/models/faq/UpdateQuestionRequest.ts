@@ -7,4 +7,5 @@ export interface UpdateQuestionRequest {
   knowledgeChunkId?: UUID;
   attach?: boolean;
   deleteAttachments?: UUID[];
+  chooseAttachments?: UUID[];
 }

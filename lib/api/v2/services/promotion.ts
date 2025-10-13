@@ -28,6 +28,7 @@ export interface CreatePromotionRequest {
   audience?: AudienceType;
   startDate?: string; // ISO 8601
   endDate?: string; // ISO 8601
+  chooseAttachments?: UUID[];
 }
 export type CreatePromotionResponse = {
   promotion: PromotionDTO;
@@ -41,6 +42,7 @@ export interface UpdatePromotionRequest {
   startDate?: string; // ISO 8601
   endDate?: string; // ISO 8601
   deleteAttachments?: UUID[];
+  chooseAttachments?: UUID[];
 }
 export type UpdatePromotionResponse = {
   promotion: PromotionDTO;

@@ -1,5 +1,6 @@
 "use client";
 import { create } from "zustand";
+import { Attachment as ApiAttachment } from "@/lib/api/v2/services/shared/upload";
 
 export interface Attachment {
   file: File;
@@ -18,6 +19,13 @@ interface AttachmentStore {
   attachments: Attachment[];
   existingAttachments: { [attachmentId: string]: ExistingAttachment };
   existingsToDelete: { [attachmentId: string]: ExistingAttachment };
+  // New state for "Choose From My Files" feature
+  myAttachments: ApiAttachment[];
+  selectedAttachmentIds: Set<string>;
+  selectedAttachments: { [attachmentId: string]: ExistingAttachment };
+  isLoadingMyAttachments: boolean;
+  myAttachmentsError: string | null;
+
   addAttachment: (attachment: Attachment) => void;
   removeAttachment: (index: number) => void;
   clearAttachments: () => void;
@@ -35,12 +43,29 @@ interface AttachmentStore {
   getAttachment: (index: number) => Attachment | undefined;
   getFormData: () => FormData;
   clearAll: () => void;
+
+  // New methods for "Choose From My Files" feature
+  fetchMyAttachments: () => Promise<void>;
+  selectAttachment: (attachmentId: string) => void;
+  deselectAttachment: (attachmentId: string) => void;
+  toggleAttachmentSelection: (attachmentId: string) => void;
+  clearSelectedAttachments: () => void;
+  addSelectedAttachmentsToExisting: () => void;
+  moveSelectedToExisting: (attachmentId: string) => void;
+  removeSelectedAttachment: (attachmentId: string) => void;
+  moveAllSelectedToExisting: () => void;
 }
 
 export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
   attachments: [],
   existingAttachments: {},
   existingsToDelete: {},
+  // New state for "Choose From My Files" feature
+  myAttachments: [],
+  selectedAttachmentIds: new Set<string>(),
+  selectedAttachments: {},
+  isLoadingMyAttachments: false,
+  myAttachmentsError: null,
 
   addAttachment: (attachment) => {
     set((state) => ({
@@ -166,6 +191,183 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
   },
 
   clearAll: () => {
-    set({ attachments: [], existingAttachments: {}, existingsToDelete: {} });
+    set({
+      attachments: [],
+      existingAttachments: {},
+      existingsToDelete: {},
+      myAttachments: [],
+      selectedAttachmentIds: new Set<string>(),
+      selectedAttachments: {},
+      isLoadingMyAttachments: false,
+      myAttachmentsError: null,
+    });
+  },
+
+  // New methods for "Choose From My Files" feature
+  fetchMyAttachments: async () => {
+    set({ isLoadingMyAttachments: true, myAttachmentsError: null });
+    try {
+      const { UploadService } = await import("@/lib/api/v2");
+      const response = await UploadService.getMyAttachments();
+      set({
+        myAttachments: response.attachments,
+        isLoadingMyAttachments: false,
+      });
+    } catch (error) {
+      set({
+        isLoadingMyAttachments: false,
+        myAttachmentsError:
+          error instanceof Error ? error.message : "Failed to load attachments",
+      });
+    }
+  },
+
+  selectAttachment: (attachmentId: string) => {
+    set((state) => {
+      // Find the attachment in myAttachments
+      const attachment = state.myAttachments.find((a) => a.id === attachmentId);
+      if (!attachment) return state;
+
+      // Add to selectedAttachmentIds and selectedAttachments
+      const newSelectedAttachments = {
+        ...state.selectedAttachments,
+        [attachmentId]: {
+          fileType: attachment.fileType,
+          originalName: attachment.originalName,
+          sizeInBytes: attachment.size,
+          expiryDate: attachment.expirationDate || undefined,
+          contentType: attachment.contentType,
+        },
+      };
+
+      return {
+        selectedAttachmentIds: new Set([
+          ...state.selectedAttachmentIds,
+          attachmentId,
+        ]),
+        selectedAttachments: newSelectedAttachments,
+      };
+    });
+  },
+
+  deselectAttachment: (attachmentId: string) => {
+    set((state) => {
+      const newSelectedIds = new Set(state.selectedAttachmentIds);
+      newSelectedIds.delete(attachmentId);
+
+      // Remove from selectedAttachments
+      const { [attachmentId]: removed, ...remainingSelectedAttachments } =
+        state.selectedAttachments;
+
+      return {
+        selectedAttachmentIds: newSelectedIds,
+        selectedAttachments: remainingSelectedAttachments,
+      };
+    });
+  },
+
+  toggleAttachmentSelection: (attachmentId: string) => {
+    set((state) => {
+      const newSelectedIds = new Set(state.selectedAttachmentIds);
+
+      if (newSelectedIds.has(attachmentId)) {
+        newSelectedIds.delete(attachmentId);
+      } else {
+        newSelectedIds.add(attachmentId);
+      }
+
+      return { selectedAttachmentIds: newSelectedIds };
+    });
+  },
+
+  clearSelectedAttachments: () => {
+    set({
+      selectedAttachmentIds: new Set<string>(),
+      selectedAttachments: {},
+    });
+  },
+
+  addSelectedAttachmentsToExisting: () => {
+    const { myAttachments, selectedAttachmentIds } = get();
+
+    // Convert selected attachment IDs to ExistingAttachment format
+    const selectedAttachments: {
+      [attachmentId: string]: ExistingAttachment;
+    } = {};
+
+    myAttachments.forEach((attachment) => {
+      if (selectedAttachmentIds.has(attachment.id)) {
+        selectedAttachments[attachment.id] = {
+          fileType: attachment.fileType,
+          originalName: attachment.originalName,
+          sizeInBytes: attachment.size,
+          expiryDate: attachment.expirationDate || undefined,
+          contentType: attachment.contentType,
+        };
+      }
+    });
+
+    set((state) => ({
+      selectedAttachments,
+      // Don't clear the selectedAttachmentIds so the checkboxes stay checked
+    }));
+  },
+
+  moveSelectedToExisting: (attachmentId: string) => {
+    set((state) => {
+      const attachment = state.selectedAttachments[attachmentId];
+      if (!attachment) return state;
+
+      // Remove from selected
+      const newSelectedIds = new Set(state.selectedAttachmentIds);
+      newSelectedIds.delete(attachmentId);
+
+      const { [attachmentId]: removed, ...remainingSelectedAttachments } =
+        state.selectedAttachments;
+
+      // Add to existing
+      return {
+        selectedAttachmentIds: newSelectedIds,
+        selectedAttachments: remainingSelectedAttachments,
+        existingAttachments: {
+          ...state.existingAttachments,
+          [attachmentId]: attachment,
+        },
+      };
+    });
+  },
+
+  moveAllSelectedToExisting: () => {
+    set((state) => {
+      // If no selected attachments, do nothing
+      if (Object.keys(state.selectedAttachments).length === 0) {
+        return state;
+      }
+
+      // Move all selected attachments to existing
+      return {
+        selectedAttachmentIds: new Set<string>(),
+        selectedAttachments: {},
+        existingAttachments: {
+          ...state.existingAttachments,
+          ...state.selectedAttachments,
+        },
+      };
+    });
+  },
+
+  removeSelectedAttachment: (attachmentId: string) => {
+    set((state) => {
+      const newSelectedIds = new Set(state.selectedAttachmentIds);
+      newSelectedIds.delete(attachmentId);
+
+      const { [attachmentId]: removed, ...remainingSelectedAttachments } =
+        state.selectedAttachments;
+
+      return {
+        selectedAttachmentIds: newSelectedIds,
+        selectedAttachments: remainingSelectedAttachments,
+      };
+    });
   },
 }));

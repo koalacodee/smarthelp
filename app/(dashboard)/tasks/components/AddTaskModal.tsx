@@ -99,6 +99,8 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     clearAttachments,
     clearExistingsToDelete,
     setExistingAttachments,
+    selectedAttachmentIds,
+    moveAllSelectedToExisting,
   } = useAttachmentStore();
   const { getAttachments, addAttachments, removeAttachments } =
     useAttachmentsStore();
@@ -175,6 +177,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           dueDate: adminData.dueDate || undefined,
           reminderInterval: reminderMs,
           savePreset: adminData.saveAsPreset,
+          chooseAttachments: Array.from(selectedAttachmentIds),
         };
       } else {
         const supervisorData = data as SupervisorTaskFormData;
@@ -192,6 +195,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           dueDate: supervisorData.dueDate || undefined,
           reminderInterval: reminderMs,
           savePreset: supervisorData.saveAsPreset,
+          chooseAttachments: Array.from(selectedAttachmentIds),
         };
       }
 
@@ -244,7 +248,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       clearAttachments();
       clearExistingsToDelete();
       setExistingAttachments({});
-
+      moveAllSelectedToExisting();
       reset();
       setOpen(false);
     } catch (error: any) {

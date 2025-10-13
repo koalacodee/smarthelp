@@ -142,6 +142,7 @@ export interface CreateTaskDto {
   dueDate?: string;
   reminderInterval?: number;
   savePreset?: boolean;
+  chooseAttachments?: string[];
 }
 
 export enum TaskAssignmentType {

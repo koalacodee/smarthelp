@@ -6,4 +6,5 @@ export interface CreateQuestionRequest {
   knowledgeChunkId?: UUID;
   answer?: string;
   attach?: boolean;
+  chooseAttachments?: UUID[];
 }

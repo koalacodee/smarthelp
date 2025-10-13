@@ -657,6 +657,7 @@ export interface UpdateTaskDto {
   attach?: boolean;
   deleteAttachments?: string[];
   reminderInterval?: number;
+  chooseAttachments?: string[];
 }
 
 // Interface for a single Task Submission
@@ -737,7 +738,7 @@ export const TasksService = {
   },
   submitWork: async (
     id: string,
-    dto: { notes: string },
+    dto: { notes: string; chooseAttachments?: string[] },
     formData?: FormData
   ) => {
     const response = await api.post<{

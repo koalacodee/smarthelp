@@ -29,7 +29,7 @@ export default function KnowledgeChunkEditModal() {
     content: "",
     departmentId: "",
   });
-  const { getFormData } = useAttachmentStore();
+  const { getFormData, selectedAttachmentIds } = useAttachmentStore();
 
   useEffect(() => {
     if (isOpen) {

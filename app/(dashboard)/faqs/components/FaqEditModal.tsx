@@ -7,10 +7,7 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
 import { Department } from "@/lib/api/departments";
 import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
+import { useAttachmentStore } from "@/app/(dashboard)/store/useAttachmentStore";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FAQService, UploadService } from "@/lib/api/v2";
@@ -48,7 +45,8 @@ export default function FaqEditModal() {
     clearAttachments,
     clearExistingsToDelete,
     setExistingAttachments,
-    // addExistingAttachment,
+    selectedAttachmentIds,
+    moveAllSelectedToExisting,
   } = useAttachmentStore();
 
   const subDepartmentsForCategory = useMemo(() => {
@@ -140,6 +138,7 @@ export default function FaqEditModal() {
         departmentId: deptId,
         deleteAttachments: Object.keys(existingsToDelete),
         attach: attachments.length > 0,
+        chooseAttachments: Array.from(selectedAttachmentIds),
       })
         .then(async (response) => {
           const { question: updated } = response;
@@ -173,10 +172,15 @@ export default function FaqEditModal() {
                 addAttachments(
                   "faq",
                   faq.id,
-                  uploadedFiles.map((file) => file.id)
+                  uploadedFiles
+                    .map((file) => file.id)
+                    .concat(Array.from(selectedAttachmentIds))
                 );
               } else {
-                addAttachments("faq", faq.id, [uploadedFiles.id]);
+                addAttachments("faq", faq.id, [
+                  uploadedFiles.id,
+                  ...Array.from(selectedAttachmentIds),
+                ]);
               }
               // Trigger attachment refresh to reload the modal
               setAttachmentRefreshKey((prev) => prev + 1);
@@ -208,6 +212,7 @@ export default function FaqEditModal() {
         answer,
         departmentId: deptId,
         attach: attachments.length > 0,
+        chooseAttachments: Array.from(selectedAttachmentIds),
       })
         .then(async (response) => {
           const { question: created } = response;
@@ -243,10 +248,15 @@ export default function FaqEditModal() {
                 addAttachments(
                   "faq",
                   created.id!,
-                  uploadedFiles.map((file) => file.id)
+                  uploadedFiles
+                    .map((file) => file.id)
+                    .concat(Array.from(selectedAttachmentIds))
                 );
               } else {
-                addAttachments("faq", created.id!, [uploadedFiles.id]);
+                addAttachments("faq", created.id!, [
+                  uploadedFiles.id,
+                  ...Array.from(selectedAttachmentIds),
+                ]);
               }
               // Trigger attachment refresh to reload the modal
               setAttachmentRefreshKey((prev) => prev + 1);
@@ -279,6 +289,7 @@ export default function FaqEditModal() {
     clearAttachments();
     clearExistingsToDelete();
     setExistingAttachments({});
+    moveAllSelectedToExisting();
   };
 
   const modalTitle = faq && faq.answer ? "Edit FAQ" : "Add New FAQ";

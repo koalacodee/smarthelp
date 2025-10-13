@@ -41,7 +41,11 @@ export default function PromotionEditModal() {
   const { addAttachments } = useAttachmentsStore();
   const { getPromotionAttachments } = usePromotionAttachments();
   const { setMetadata } = useMediaMetadataStore();
-  const { addExistingAttachment } = useAttachmentStore();
+  const {
+    addExistingAttachment,
+    selectedAttachmentIds,
+    moveAllSelectedToExisting,
+  } = useAttachmentStore();
 
   const {
     existingsToDelete,
@@ -141,6 +145,7 @@ export default function PromotionEditModal() {
         endDate: endDate || undefined,
         deleteAttachments: Object.keys(existingsToDelete),
         attach: attachments.length > 0,
+        chooseAttachments: Array.from(selectedAttachmentIds),
       })
         .then(async (response) => {
           addToast({
@@ -216,6 +221,7 @@ export default function PromotionEditModal() {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         attach: attachments.length > 0,
+        chooseAttachments: Array.from(selectedAttachmentIds),
       })
         .then(async (response) => {
           addToast({
@@ -286,6 +292,7 @@ export default function PromotionEditModal() {
     clearAttachments();
     clearExistingsToDelete();
     setExistingAttachments({});
+    moveAllSelectedToExisting();
   };
 
   const modalTitle = promotion ? "Edit Promotion" : "Add New Promotion";

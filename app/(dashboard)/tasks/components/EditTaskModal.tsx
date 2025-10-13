@@ -79,7 +79,8 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const { addToast } = useToastStore();
   const { task, setIsEditing, isEditing } = useCurrentEditingTaskStore();
   const { updateTask } = useTaskStore();
-  const { getFormData } = useAttachmentStore();
+  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
+    useAttachmentStore();
   const { getAttachments, removeAttachments } = useAttachmentsStore();
   const { setMetadata, clearMetadata } = useMediaMetadataStore();
   const { addAttachments } = useAttachmentsStore();
@@ -226,6 +227,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         reminderInterval: reminderMs,
+        chooseAttachments: Array.from(selectedAttachmentIds),
       };
 
       if (role === "admin") {
@@ -299,7 +301,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       clearAttachments();
       clearExistingsToDelete();
       setExistingAttachments({});
-
+      moveAllSelectedToExisting();
       handleClose();
     } catch (error: any) {
       console.error("Update task error:", error);

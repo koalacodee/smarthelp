@@ -21,7 +21,8 @@ export default function SubmitWorkModal() {
     useSubmitWorkModalStore();
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData } = useAttachmentStore();
+  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
+    useAttachmentStore();
 
   const { addToast } = useToastStore();
 
@@ -44,7 +45,10 @@ export default function SubmitWorkModal() {
 
       await api.TasksService.submitWork(
         task.id!,
-        { notes: task.notes },
+        {
+          notes: task.notes,
+          chooseAttachments: Array.from(selectedAttachmentIds),
+        },
         formData
       );
       // Optimistically update task status in any relevant store
@@ -62,6 +66,7 @@ export default function SubmitWorkModal() {
         message: "Task submitted for review successfully!",
         type: "success",
       });
+      moveAllSelectedToExisting();
       closeModal();
     } catch (error: any) {
       console.error("Submit work error:", error);
