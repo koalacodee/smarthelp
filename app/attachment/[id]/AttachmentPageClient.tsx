@@ -1,9 +1,5 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
-import X from "@/icons/X";
-import RefreshCw from "@/icons/RefreshCw";
-import api from "@/lib/api";
 
 interface AttachmentPageClientProps {
   meta: AttachmentMetadata;
@@ -22,11 +18,69 @@ interface AttachmentMetadata {
   size: number;
 }
 
+async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
+  const dbName = "videos-db";
+  const storeName = "videos";
+
+  // فتح أو إنشاء قاعدة البيانات
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+  // شوف لو الفيديو متخزن بالفعل
+  const cachedBlob: Blob | undefined = await new Promise((resolve) => {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const getReq = store.get(url);
+    getReq.onsuccess = () => resolve(getReq.result);
+    getReq.onerror = () => resolve(undefined);
+  });
+
+  if (cachedBlob) {
+    console.log("🎬 Loaded video from IndexedDB");
+    return URL.createObjectURL(cachedBlob);
+  }
+
+  // لو مش موجود، جيبه من السيرفر وخزّنه
+  console.log("⬇️ Fetching video from server...");
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch video");
+  const blob = await response.blob();
+
+  // خزّنه في IndexedDB
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const putReq = store.put(blob, url);
+    putReq.onsuccess = () => resolve();
+    putReq.onerror = () => reject(putReq.error);
+  });
+
+  return URL.createObjectURL(blob);
+}
+
 export default function AttachmentPageClient({
   meta,
   url,
 }: AttachmentPageClientProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadMedia = async () => {
+      const videoUrl = await getCachedVideoFromIndexedDB(url);
+      setMediaUrl(videoUrl);
+    };
+    loadMedia();
+  }, [url]);
 
   const getFileType = (contentType: string, originalName?: string) => {
     const lowerContentType = contentType.toLowerCase();
@@ -68,14 +122,6 @@ export default function AttachmentPageClient({
     );
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
   const fileType = getFileType(meta.contentType, meta.originalName);
 
   // Auto-fullscreen for videos
@@ -100,12 +146,12 @@ export default function AttachmentPageClient({
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center p-6 pt-20">
-      {url && (
+      {mediaUrl && (
         <div className="w-full max-w-7xl mx-auto">
           {isImage(fileType) && (
             <div className="flex justify-center">
               <img
-                src={url}
+                src={mediaUrl}
                 alt={meta.originalName}
                 className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
               />
@@ -116,7 +162,7 @@ export default function AttachmentPageClient({
             <div className="flex justify-center">
               <video
                 ref={videoRef}
-                src={url}
+                src={mediaUrl}
                 controls
                 className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
                 preload="metadata"
@@ -148,7 +194,7 @@ export default function AttachmentPageClient({
                     {meta.originalName}
                   </h3>
                   <audio
-                    src={url}
+                    src={mediaUrl}
                     controls
                     className="w-full"
                     preload="metadata"
@@ -185,7 +231,7 @@ export default function AttachmentPageClient({
                 This file type ({fileType}) cannot be previewed in the browser.
               </p>
               <a
-                href={url}
+                href={mediaUrl}
                 download={meta.originalName}
                 className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
               >
