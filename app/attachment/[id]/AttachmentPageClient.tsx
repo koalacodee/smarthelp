@@ -71,7 +71,7 @@ export default function AttachmentPageClient({
   meta,
   url,
 }: AttachmentPageClientProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const elementRef = useRef<any>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -126,22 +126,16 @@ export default function AttachmentPageClient({
 
   // Auto-fullscreen for videos
   useEffect(() => {
-    if (fileType === "video" && videoRef.current) {
-      const enterFullscreen = async () => {
-        try {
-          if (videoRef.current && videoRef.current.requestFullscreen) {
-            await videoRef.current.requestFullscreen();
-          }
-        } catch (error) {
-          console.warn("Failed to enter fullscreen:", error);
+    const enterFullscreen = async () => {
+      if (elementRef.current) {
+        if (elementRef.current.requestFullscreen) {
+          await elementRef.current.requestFullscreen();
+        } else if (elementRef.current.webkitRequestFullscreen) {
+          await elementRef.current.webkitRequestFullscreen(); // Safari
         }
-      };
-
-      // Small delay to ensure video element is rendered
-      const timeoutId = setTimeout(enterFullscreen, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
+      }
+    };
+    enterFullscreen();
   }, [fileType]);
 
   return (
@@ -154,6 +148,7 @@ export default function AttachmentPageClient({
                 src={mediaUrl}
                 alt={meta.originalName}
                 className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                ref={elementRef}
               />
             </div>
           )}
@@ -161,12 +156,13 @@ export default function AttachmentPageClient({
           {isVideo(fileType) && (
             <div className="flex justify-center">
               <video
-                ref={videoRef}
+                ref={elementRef}
                 src={mediaUrl}
                 controls
                 className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
                 preload="metadata"
                 autoPlay
+                loop
               >
                 Your browser does not support the video tag.
               </video>
@@ -199,6 +195,8 @@ export default function AttachmentPageClient({
                     className="w-full"
                     preload="metadata"
                     autoPlay
+                    loop
+                    ref={elementRef}
                   >
                     Your browser does not support the audio element.
                   </audio>
