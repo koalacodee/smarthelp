@@ -6,7 +6,6 @@ import { useKnowledgeChunksStore } from "../store/useKnowledgeChunksStore";
 import { useEffect } from "react";
 import { KnowledgeChunksService } from "@/lib/api";
 import RefreshButton from "@/components/ui/RefreshButton";
-import { useKnowledgeChunkViewStore } from "../store/useKnowledgeChunkViewStore";
 
 export default function KnowledgeChunksTable() {
   const { chunks: storedChunks, setChunks } = useKnowledgeChunksStore();
@@ -46,7 +45,6 @@ export default function KnowledgeChunksTable() {
 
   return (
     <>
-      <RefreshButton onRefresh={loadChunks} />
       <table className="min-w-full divide-y divide-border overflow-auto">
         <thead className="bg-muted">
           <tr>
@@ -82,10 +80,7 @@ export default function KnowledgeChunksTable() {
                 {group.chunks.map((chunk) => (
                   <tr
                     key={chunk.id}
-                    className="hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() =>
-                      useKnowledgeChunkViewStore.getState().toggleWidget(chunk)
-                    }
+                    className="hover:bg-muted/50 transition-colors"
                   >
                     <td className="px-6 py-4 max-w-md">
                       <p

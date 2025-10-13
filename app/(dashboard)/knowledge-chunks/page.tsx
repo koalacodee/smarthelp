@@ -1,8 +1,12 @@
-import KnowledgeChunksTable from "./components/KnowledgeChunksTable";
-import KnowledgeChunkEditModal from "./components/KnowledgeChunkEditModal";
-import AddNewKnowledgeChunkButton from "./components/AddNewKnowledgeChunkButton";
-import KnowledgeChunkViewWidget from "./components/KnowledgeChunkViewWidget";
+import { Metadata } from "next";
+import AnimatedKnowledgeChunksPage from "./components/AnimatedKnowledgeChunksPage";
 import { GetAllKnowledgeChunks200ResponseDataInner as KnowledgeChunk } from "@/lib/api/sdk/models";
+
+export const metadata: Metadata = {
+  title: "Knowledge Chunks | Knowledge Base Management",
+  description:
+    "Manage knowledge chunks, create and edit knowledge base entries for better customer support",
+};
 
 export interface GroupedKnowledgeChunks {
   departmentId: string;
@@ -11,17 +15,5 @@ export interface GroupedKnowledgeChunks {
 }
 
 export default async function Page() {
-  return (
-    <div className="bg-card p-6 rounded-lg shadow overflow-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-foreground">
-          Manage Knowledge Chunks
-        </h3>
-        <AddNewKnowledgeChunkButton />
-      </div>
-      <KnowledgeChunksTable />
-      <KnowledgeChunkEditModal />
-      <KnowledgeChunkViewWidget />
-    </div>
-  );
+  return <AnimatedKnowledgeChunksPage />;
 }
