@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import UserActivityReport from "./UserActivityReport";
 import UserPerformanceTable from "./UserPerformanceTable";
 import { PerformanceUser, PerformanceTicket } from "./UserPerformanceTable";
-import { ApiResponse } from "./UserActivityReport";
+import { ApiResponse, ActivityItem } from "./UserActivityReport";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
+import UserActivityFilters from "./UserActivityFilters";
+import { useUserActivityStore } from "../store/useUserActivityStore";
 
 interface AnimatedUserActivityPageProps {
   report: ApiResponse;
@@ -19,6 +21,178 @@ export default function AnimatedUserActivityPage({
   users,
   tickets,
 }: AnimatedUserActivityPageProps) {
+  const { filters } = useUserActivityStore();
+
+  // Filter users based on search and role filter
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      // Filter by role
+      if (filters.role !== "all" && user.role !== filters.role) {
+        return false;
+      }
+
+      // Filter by search term
+      if (
+        filters.search &&
+        !user.name.toLowerCase().includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [users, filters.search, filters.role]);
+
+  // Filter tickets based on search, role, activity type, and date range
+  const filteredTickets = useMemo(() => {
+    if (
+      !filters.search &&
+      filters.role === "all" &&
+      filters.activityType === "all" &&
+      filters.dateRange === "all"
+    ) {
+      return tickets;
+    }
+
+    return tickets.filter((ticket) => {
+      // If we have filtered users and this ticket belongs to a user, check if user is filtered
+      if (ticket.answeredByUserId && filters.role !== "all") {
+        const user = users.find((u) => u.id === ticket.answeredByUserId);
+        if (!user || user.role !== filters.role) {
+          return false;
+        }
+      }
+
+      // Filter by date range if needed
+      if (filters.dateRange !== "all") {
+        // This would require actual date data on tickets which we don't have in the current model
+        // For now, we'll skip this filter since we don't have the data
+      }
+
+      return true;
+    });
+  }, [tickets, users, filters]);
+
+  // Filter activity report data based on filters
+  const filteredReport = useMemo(() => {
+    // If no filters are applied, return the original report
+    if (
+      !filters.search &&
+      filters.role === "all" &&
+      filters.activityType === "all" &&
+      filters.dateRange === "all"
+    ) {
+      return report;
+    }
+
+    // Create a deep copy to avoid mutating the original data
+    const filteredData = {
+      ...report,
+      data: {
+        ...report.data,
+        data: [...(report.data.data || [])],
+      },
+    };
+
+    // Handle empty data case
+    if (!filteredData.data.data || !Array.isArray(filteredData.data.data)) {
+      filteredData.data.data = [];
+      return filteredData;
+    }
+
+    // Filter by activity type
+    if (filters.activityType !== "all") {
+      filteredData.data.data = filteredData.data.data.filter(
+        (group) => group.type === filters.activityType
+      );
+    }
+
+    // Filter activities within each group
+    if (filteredData.data.data.length > 0) {
+      filteredData.data.data = filteredData.data.data.map((group) => {
+        // Handle case where group.activities is undefined or not an array
+        if (!group.activities || !Array.isArray(group.activities)) {
+          return { ...group, activities: [] };
+        }
+
+        const filteredActivities = group.activities.filter(
+          (activity: ActivityItem) => {
+            // Filter by search term
+            if (
+              filters.search &&
+              !activity.title
+                ?.toLowerCase()
+                .includes(filters.search.toLowerCase()) &&
+              !activity.user?.name
+                ?.toLowerCase()
+                .includes(filters.search.toLowerCase())
+            ) {
+              return false;
+            }
+
+            // Filter by role
+            if (filters.role !== "all") {
+              const user = users.find((u) => u.id === activity.userId);
+              if (!user || user.role !== filters.role) {
+                return false;
+              }
+            }
+
+            // Filter by date range
+            if (filters.dateRange !== "all" && activity.occurredAt) {
+              const activityDate = new Date(activity.occurredAt);
+              const now = new Date();
+
+              switch (filters.dateRange) {
+                case "today":
+                  if (activityDate.toDateString() !== now.toDateString()) {
+                    return false;
+                  }
+                  break;
+                case "week":
+                  const weekAgo = new Date();
+                  weekAgo.setDate(now.getDate() - 7);
+                  if (activityDate < weekAgo) {
+                    return false;
+                  }
+                  break;
+                case "month":
+                  const monthAgo = new Date();
+                  monthAgo.setMonth(now.getMonth() - 1);
+                  if (activityDate < monthAgo) {
+                    return false;
+                  }
+                  break;
+                case "quarter":
+                  const quarterAgo = new Date();
+                  quarterAgo.setMonth(now.getMonth() - 3);
+                  if (activityDate < quarterAgo) {
+                    return false;
+                  }
+                  break;
+                case "year":
+                  const yearAgo = new Date();
+                  yearAgo.setFullYear(now.getFullYear() - 1);
+                  if (activityDate < yearAgo) {
+                    return false;
+                  }
+                  break;
+              }
+            }
+
+            return true;
+          }
+        );
+
+        return {
+          ...group,
+          activities: filteredActivities,
+        };
+      });
+    }
+
+    return filteredData;
+  }, [report, filters, users]);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -129,7 +303,7 @@ export default function AnimatedUserActivityPage({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>{users.length} Active Users</span>
+                <span>{filteredUsers.length} Active Users</span>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -138,11 +312,14 @@ export default function AnimatedUserActivityPage({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                <span>{tickets.length} Total Activities</span>
+                <span>{filteredTickets.length} Total Activities</span>
               </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
+
+        {/* Filters Section */}
+        <UserActivityFilters />
 
         {/* Performance Table Section */}
         <motion.div
@@ -206,11 +383,14 @@ export default function AnimatedUserActivityPage({
                   transition={{ duration: 0.4, delay: 0.9, ease: "backOut" }}
                   className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold"
                 >
-                  {users.length}
+                  {filteredUsers.length}
                 </motion.span>
               </motion.h2>
             </motion.div>
-            <UserPerformanceTable users={users} tickets={tickets} />
+            <UserPerformanceTable
+              users={filteredUsers}
+              tickets={filteredTickets}
+            />
           </motion.div>
         </motion.div>
 
@@ -276,14 +456,18 @@ export default function AnimatedUserActivityPage({
                   transition={{ duration: 0.4, delay: 0.9, ease: "backOut" }}
                   className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1 rounded-full text-sm font-bold"
                 >
-                  {Object.values(report.data).reduce(
-                    (total, group) => total + group.length,
-                    0
-                  )}
+                  {filteredReport.data.data &&
+                  Array.isArray(filteredReport.data.data)
+                    ? filteredReport.data.data.reduce(
+                        (total, group) =>
+                          total + (group.activities?.length || 0),
+                        0
+                      )
+                    : 0}
                 </motion.span>
               </motion.h2>
             </motion.div>
-            <UserActivityReport report={report} />
+            <UserActivityReport report={filteredReport} />
           </motion.div>
         </motion.div>
       </div>

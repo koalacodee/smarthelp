@@ -8,7 +8,7 @@ import Ticket from "@/icons/Ticket";
 import UserPlus from "@/icons/UserPlus";
 import React, { useState } from "react";
 
-type ActivityItem = {
+export type ActivityItem = {
   id: string;
   title: string;
   itemId: string;
