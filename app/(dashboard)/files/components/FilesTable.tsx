@@ -7,10 +7,17 @@ import { Attachment } from "@/lib/api/v2/services/shared/upload";
 import Eye from "@/icons/Eye";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import Link from "@/icons/Link";
+import Trash from "@/icons/Trash";
+import { useState } from "react";
+import { UploadService } from "@/lib/api/v2";
+import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 interface FilesTableProps {
   attachments: Attachment[];
   onShare: (attachment: Attachment) => void;
+  onDelete?: (attachment: Attachment) => void;
+  onRefresh?: () => void;
 }
 
 const formatFileSize = (bytes: number) => {
@@ -75,8 +82,15 @@ const getFileIcon = (fileType: string) => {
   }
 };
 
-export default function FilesTable({ attachments, onShare }: FilesTableProps) {
+export default function FilesTable({
+  attachments,
+  onShare,
+  onDelete,
+  onRefresh,
+}: FilesTableProps) {
   const { openPreview } = useMediaPreviewStore();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { addToast } = useToastStore();
 
   const handlePreview = (attachment: Attachment) => {
     // Determine file type from extension or content type
@@ -94,6 +108,40 @@ export default function FilesTable({ attachments, onShare }: FilesTableProps) {
   const isExpired = (expirationDate: string | null) => {
     if (!expirationDate) return false;
     return new Date() > new Date(expirationDate);
+  };
+
+  const handleDelete = async (attachment: Attachment) => {
+    if (!attachment || !attachment.id) return;
+
+    try {
+      setDeletingId(attachment.id);
+      await UploadService.deleteAttachment(attachment.id);
+      addToast({
+        message: "Attachment deleted successfully",
+        type: "success",
+      });
+
+      // Call onDelete to update parent component state
+      if (onDelete) {
+        onDelete(attachment);
+      }
+
+      // Also refresh if needed
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Failed to delete attachment:", error);
+      addToast({
+        message: "Failed to delete attachment",
+        type: "error",
+      });
+    } finally {
+      // Small delay to show the "Deleting..." status before removing
+      setTimeout(() => {
+        setDeletingId(null);
+      }, 500);
+    }
   };
 
   if (attachments.length === 0) {
@@ -239,34 +287,37 @@ export default function FilesTable({ attachments, onShare }: FilesTableProps) {
                   </td>
                   <td className="px-8 py-5 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex items-center justify-center gap-2">
-                      <motion.button
-                        onClick={() => handlePreview(attachment)}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          expired
-                            ? "text-slate-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        }`}
-                        disabled={expired}
-                        whileHover={!expired ? { scale: 1.05 } : {}}
-                        whileTap={!expired ? { scale: 0.95 } : {}}
-                      >
-                        <Eye className="w-4 h-4" />
-                        {expired ? "Expired" : "Preview"}
-                      </motion.button>
-                      <motion.button
-                        onClick={() => onShare(attachment)}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          expired
-                            ? "text-slate-400 cursor-not-allowed"
-                            : "text-green-600 hover:text-green-800 hover:bg-green-50"
-                        }`}
-                        disabled={expired}
-                        whileHover={!expired ? { scale: 1.05 } : {}}
-                        whileTap={!expired ? { scale: 0.95 } : {}}
-                      >
-                        <Link className="w-4 h-4" />
-                        {expired ? "Expired" : "Share"}
-                      </motion.button>
+                      {!expired && (
+                        <ThreeDotMenu
+                          options={[
+                            {
+                              label: "Preview",
+                              onClick: () => handlePreview(attachment),
+                              color: "blue" as "blue",
+                            },
+                            {
+                              label: "Share",
+                              onClick: () => onShare(attachment),
+                              color: "green" as "green",
+                            },
+                            {
+                              label:
+                                deletingId === attachment.id
+                                  ? "Deleting..."
+                                  : "Delete",
+                              onClick: () => {
+                                if (deletingId !== attachment.id) {
+                                  handleDelete(attachment);
+                                }
+                              },
+                              color: "red" as "red",
+                            },
+                          ]}
+                        />
+                      )}
+                      {expired && (
+                        <span className="text-xs text-slate-400">Expired</span>
+                      )}
                     </div>
                   </td>
                 </motion.tr>

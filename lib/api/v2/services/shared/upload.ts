@@ -285,6 +285,10 @@ export class UploadService {
     );
     return data.data;
   }
+
+  async deleteAttachment(id: string): Promise<void> {
+    await this.http.delete(`/files/${id}`);
+  }
 }
 
 /* =========================

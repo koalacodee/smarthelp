@@ -126,40 +126,72 @@ export default function AttachmentPageClient({
 
   const fileType = getFileType(meta.contentType, meta.originalName);
 
-  // Auto-fullscreen using react-full-screen
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "f" || e.key === "F") {
+        // Toggle fullscreen with F key
+        fullScreenHandle.active
+          ? fullScreenHandle.exit()
+          : fullScreenHandle.enter();
+      } else if (e.key === "Escape" && !fullScreenHandle.active) {
+        // Only go back if not in fullscreen mode
+        window.history.back();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [fullScreenHandle]);
+
+  // Toggle fullscreen using react-full-screen
   useEffect(() => {
     // We need to handle the fullscreen request with user interaction
     // due to browser security policies
     const handleUserInteraction = () => {
-      if (mediaUrl && !fullScreenHandle.active) {
+      if (!mediaUrl) return;
+
+      if (fullScreenHandle.active) {
+        // If already in fullscreen, exit
+        fullScreenHandle.exit();
+      } else {
+        // If not in fullscreen, enter
         fullScreenHandle.enter().catch((err) => {
           console.warn("Fullscreen request failed:", err);
           // Fallback to original method if react-full-screen fails
           if (elementRef.current) {
             try {
-              if (elementRef.current.requestFullscreen) {
-                elementRef.current.requestFullscreen();
-              } else if (elementRef.current.webkitRequestFullscreen) {
-                elementRef.current.webkitRequestFullscreen();
-              } else if (elementRef.current.msRequestFullscreen) {
-                elementRef.current.msRequestFullscreen();
+              if (document.fullscreenElement) {
+                // Exit fullscreen if already in fullscreen
+                document.exitFullscreen().catch((e) => {
+                  console.warn("Exit fullscreen failed:", e);
+                });
+              } else {
+                // Enter fullscreen
+                if (elementRef.current.requestFullscreen) {
+                  elementRef.current.requestFullscreen();
+                } else if (elementRef.current.webkitRequestFullscreen) {
+                  elementRef.current.webkitRequestFullscreen();
+                } else if (elementRef.current.msRequestFullscreen) {
+                  elementRef.current.msRequestFullscreen();
+                }
               }
             } catch (e) {
-              console.warn("Native fullscreen request also failed:", e);
+              console.warn("Native fullscreen toggle failed:", e);
             }
           }
         });
       }
     };
 
-    // Add event listeners for user interaction
+    // Add event listeners for user interaction - only click and touch, not keydown
     document.addEventListener("click", handleUserInteraction);
-    document.addEventListener("keydown", handleUserInteraction);
     document.addEventListener("touchstart", handleUserInteraction);
 
     return () => {
       document.removeEventListener("click", handleUserInteraction);
-      document.removeEventListener("keydown", handleUserInteraction);
       document.removeEventListener("touchstart", handleUserInteraction);
     };
   }, [mediaUrl, fullScreenHandle]);

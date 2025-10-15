@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import AnimatedFilesPage from "./components/AnimatedFilesPage";
-import { UploadService } from "@/lib/api/v2";
+import { UploadService, AttachmentGroupService } from "@/lib/api/v2";
 
 export const metadata: Metadata = {
   title: "My Files | Dashboard",
