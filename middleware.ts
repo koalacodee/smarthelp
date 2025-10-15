@@ -12,8 +12,11 @@ export async function middleware(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
 
-  // Skip auth check for excluded pages
-  if (!excludedPages.includes(pathname)) {
+  // Skip auth check for excluded pages or attachment pages
+  const isAttachmentPage = pathname.startsWith("/a");
+  const isExcludedPage = excludedPages.includes(pathname);
+
+  if (!isExcludedPage && !isAttachmentPage) {
     const url = `${env("NEXT_PUBLIC_API_URL")}/auth/refresh`;
     const cookie = request.headers.get("cookie");
 

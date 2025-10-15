@@ -76,6 +76,10 @@ export interface DeleteAttachmentGroupResponse {
   success: boolean;
 }
 
+export interface CloseAttachmentGroupResponse {
+  success: boolean;
+}
+
 /* =========================
    Service Singleton
    ========================= */
@@ -158,6 +162,16 @@ export class AttachmentGroupService {
     const { data } = await this.http.delete<
       JSend<DeleteAttachmentGroupResponse>
     >(`/attachment-groups/${id}`);
+    return data.data;
+  }
+
+  // POST /attachment-groups/close/:attachmentGroupId
+  async closeAttachmentGroup(
+    key: string
+  ): Promise<CloseAttachmentGroupResponse> {
+    const { data } = await this.http.post<JSend<CloseAttachmentGroupResponse>>(
+      `/attachment-groups/close/${key}`
+    );
     return data.data;
   }
 }

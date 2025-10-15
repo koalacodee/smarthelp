@@ -59,7 +59,7 @@ export default function ShareModal({
 
         // Create group share link
         const baseUrl = window.location.origin;
-        const link = `${baseUrl}/attachment/group/${groupKey}`;
+        const link = `${baseUrl}/a/g/${groupKey}`;
         setShareLink(link);
       } else {
         // Share single attachment
@@ -72,7 +72,7 @@ export default function ShareModal({
 
         // Create the share link
         const baseUrl = window.location.origin;
-        const link = `${baseUrl}/attachment/${response.shareKey}`;
+        const link = `${baseUrl}/a/${response.shareKey}`;
         setShareLink(link);
       }
     } catch (error) {

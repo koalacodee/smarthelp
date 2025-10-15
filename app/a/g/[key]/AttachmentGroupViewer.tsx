@@ -74,6 +74,22 @@ export default function AttachmentGroupViewer({
   const elementRef = useRef<HTMLDivElement>(null);
   const fullScreenHandle = useFullScreenHandle();
 
+  // Add unload event listener to log when user closes the page
+  useEffect(() => {
+    const baseUrl = api.client.defaults.baseURL;
+
+    const handleUnload = () => {
+      const logUrl = `${baseUrl}/attachment-groups/close/${groupKey}`;
+      navigator.sendBeacon(logUrl);
+    };
+
+    window.addEventListener("unload", handleUnload);
+
+    return () => {
+      window.removeEventListener("unload", handleUnload);
+    };
+  }, [groupKey]);
+
   const currentAttachment = attachments[currentIndex];
   const totalAttachments = attachments.length;
 
