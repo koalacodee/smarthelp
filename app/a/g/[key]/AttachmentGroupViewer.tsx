@@ -7,6 +7,7 @@ import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { env } from "next-runtime-env";
 import api from "@/lib/api";
 import { UploadService } from "@/lib/api/v2";
+import { useAttachmentGroup } from "./useAttachment";
 
 interface AttachmentGroupViewerProps {
   attachments: Attachment[];
@@ -63,9 +64,11 @@ async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
 }
 
 export default function AttachmentGroupViewer({
-  attachments,
+  attachments: initialAttachments,
   groupKey,
 }: AttachmentGroupViewerProps) {
+  const [attachments, setAttachments] =
+    useState<Attachment[]>(initialAttachments);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +76,79 @@ export default function AttachmentGroupViewer({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
   const fullScreenHandle = useFullScreenHandle();
+  const { attachments: wsAttachments } = useAttachmentGroup(
+    env("NEXT_PUBLIC_WS_URL") || "",
+    groupKey
+  );
+
+  // Handle attachment updates from WebSocket
+  useEffect(() => {
+    if (wsAttachments.length > 0) {
+      // Store current attachment ID and count before updating
+      const currentAttachmentId = attachments[currentIndex]?.id;
+      const previousCount = attachments.length;
+
+      // Check if new attachments were added
+      const newAttachmentsAdded = wsAttachments.length > previousCount;
+
+      console.log("WebSocket update received:", {
+        newAttachmentsAdded,
+        previousCount,
+        newCount: wsAttachments.length,
+      });
+
+      // Update attachments
+      setAttachments(wsAttachments);
+
+      // CRITICAL: Force check if we need to advance to the next attachment
+      const forceCheckAdvance = () => {
+        console.log("FORCE CHECKING if we need to advance");
+
+        // If we have multiple attachments now and we're at the last one of the previous set
+        if (wsAttachments.length > 1 && currentIndex === previousCount - 1) {
+          // Check if media is ended or near the end
+          if (mediaRef.current) {
+            const isEnded = mediaRef.current.ended;
+            const isNearEnd =
+              mediaRef.current.currentTime > 0 &&
+              mediaRef.current.duration > 0 &&
+              mediaRef.current.currentTime >= mediaRef.current.duration - 1.0;
+
+            console.log("Media status check:", {
+              isEnded,
+              isNearEnd,
+              currentTime: mediaRef.current.currentTime,
+              duration: mediaRef.current.duration,
+            });
+
+            // If video is ended or about to end, move to the next attachment
+            if (isEnded || isNearEnd) {
+              console.log("FORCE ADVANCING to next attachment");
+              // Force a small delay to ensure state updates properly
+              setTimeout(() => {
+                setCurrentIndex(currentIndex + 1);
+              }, 100);
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      // If current attachment no longer exists in the new array, reset to first attachment
+      if (currentAttachmentId) {
+        const stillExists = wsAttachments.some(
+          (a) => a.id === currentAttachmentId
+        );
+        if (!stillExists) {
+          setCurrentIndex(0);
+        } else if (newAttachmentsAdded) {
+          // Always check if we need to advance when new attachments are added
+          forceCheckAdvance();
+        }
+      }
+    }
+  }, [wsAttachments, attachments, currentIndex]);
 
   // Add unload event listener to log when user closes the page
   useEffect(() => {
@@ -90,11 +166,23 @@ export default function AttachmentGroupViewer({
     };
   }, [groupKey]);
 
-  const currentAttachment = attachments[currentIndex];
   const totalAttachments = attachments.length;
+
+  // Handle case when attachments array is empty or index is out of bounds
+  const currentAttachment =
+    totalAttachments > 0
+      ? attachments[Math.min(currentIndex, totalAttachments - 1)]
+      : null;
 
   // Load the current attachment's media URL
   useEffect(() => {
+    // Skip if no current attachment
+    if (!currentAttachment) {
+      setIsLoading(false);
+      setMediaUrl(null);
+      return;
+    }
+
     const loadAttachment = async () => {
       setIsLoading(true);
       try {
@@ -116,6 +204,7 @@ export default function AttachmentGroupViewer({
         setMediaUrl(url);
       } catch (error) {
         console.error("Error loading attachment:", error);
+        setMediaUrl(null);
       } finally {
         setIsLoading(false);
       }
@@ -134,7 +223,7 @@ export default function AttachmentGroupViewer({
         clearTimeout(timerRef.current);
       }
     };
-  }, [currentAttachment.id]);
+  }, [currentAttachment]);
 
   const goToNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % totalAttachments);
@@ -186,10 +275,12 @@ export default function AttachmentGroupViewer({
     );
   };
 
-  const fileType = getFileType(
-    currentAttachment.contentType || "",
-    currentAttachment.originalName
-  );
+  const fileType = currentAttachment
+    ? getFileType(
+        currentAttachment.contentType || "",
+        currentAttachment.originalName
+      )
+    : "unknown";
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -279,13 +370,18 @@ export default function AttachmentGroupViewer({
     // For single images, we don't set a timer (image stays forever)
   }, [isLoading, mediaUrl, fileType, totalAttachments]);
 
-  // Handle video/audio ended event separately
+  // Handle video/audio ended event separately with aggressive approach
   useEffect(() => {
     // For video/audio, handle the ended event
     const handleMediaEnded = () => {
-      if (totalAttachments > 1) {
+      // Always check the current total attachments count
+      const currentTotalAttachments = attachments.length;
+
+      console.log("Media ended event triggered!");
+
+      if (currentTotalAttachments > 1) {
         // If multiple attachments, advance to next
-        console.log("Media ended, advancing to next");
+        console.log("Multiple attachments, advancing to next");
         goToNext();
       } else {
         // If only one attachment, loop the current media
@@ -301,15 +397,32 @@ export default function AttachmentGroupViewer({
 
     // Need to wait for the ref to be populated
     if (mediaRef.current && (isVideo(fileType) || isAudio(fileType))) {
-      console.log("Adding ended event listener");
+      console.log("Setting up media end detection");
+
+      // 1. Use the onended property
       mediaRef.current.onended = handleMediaEnded;
 
-      // Set loop attribute for single media
-      if (totalAttachments === 1) {
-        mediaRef.current.loop = true;
-      } else {
-        mediaRef.current.loop = false;
-      }
+      // 2. Also add a direct event listener (belt and suspenders approach)
+      mediaRef.current.addEventListener("ended", handleMediaEnded);
+
+      // 3. Set loop attribute for single media - always check current length
+      const currentTotalAttachments = attachments.length;
+      mediaRef.current.loop = currentTotalAttachments === 1;
+
+      // 4. Set up a polling interval to check if the video is near the end
+      const checkInterval = setInterval(() => {
+        if (mediaRef.current && !mediaRef.current.paused) {
+          const timeLeft =
+            mediaRef.current.duration - mediaRef.current.currentTime;
+
+          // If less than 0.3 seconds left and we have multiple attachments, advance
+          if (timeLeft < 0.3 && attachments.length > 1) {
+            console.log("Video near end detected by polling, advancing");
+            clearInterval(checkInterval);
+            goToNext();
+          }
+        }
+      }, 200); // Check every 200ms
 
       // Try to play the media element if it's not already playing
       if (mediaRef.current.paused) {
@@ -325,14 +438,40 @@ export default function AttachmentGroupViewer({
           }
         });
       }
+
+      // Return cleanup function
+      return () => {
+        if (mediaRef.current) {
+          mediaRef.current.onended = null;
+          mediaRef.current.removeEventListener("ended", handleMediaEnded);
+        }
+        clearInterval(checkInterval);
+      };
     }
 
-    return () => {
-      if (mediaRef.current) {
-        mediaRef.current.onended = null;
-      }
-    };
-  }, [currentIndex, mediaUrl, fileType]);
+    // Empty cleanup if no media ref
+    return () => {};
+  }, [currentIndex, mediaUrl, fileType, attachments.length]);
+
+  // Handle case when there are no attachments
+  if (totalAttachments === 0) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
+        <div className="text-white text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">No Attachments Available</h2>
+          <p className="mb-6">
+            This attachment group is empty or all attachments have been removed.
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <FullScreen handle={fullScreenHandle} className="bg-black">
@@ -350,7 +489,7 @@ export default function AttachmentGroupViewer({
             </motion.div>
           ) : mediaUrl ? (
             <motion.div
-              key={currentAttachment.id}
+              key={currentAttachment?.id || "no-attachment"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -361,7 +500,7 @@ export default function AttachmentGroupViewer({
                 <div className="w-full h-full relative">
                   <img
                     src={mediaUrl}
-                    alt={currentAttachment.originalName}
+                    alt={currentAttachment?.originalName || "Image"}
                     className="absolute inset-0 w-full h-full object-contain"
                   />
                 </div>
@@ -377,8 +516,8 @@ export default function AttachmentGroupViewer({
                     autoPlay
                     playsInline
                     muted={false}
-                    loop={totalAttachments === 1}
-                    onEnded={totalAttachments > 1 ? goToNext : undefined}
+                    // Let the useEffect handle the ended event and looping
+                    // to avoid conflicts between different event handlers
                     onLoadedData={(e) => {
                       // Explicitly try to play when loaded
                       const video = e.currentTarget;
@@ -419,8 +558,8 @@ export default function AttachmentGroupViewer({
                       className="w-full"
                       controls={false}
                       autoPlay
-                      loop={totalAttachments === 1}
-                      onEnded={totalAttachments > 1 ? goToNext : undefined}
+                      // Let the useEffect handle the ended event and looping
+                      // to avoid conflicts between different event handlers
                       onLoadedData={(e) => {
                         // Explicitly try to play when loaded
                         const audio = e.currentTarget;
@@ -433,7 +572,7 @@ export default function AttachmentGroupViewer({
                     </audio>
                     <div className="text-center mt-4">
                       <p className="text-white text-lg font-medium truncate">
-                        {currentAttachment.originalName}
+                        {currentAttachment?.originalName || "Audio"}
                       </p>
                     </div>
                   </div>
@@ -460,7 +599,7 @@ export default function AttachmentGroupViewer({
                       </svg>
                     </div>
                     <p className="text-white text-xl font-medium mb-2">
-                      {currentAttachment.originalName}
+                      {currentAttachment?.originalName || "Unknown File"}
                     </p>
                     <p className="text-gray-400 mb-4">
                       File type not supported for preview
