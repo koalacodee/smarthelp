@@ -92,50 +92,55 @@ export default function AttachmentGroupViewer({
   }, [currentIndex]);
 
   // Auto-advance timer - only runs when media is ready
-  useEffect(() => {
-    // Clear any existing timer first
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+  // useEffect(() => {
+  //   // Clear any existing timer first
+  //   if (timerRef.current) {
+  //     clearTimeout(timerRef.current);
+  //     timerRef.current = null;
+  //   }
 
-    if (!isMediaReady || duration <= 0 || attachmentsRef.current.length === 0) {
-      return;
-    }
+  //   if (!isMediaReady || duration <= 0 || attachmentsRef.current.length === 0) {
+  //     return;
+  //   }
 
-    console.log(
-      "⏰ Setting timeout. Current:",
-      currentIndex,
-      "Duration:",
-      duration,
-      "CurrentTime:",
-      currentTime,
-      "Total in ref:",
-      attachmentsRef.current.length
-    );
+  //   console.log(
+  //     "⏰ Setting timeout. Current:",
+  //     currentIndex,
+  //     "Duration:",
+  //     duration,
+  //     "CurrentTime:",
+  //     currentTime,
+  //     "Total in ref:",
+  //     attachmentsRef.current.length
+  //   );
 
-    const remainingTime = duration - currentTime;
-    timerRef.current = setTimeout(() => {
-      const totalLength = attachmentsRef.current.length;
-      const nextIndex = (currentIndex + 1) % totalLength;
-      console.log(
-        "⏭️ Timeout fired! Moving from",
-        currentIndex,
-        "to",
-        nextIndex,
-        "total length:",
-        totalLength
-      );
-      setCurrentIndex(nextIndex);
-    }, remainingTime * 1000);
+  //   const remainingTime = duration - currentTime;
+  //   timerRef.current = setTimeout(() => {
+  //     const totalLength = attachmentsRef.current.length;
+  //     const nextIndex = (currentIndex + 1) % totalLength;
+  //     console.log(
+  //       "⏭️ Timeout fired! Moving from",
+  //       currentIndex,
+  //       "to",
+  //       nextIndex,
+  //       "total length:",
+  //       totalLength
+  //     );
+  //     setCurrentIndex(nextIndex);
+  //   }, remainingTime * 1000);
 
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [duration, currentTime, currentIndex, isMediaReady]);
+  //   return () => {
+  //     if (timerRef.current) {
+  //       clearTimeout(timerRef.current);
+  //       timerRef.current = null;
+  //     }
+  //   };
+  // }, [duration, currentTime, currentIndex, isMediaReady]);
+
+  const handleEnded = () => {
+    console.log("🔄 Media ended");
+    setCurrentIndex((currentIndex + 1) % attachmentsRef.current.length);
+  };
 
   // Handle duration loaded
   const handleDuration = (newDuration: number) => {
@@ -165,6 +170,7 @@ export default function AttachmentGroupViewer({
           attachment={currentAttachment}
           onDuration={handleDuration}
           onCurrentTime={setCurrentTime}
+          onEnded={handleEnded}
         />
       )}
     </>

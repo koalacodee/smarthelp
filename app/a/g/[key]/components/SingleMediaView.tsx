@@ -94,10 +94,12 @@ function SingleMediaViewer({
   attachment,
   onDuration = () => {},
   onCurrentTime = () => {},
+  onEnded = () => {},
 }: {
   attachment: Attachment;
   onDuration?: (duration: number) => void;
   onCurrentTime?: (currentTime: number) => void;
+  onEnded?: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [isCaching, setIsCaching] = useState<boolean>(false);
@@ -144,16 +146,34 @@ function SingleMediaViewer({
     const video = videoRef.current;
     if (!video) return;
     const handleMetadata = () => onDuration(video.duration || 0);
+    const handleEnded = async () => {
+      onEnded();
+      await video.play().catch((err) => {});
+    };
     video.addEventListener("loadedmetadata", handleMetadata);
-    return () => video.removeEventListener("loadedmetadata", handleMetadata);
+    video.addEventListener("ended", handleEnded);
+
+    return () => {
+      video.removeEventListener("loadedmetadata", handleMetadata);
+      video.removeEventListener("ended", handleEnded);
+    };
   }, [url]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     const handleMetadata = () => onDuration(audio.duration || 0);
+    const handleEnd = async () => {
+      onEnded();
+      await audio.play().catch((err) => {});
+    };
     audio.addEventListener("loadedmetadata", handleMetadata);
-    return () => audio.removeEventListener("loadedmetadata", handleMetadata);
+    audio.addEventListener("ended", handleEnd);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", handleMetadata);
+      audio.removeEventListener("ended", handleEnd);
+    };
   }, [url]);
 
   return (
@@ -190,7 +210,6 @@ function SingleMediaViewer({
         (fileType === "video" ? (
           <video
             src={url}
-            loop
             autoPlay
             ref={videoRef}
             className="w-screen h-screen object-contain bg-black"
@@ -200,7 +219,6 @@ function SingleMediaViewer({
         ) : fileType === "audio" ? (
           <audio
             src={url}
-            loop
             autoPlay
             ref={audioRef}
             onTimeUpdate={(e) => onCurrentTime(e.currentTarget.currentTime)}
