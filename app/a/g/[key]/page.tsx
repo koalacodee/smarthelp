@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AttachmentGroupService } from "@/lib/api/v2";
-import AttachmentGroupViewer from "./AttachmentGroupViewer";
 import { Metadata } from "next";
+import AttachmentGroupViewer from "./components/AttachmentGroupViewer";
 
 interface PageProps {
   params: Promise<{ key: string }>;
