@@ -92,13 +92,9 @@ async function getOrStreamAndCacheVideo(
 
 function SingleMediaViewer({
   attachment,
-  onDuration = () => {},
-  onCurrentTime = () => {},
   onEnded = () => {},
 }: {
   attachment: Attachment;
-  onDuration?: (duration: number) => void;
-  onCurrentTime?: (currentTime: number) => void;
   onEnded?: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -136,7 +132,9 @@ function SingleMediaViewer({
       }
 
       if (fileType === "image") {
-        onDuration(5);
+        setTimeout(() => {
+          onEnded();
+        }, 5000);
       }
     };
     loadUrl();
@@ -145,16 +143,13 @@ function SingleMediaViewer({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    const handleMetadata = () => onDuration(video.duration || 0);
     const handleEnded = async () => {
       onEnded();
       await video.play().catch((err) => {});
     };
-    video.addEventListener("loadedmetadata", handleMetadata);
     video.addEventListener("ended", handleEnded);
 
     return () => {
-      video.removeEventListener("loadedmetadata", handleMetadata);
       video.removeEventListener("ended", handleEnded);
     };
   }, [url]);
@@ -162,16 +157,13 @@ function SingleMediaViewer({
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const handleMetadata = () => onDuration(audio.duration || 0);
     const handleEnd = async () => {
       onEnded();
       await audio.play().catch((err) => {});
     };
-    audio.addEventListener("loadedmetadata", handleMetadata);
     audio.addEventListener("ended", handleEnd);
 
     return () => {
-      audio.removeEventListener("loadedmetadata", handleMetadata);
       audio.removeEventListener("ended", handleEnd);
     };
   }, [url]);
@@ -214,15 +206,9 @@ function SingleMediaViewer({
             ref={videoRef}
             className="w-screen h-screen object-contain bg-black"
             style={{ maxWidth: "100vw", maxHeight: "100vh" }}
-            onTimeUpdate={(e) => onCurrentTime(e.currentTarget.currentTime)}
           />
         ) : fileType === "audio" ? (
-          <audio
-            src={url}
-            autoPlay
-            ref={audioRef}
-            onTimeUpdate={(e) => onCurrentTime(e.currentTarget.currentTime)}
-          />
+          <audio src={url} autoPlay ref={audioRef} />
         ) : fileType === "image" ? (
           <img
             src={url}
