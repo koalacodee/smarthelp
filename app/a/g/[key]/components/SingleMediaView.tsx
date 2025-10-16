@@ -168,6 +168,23 @@ function SingleMediaViewer({
     };
   }, [url]);
 
+  useEffect(() => {
+    const handleFullScreen = async () => {
+      console.log("fullscreenchange", videoRef.current?.paused);
+
+      if (document.fullscreenElement && videoRef.current?.paused) {
+        await videoRef.current.play().catch(() => {});
+      }
+      if (document.fullscreenElement && audioRef.current?.paused) {
+        await audioRef.current.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullScreen);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullScreen);
+  }, [url]);
+
   return (
     <div className="relative">
       {/* Cache notification overlay */}
