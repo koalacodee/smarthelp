@@ -7,24 +7,26 @@ import { useEffect, useRef, useState } from "react";
 import React from "react";
 import mediaTypes from "@/app/a/g/media.json";
 
-async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
+async function getOrStreamAndCacheVideo(
+  url: string,
+  onCaching?: (isCaching: boolean) => void
+): Promise<string> {
   const dbName = "videos-db";
   const storeName = "videos";
 
-  // فتح أو إنشاء قاعدة البيانات
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
+    const req = indexedDB.open(dbName, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
       if (!db.objectStoreNames.contains(storeName)) {
         db.createObjectStore(storeName);
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
   });
 
-  // شوف لو الفيديو متخزن بالفعل
+  // 🧩 check cache
   const cachedBlob: Blob | undefined = await new Promise((resolve) => {
     const tx = db.transaction(storeName, "readonly");
     const store = tx.objectStore(storeName);
@@ -33,27 +35,59 @@ async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
     getReq.onerror = () => resolve(undefined);
   });
 
+  // 🎬 if cached → return immediately
   if (cachedBlob) {
-    console.log("🎬 Loaded video from IndexedDB");
+    console.log("✅ Loaded from cache");
+    onCaching?.(false);
     return URL.createObjectURL(cachedBlob);
   }
 
-  // لو مش موجود، جيبه من السيرفر وخزّنه
-  console.log("⬇️ Fetching video from server...");
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to fetch video");
-  const blob = await response.blob();
+  // ⚡ if not cached → stream in background while playing raw url
+  console.log("⬇️ Streaming and caching in background...");
+  onCaching?.(true);
 
-  // خزّنه في IndexedDB
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(storeName, "readwrite");
-    const store = tx.objectStore(storeName);
-    const putReq = store.put(blob, url);
-    putReq.onsuccess = () => resolve();
-    putReq.onerror = () => reject(putReq.error);
-  });
+  // fire and forget background caching
+  (async () => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch video");
 
-  return URL.createObjectURL(blob);
+      const reader = response.body?.getReader();
+      const chunks: Uint8Array[] = [];
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) chunks.push(value);
+        }
+      }
+
+      // Concatenate chunks into a single Uint8Array to avoid type issues
+      const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      const blob = new Blob([combined], {
+        type: response.headers.get("Content-Type") || "video/mp4",
+      });
+
+      const tx = db.transaction(storeName, "readwrite");
+      const store = tx.objectStore(storeName);
+      store.put(blob, url);
+      console.log("💾 Video cached successfully");
+    } catch (err) {
+      console.warn("Cache failed:", err);
+    } finally {
+      onCaching?.(false);
+    }
+  })();
+
+  return url;
 }
 
 function SingleMediaViewer({
@@ -66,25 +100,23 @@ function SingleMediaViewer({
   onCurrentTime?: (currentTime: number) => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [isCaching, setIsCaching] = useState<boolean>(false);
   const mediaRetrievalType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");
   const baseUrl = api.client.defaults.baseURL;
   const [fileType, setFileType] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     const loadUrl = async () => {
-      if (mediaRetrievalType === "signed-url") {
-        const signedUrl = await UploadService.getAttachmentSignedUrl(
-          attachment.id
-        );
-        setUrl(await getCachedVideoFromIndexedDB(signedUrl.signedUrl));
-      } else {
-        setUrl(
-          await getCachedVideoFromIndexedDB(
-            `${baseUrl}/attachment/${attachment.id}`
-          )
-        );
-      }
+      const finalUrl =
+        mediaRetrievalType === "signed-url"
+          ? (await UploadService.getAttachmentSignedUrl(attachment.id))
+              .signedUrl
+          : `${baseUrl}/attachment/${attachment.id}`;
+
+      setUrl(await getOrStreamAndCacheVideo(finalUrl, setIsCaching));
+
       if (attachment.fileType) {
         setFileType(attachment.fileType);
       } else {
@@ -111,35 +143,49 @@ function SingleMediaViewer({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    const handleMetadata = () => {
-      onDuration(video.duration || 0);
-    };
-
+    const handleMetadata = () => onDuration(video.duration || 0);
     video.addEventListener("loadedmetadata", handleMetadata);
-
-    return () => {
-      video.removeEventListener("loadedmetadata", handleMetadata);
-    };
+    return () => video.removeEventListener("loadedmetadata", handleMetadata);
   }, [url]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    const handleMetadata = () => {
-      onDuration(audio.duration || 0);
-    };
-
+    const handleMetadata = () => onDuration(audio.duration || 0);
     audio.addEventListener("loadedmetadata", handleMetadata);
-
-    return () => {
-      audio.removeEventListener("loadedmetadata", handleMetadata);
-    };
+    return () => audio.removeEventListener("loadedmetadata", handleMetadata);
   }, [url]);
 
   return (
-    <>
+    <div className="relative">
+      {/* Cache notification overlay */}
+      {isCaching && (
+        <div className="absolute top-4 right-4 z-50 flex items-center space-x-2 bg-gradient-to-r from-blue-800 to-blue-700 bg-opacity-85 text-white shadow-lg px-5 py-2 rounded-lg text-base font-medium border border-blue-400">
+          <svg
+            className="animate-spin h-5 w-5 text-blue-200"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+          <span>Caching media …</span>
+        </div>
+      )}
+
       {url &&
         (fileType === "video" ? (
           <video
@@ -166,15 +212,12 @@ function SingleMediaViewer({
             style={{ maxWidth: "100vw", maxHeight: "100vh" }}
           />
         ) : (
-          <div>
-            <h1>No media found</h1>
-          </div>
+          <div className="text-white text-center">No media found</div>
         ))}
-    </>
+    </div>
   );
 }
 
-// Memoize component to prevent re-renders when attachment.id is the same
 export default React.memo(SingleMediaViewer, (prevProps, nextProps) => {
   return prevProps.attachment.id === nextProps.attachment.id;
 });
