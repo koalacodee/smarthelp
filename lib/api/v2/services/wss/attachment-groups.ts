@@ -39,17 +39,15 @@ export class AttachmentGroupSocketClient {
         });
 
         this.socket.on("connect", () => {
-          console.log("Connected to attachment group gateway");
           this.reconnectAttempts = 0;
           resolve();
         });
 
         this.socket.on("disconnect", () => {
-          console.log("Disconnected from attachment group gateway");
+          // Disconnected from attachment group gateway
         });
 
         this.socket.on("connect_error", (error) => {
-          console.error("Connection error:", error);
           reject(error);
         });
 
@@ -64,7 +62,7 @@ export class AttachmentGroupSocketClient {
                 try {
                   callback(message.data);
                 } catch (err) {
-                  console.error("Error in listener callback:", err);
+                  // Error in listener callback
                 }
               });
             }

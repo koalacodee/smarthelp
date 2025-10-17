@@ -31,7 +31,6 @@ export default async function AttachmentGroupPage({ params }: PageProps) {
       />
     );
   } catch (error) {
-    console.error("Error loading attachment group:", error);
     notFound();
   }
 }

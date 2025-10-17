@@ -37,13 +37,11 @@ async function getOrStreamAndCacheVideo(
 
   // 🎬 if cached → return immediately
   if (cachedBlob) {
-    console.log("✅ Loaded from cache");
     onCaching?.(false);
     return URL.createObjectURL(cachedBlob);
   }
 
   // ⚡ if not cached → stream in background while playing raw url
-  console.log("⬇️ Streaming and caching in background...");
   onCaching?.(true);
 
   // fire and forget background caching
@@ -79,7 +77,6 @@ async function getOrStreamAndCacheVideo(
       const tx = db.transaction(storeName, "readwrite");
       const store = tx.objectStore(storeName);
       store.put(blob, url);
-      console.log("💾 Video cached successfully");
     } catch (err) {
       console.warn("Cache failed:", err);
     } finally {
@@ -170,8 +167,6 @@ function SingleMediaViewer({
 
   useEffect(() => {
     const handleFullScreen = async () => {
-      console.log("fullscreenchange", videoRef.current?.paused);
-
       if (document.fullscreenElement && videoRef.current?.paused) {
         await videoRef.current.play().catch(() => {});
       }

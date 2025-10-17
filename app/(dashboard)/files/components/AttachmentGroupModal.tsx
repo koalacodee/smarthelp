@@ -76,7 +76,7 @@ export default function AttachmentGroupModal({
       }
       onClose();
     } catch (error) {
-      console.error(`Failed to ${mode} attachment group:`, error);
+      // Failed to ${mode} attachment group:
       addToast({
         message: `Failed to ${mode} attachment group`,
         type: "error",

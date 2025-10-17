@@ -164,8 +164,6 @@ export default function FaqEditModal() {
                 response.uploadKey
               );
 
-            console.log(uploadedFilesResponse);
-
             if (uploadedFilesResponse) {
               const { data: uploadedFiles } = uploadedFilesResponse;
               if (Array.isArray(uploadedFiles)) {
@@ -188,18 +186,9 @@ export default function FaqEditModal() {
           }
         })
         .catch((error) => {
-          console.error("Update FAQ error:", error);
-          console.log("Update FAQ error:", error);
-          console.log("Error response data:", error?.response?.data);
-
           if (error?.response?.data?.data?.details) {
-            console.log(
-              "Setting field errors:",
-              error?.response?.data?.data?.details
-            );
             setErrors(error?.response?.data?.data?.details);
           } else {
-            console.log("Setting root error");
             setRootError(
               error?.response?.data?.message ||
                 "Failed to update FAQ. Please try again."
@@ -240,8 +229,6 @@ export default function FaqEditModal() {
                 response.uploadKey
               );
 
-            console.log(uploadedFilesResponse);
-
             if (uploadedFilesResponse) {
               const { data: uploadedFiles } = uploadedFilesResponse;
               if (Array.isArray(uploadedFiles)) {
@@ -264,18 +251,9 @@ export default function FaqEditModal() {
           }
         })
         .catch((error) => {
-          console.error("Create FAQ error:", error);
-          console.log("Create FAQ error:", error);
-          console.log("Error response data:", error?.response?.data);
-
           if (error?.response?.data?.data?.details) {
-            console.log(
-              "Setting field errors:",
-              error?.response?.data?.data?.details
-            );
             setErrors(error?.response?.data?.data?.details);
           } else {
-            console.log("Setting root error");
             setRootError(
               error?.response?.data?.message ||
                 "Failed to add FAQ. Please try again."

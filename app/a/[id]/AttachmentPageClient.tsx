@@ -8,15 +8,10 @@ interface AttachmentPageClientProps {
 }
 
 interface AttachmentMetadata {
-  id: string;
-  filename: string;
+  fileType: string;
   originalName: string;
-  targetId: string;
-  expirationDate?: string;
-  createdAt: string;
-  updatedAt: string;
+  sizeInBytes: number;
   contentType: string;
-  size: number;
 }
 
 async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
@@ -46,12 +41,10 @@ async function getCachedVideoFromIndexedDB(url: string): Promise<string> {
   });
 
   if (cachedBlob) {
-    console.log("🎬 Loaded video from IndexedDB");
     return URL.createObjectURL(cachedBlob);
   }
 
   // لو مش موجود، جيبه من السيرفر وخزّنه
-  console.log("⬇️ Fetching video from server...");
   const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch video");
   const blob = await response.blob();

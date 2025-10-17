@@ -55,7 +55,7 @@ export default function AnimatedFilesPage({
       const response = await AttachmentGroupService.getMyAttachmentGroups();
       setAttachmentGroups(response.attachmentGroups);
     } catch (error) {
-      console.error("Failed to fetch attachment groups:", error);
+      // Failed to fetch attachment groups:
       addToast({
         message: "Failed to fetch attachment groups",
         type: "error",
@@ -111,7 +111,7 @@ export default function AnimatedFilesPage({
       // Also trigger a refresh to ensure server-side consistency
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
-      console.error("Failed to delete attachment group:", error);
+      // Failed to delete attachment group:
       addToast({
         message: "Failed to delete attachment group",
         type: "error",
@@ -128,7 +128,7 @@ export default function AnimatedFilesPage({
       const response = await UploadService.getMyAttachments();
       setLocalAttachments(response.attachments);
     } catch (error) {
-      console.error("Failed to refresh attachments:", error);
+      // Failed to refresh attachments:
       addToast({
         message: "Failed to refresh attachments",
         type: "error",

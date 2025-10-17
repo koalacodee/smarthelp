@@ -38,7 +38,7 @@ export default function EditEmployeeModal() {
         const data = await api.DepartmentsService.getAllSubDepartments();
         setSubDepartments(data);
       } catch (error) {
-        console.error("Failed to fetch sub-departments:", error);
+        // Failed to fetch sub-departments
       } finally {
         setIsLoadingSubDepartments(false);
       }
@@ -79,18 +79,9 @@ export default function EditEmployeeModal() {
       addToast({ message: "Employee updated successfully", type: "success" });
       closeModal();
     } catch (error: any) {
-      console.error("Update employee error:", error);
-      console.log("Update employee error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             "Failed to update employee. Please try again."

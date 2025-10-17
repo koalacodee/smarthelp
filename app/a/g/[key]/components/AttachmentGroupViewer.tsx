@@ -31,11 +31,11 @@ export default function AttachmentGroupViewer({
 
     if (!document.fullscreenElement) {
       container.requestFullscreen().catch((err) => {
-        console.warn("Failed to enter fullscreen:", err);
+        // Failed to enter fullscreen
       });
     } else {
       document.exitFullscreen().catch((err) => {
-        console.warn("Failed to exit fullscreen:", err);
+        // Failed to exit fullscreen
       });
     }
   }, []);
@@ -43,23 +43,14 @@ export default function AttachmentGroupViewer({
   // 🧠 Update attachments when WebSocket sends new data
   useEffect(() => {
     if (wsAttachments.length > 0) {
-      console.log(
-        "📦 WS Update: new length =",
-        wsAttachments.length,
-        "IDs =",
-        wsAttachments.map((a) => a.id)
-      );
-
       const oldIds = attachmentsRef.current.map((a) => a.id);
       const newIds = wsAttachments.map((a) => a.id);
 
       attachmentsRef.current = wsAttachments;
 
       if (currentIndex >= wsAttachments.length) {
-        console.log("🔄 Current index out of bounds, resetting to 0");
         setCurrentIndex(0);
       } else if (oldIds[currentIndex] !== newIds[currentIndex]) {
-        console.log("🔄 Attachment at current position changed, reloading");
         setCurrentAttachment(wsAttachments[currentIndex]);
       }
     }
@@ -68,21 +59,11 @@ export default function AttachmentGroupViewer({
   // 🎯 Update current attachment when index changes
   useEffect(() => {
     const attachment = attachmentsRef.current[currentIndex] || null;
-    console.log(
-      "🎯 Index changed to",
-      currentIndex,
-      "attachment ID:",
-      attachment?.id,
-      "total in ref:",
-      attachmentsRef.current.length
-    );
-
     setCurrentAttachment(attachment);
   }, [currentIndex]);
 
   // 🎞️ Move to next attachment when media ends
   const handleEnded = () => {
-    console.log("🔄 Media ended");
     setCurrentIndex((currentIndex + 1) % attachmentsRef.current.length);
   };
 

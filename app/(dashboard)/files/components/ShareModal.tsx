@@ -76,7 +76,6 @@ export default function ShareModal({
         setShareLink(link);
       }
     } catch (error) {
-      console.error("Failed to share:", error);
       setError("Failed to share. Please try again.");
     } finally {
       setIsSharing(false);
@@ -91,7 +90,6 @@ export default function ShareModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Failed to copy to clipboard:", error);
       // Fallback for older browsers
       const textArea = document.createElement("textarea");
       textArea.value = shareLink;
@@ -103,7 +101,7 @@ export default function ShareModal({
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error("Fallback copy failed:", err);
+        // Fallback copy failed
       }
       document.body.removeChild(textArea);
     }

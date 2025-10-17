@@ -234,7 +234,6 @@ export default function InviteEmployeeModal() {
           message: "Employee invited successfully!",
           type: "success",
         });
-        console.log("Direct invitation response:", response);
       } else {
         const response = await employeeService.requestEmployeeInvitation(
           requestData
@@ -243,23 +242,13 @@ export default function InviteEmployeeModal() {
           message: "Employee invitation request submitted successfully!",
           type: "success",
         });
-        console.log("Invitation request response:", response);
       }
 
       handleClose();
     } catch (error: any) {
-      console.error("Invitation error:", error);
-      console.log("Invitation error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             `Failed to ${

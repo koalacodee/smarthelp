@@ -103,9 +103,7 @@ export function useAttachmentGroup(
         socketRef.current.disconnect();
       }
 
-      console.log(
-        `Connecting to WebSocket server at ${baseUrl}/attachment-groups`
-      );
+      // Connecting to WebSocket server
 
       // Create Socket.IO connection
       socketRef.current = io(`${baseUrl}/attachment-groups`, {
@@ -118,7 +116,6 @@ export function useAttachmentGroup(
 
       // Connection opened
       socketRef.current.on("connect", () => {
-        console.log("Connected to attachment group WebSocket server");
         setIsConnected(true);
         setError(null);
         reconnectCountRef.current = 0;
@@ -131,13 +128,11 @@ export function useAttachmentGroup(
 
       // Connection error
       socketRef.current.on("connect_error", (err: Error) => {
-        console.error("Connection error:", err);
         setError(`Connection error: ${err.message}`);
       });
 
       // Handle subscription acknowledgment
       socketRef.current.on("subscribed", (data: SubscribedMessage) => {
-        console.log("Successfully subscribed to group:", data.groupKey);
         if (data.groupKey === currentGroupKeyRef.current) {
           setIsSubscribed(true);
         }
@@ -145,15 +140,12 @@ export function useAttachmentGroup(
 
       // Handle errors
       socketRef.current.on("error", (err: { message?: string }) => {
-        console.error("WebSocket error:", err);
         setError(`WebSocket error: ${err.message || "Unknown error"}`);
       });
 
       // Listen for updates
       socketRef.current.on("update", (message: UpdateMessage) => {
         try {
-          console.log("Received update:", message);
-
           // If we're not subscribed to any group, ignore updates
           if (!currentGroupKeyRef.current) {
             return;
@@ -170,29 +162,24 @@ export function useAttachmentGroup(
             ) {
               // If the message contains attachments, update our state
               if (message.data.attachments) {
-                console.log("Updating attachments:", message.data.attachments);
                 setAttachments(message.data.attachments);
                 setLastUpdate(new Date());
               }
             }
           }
         } catch (err) {
-          console.error("Error processing update message:", err);
+          // Error processing update message
         }
       });
 
       // Connection closed
       socketRef.current.on("disconnect", () => {
-        console.log("Connection closed");
         setIsConnected(false);
         setIsSubscribed(false);
 
         // Attempt to reconnect if not at max attempts
         if (reconnectCountRef.current < reconnectAttempts) {
           reconnectCountRef.current++;
-          console.log(
-            `Attempting to reconnect (${reconnectCountRef.current}/${reconnectAttempts})...`
-          );
 
           // Clear any existing timer
           if (reconnectTimerRef.current) {
@@ -206,7 +193,6 @@ export function useAttachmentGroup(
         }
       });
     } catch (err: any) {
-      console.error("Error setting up WebSocket:", err);
       setError(`Error setting up WebSocket: ${err.message}`);
     }
   }, [baseUrl, reconnectAttempts, reconnectDelay]);
@@ -214,16 +200,13 @@ export function useAttachmentGroup(
   // Subscribe to a group
   const subscribe = useCallback((key: string) => {
     if (!socketRef.current?.connected) {
-      console.warn("Cannot subscribe: WebSocket is not connected");
       return;
     }
 
     try {
-      console.log(`Subscribing to group: ${key}`);
       socketRef.current.emit("subscribe", { groupKey: key });
       currentGroupKeyRef.current = key;
     } catch (err: any) {
-      console.error("Error subscribing to group:", err);
       setError(`Error subscribing to group: ${err.message}`);
     }
   }, []);

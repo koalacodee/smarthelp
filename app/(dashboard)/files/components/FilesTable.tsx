@@ -131,7 +131,7 @@ export default function FilesTable({
         onRefresh();
       }
     } catch (error) {
-      console.error("Failed to delete attachment:", error);
+      // Failed to delete attachment:
       addToast({
         message: "Failed to delete attachment",
         type: "error",

@@ -79,18 +79,9 @@ export default function DepartmentEditingModal() {
 
       closeModal();
     } catch (error: any) {
-      console.error("Department save error:", error);
-      console.log("Department save error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             `Failed to ${mode} department. Please try again.`

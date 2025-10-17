@@ -48,7 +48,7 @@ export default function KnowledgeChunkEditModal() {
       const departments = await DepartmentsService.getAllDepartments();
       setDepartments(departments);
     } catch (error) {
-      console.error("Error loading departments:", error);
+      // Error loading departments
     }
   }
 
@@ -68,7 +68,7 @@ export default function KnowledgeChunkEditModal() {
         });
       }
     } catch (error) {
-      console.error("Error loading chunk:", error);
+      // Error loading chunk
     } finally {
       setLoading(false);
     }
@@ -158,18 +158,9 @@ export default function KnowledgeChunkEditModal() {
       });
       closeModal();
     } catch (error: any) {
-      console.error("Error saving knowledge chunk:", error);
-      console.log("Knowledge chunk save error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             "Failed to save knowledge chunk. Please try again."
