@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
 import api, { TicketStatus } from "@/lib/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTicketStore } from "../store/useTicketStore";
 import AttachmentInput from "@/components/ui/AttachmentInput";
 import {
@@ -11,6 +11,19 @@ import {
   useAttachmentStore,
 } from "@/app/(dashboard)/store/useAttachmentStore";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
+import { UploadService } from "@/lib/api/v2";
+import { GetAttachmentMetadataResponse } from "@/lib/api/v2/services/shared/upload";
+import { useMediaPreviewStore } from "../../store/useMediaPreviewStore";
+
+const isExpired = (expirationDate?: Date) => {
+  if (!expirationDate) return false;
+  return new Date() > expirationDate;
+};
+
+interface TicketAttachment extends GetAttachmentMetadataResponse {
+  id: string;
+}
 
 export default function ReplyToTicketModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -21,8 +34,56 @@ export default function ReplyToTicketModal() {
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
-    useAttachmentStore();
+  const {
+    getFormData,
+    selectedAttachmentIds,
+    moveAllSelectedToExisting,
+    clearAttachments,
+  } = useAttachmentStore();
+  const { attachments: ticketsAttachments } = useAttachmentsStore();
+
+  const [ticketAttachments, setTicketAttachments] = useState<
+    TicketAttachment[]
+  >([]);
+
+  const { openPreview } = useMediaPreviewStore();
+
+  const handlePreviewExistingAttachment = (attachment: TicketAttachment) => {
+    openPreview({
+      originalName: attachment.originalName,
+      tokenOrId: attachment.id,
+      fileType: attachment.fileType,
+      sizeInBytes: attachment.sizeInBytes,
+      expiryDate: attachment.expiryDate || "",
+    });
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (!ticket?.id) return;
+      const attachments = ticketsAttachments.ticket[ticket.id] ?? [];
+      const promises = attachments.map(async (attachment) => {
+        const data = await UploadService.getAttachmentMetadata({
+          tokenOrId: attachment,
+        });
+
+        return {
+          id: attachment,
+          ...data,
+        };
+      });
+      const results = await Promise.all(promises);
+      setTicketAttachments(results);
+    })();
+  }, [ticketsAttachments, ticket?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
@@ -53,6 +114,7 @@ export default function ReplyToTicketModal() {
       });
       updateStatus(ticket.id, TicketStatus.ANSWERED);
       moveAllSelectedToExisting();
+      clearAttachments();
     } catch (error: any) {
       console.error("Reply to ticket error:", error);
       console.log("Reply to ticket error:", error);
@@ -221,6 +283,73 @@ export default function ReplyToTicketModal() {
                   {ticket.description}
                 </p>
               </motion.div>
+              {ticketAttachments.length > 0 && (
+                <motion.div
+                  className="mt-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.75 }}
+                >
+                  <h4 className="text-sm font-medium text-slate-700 mb-2">
+                    Existing Attachments
+                  </h4>
+                  <motion.div
+                    className="space-y-2"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.07,
+                        },
+                      },
+                    }}
+                  >
+                    {ticketAttachments.map((attachment, idx) => (
+                      <motion.div
+                        key={`existing-${attachment.id}`}
+                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
+                          attachment.expiryDate &&
+                          isExpired(new Date(attachment.expiryDate))
+                            ? "bg-red-50 border-red-200 hover:bg-red-100"
+                            : "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                        }`}
+                        onClick={() =>
+                          handlePreviewExistingAttachment(attachment)
+                        }
+                        initial={{ opacity: 0, x: 15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.01 * idx }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {attachment.originalName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatFileSize(attachment.sizeInBytes)} •{" "}
+                            {attachment.expiryDate ? (
+                              <>
+                                {" • Expires: "}
+                                {new Date(
+                                  attachment.expiryDate
+                                ).toLocaleString()}
+                                {isExpired(new Date(attachment.expiryDate)) && (
+                                  <span className="text-red-600 font-medium ml-1">
+                                    (EXPIRED)
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              " • No expiration"
+                            )}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </motion.div>
+              )}
             </motion.div>
             <motion.form
               initial={{ opacity: 0 }}

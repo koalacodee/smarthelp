@@ -71,15 +71,11 @@ export interface GetAttachmentMetadataRequest {
   tokenOrId: string;
 }
 export interface GetAttachmentMetadataResponse {
-  id: string;
-  filename: string;
+  fileType: string;
   originalName: string;
-  targetId: string;
-  expirationDate?: string;
-  createdAt: string;
-  updatedAt: string;
+  sizeInBytes: number;
+  expiryDate: string | null;
   contentType: string;
-  size: number;
 }
 
 // POST /files/share/:attachmentId

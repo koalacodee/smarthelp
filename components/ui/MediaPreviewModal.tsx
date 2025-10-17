@@ -49,8 +49,6 @@ export default function MediaPreviewModal() {
   useEffect(() => {
     closePreview();
   }, [pathname]);
-
-  //   try {
   //     // Check if it's already a blob URL (for new attachments)
   //     if (mediaInfo.tokenOrId.startsWith("blob:")) {
   //       setMediaUrl(mediaInfo.tokenOrId);

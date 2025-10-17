@@ -175,6 +175,7 @@ export interface UpdateTaskInputDto {
 export interface AnswerTicketDto {
   content: string;
   chooseAttachments?: string[];
+  attach?: boolean;
 }
 
 export interface AnswerTicketResponseDto {

@@ -291,6 +291,8 @@ export const TicketsService = {
     const response = await api.get<{
       data: SupportTicketsResponse;
     }>("/support-tickets");
+    console.log(response);
+
     return response.data.data;
   },
 
