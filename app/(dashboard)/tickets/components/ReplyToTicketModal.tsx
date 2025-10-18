@@ -33,7 +33,6 @@ export default function ReplyToTicketModal() {
   const { addToast } = useToastStore();
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const {
     getFormData,
     selectedAttachmentIds,
@@ -97,7 +96,7 @@ export default function ReplyToTicketModal() {
 
     try {
       // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
+      const formData = getFormData();
 
       await api.TicketsService.answerTicket(
         ticket.id,
@@ -383,10 +382,7 @@ export default function ReplyToTicketModal() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 1.1 }}
                 >
-                  <AttachmentInput
-                    id="admin-reply-attachment"
-                    onAttachmentsChange={setAttachments}
-                  />
+                  <AttachmentInput id="admin-reply-attachment" />
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
