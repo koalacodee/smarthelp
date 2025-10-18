@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import AddDepartmentButton from "./AddDepartmentButton";
 import DepartmentActions from "./DepartmentActions";
@@ -8,6 +8,7 @@ import DepartmentEditingModal from "./DepartmentEditingModal";
 import CreateSubDepartmentModal from "@/app/(dashboard)/sub-departments/components/CreateSubDepartmentModal";
 import SubDepartmentActions from "@/app/(dashboard)/sub-departments/components/SubDepartmentActions";
 import EditSubDepartmentModal from "@/app/(dashboard)/sub-departments/components/EditSubDepartmentModal";
+import SubDepartmentFilters from "./SubDepartmentFilters";
 import { Department as APIDepartment } from "@/lib/api/departments";
 import api from "@/lib/api";
 import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartmentsStore";
@@ -31,6 +32,24 @@ export default function CombinedDepartmentsPage({
   } = useSubDepartmentsStore();
   const [localDepartments] = useState<APIDepartment[]>(departments);
   const { openModal: openCreateSubDepartment } = useCreateSubDepartmentStore();
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+
+  // Filter sub-departments based on search term and selected department
+  const filteredSubDepartments = useMemo(() => {
+    return subDepartments.filter((subDept) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        subDept.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesDepartment =
+        selectedDepartment === "" || subDept.parent?.id === selectedDepartment;
+
+      return matchesSearch && matchesDepartment;
+    });
+  }, [subDepartments, searchTerm, selectedDepartment]);
 
   useEffect(() => {
     const fetchSubDepartments = async () => {
@@ -159,6 +178,15 @@ export default function CombinedDepartmentsPage({
                 </div>
               </div>
             </div>
+
+            {/* Filters */}
+            <SubDepartmentFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedDepartment={selectedDepartment}
+              setSelectedDepartment={setSelectedDepartment}
+              departments={localDepartments}
+            />
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <tbody className="bg-white divide-y divide-slate-200">
@@ -174,14 +202,16 @@ export default function CombinedDepartmentsPage({
                         {error}
                       </td>
                     </tr>
-                  ) : subDepartments.length === 0 ? (
+                  ) : filteredSubDepartments.length === 0 ? (
                     <tr>
                       <td className="px-6 py-12 text-center text-slate-500">
-                        No sub-departments found
+                        {subDepartments.length === 0
+                          ? "No sub-departments found"
+                          : "No sub-departments match your filters"}
                       </td>
                     </tr>
                   ) : (
-                    subDepartments.map((subDepartment) => (
+                    filteredSubDepartments.map((subDepartment) => (
                       <tr
                         key={subDepartment.id}
                         className="group hover:bg-slate-50 transition-all duration-200"
