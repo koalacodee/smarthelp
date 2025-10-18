@@ -350,55 +350,39 @@ export default function EditEmployeeModal() {
                   transition={{ duration: 0.3, delay: 0.7 }}
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-4 bg-slate-50/30"
                 >
-                  {[
-                    {
-                      key: EmployeePermissionsEnum.HANDLE_TICKETS,
-                      label: "Handle Tickets & Complaints",
-                    },
-                    {
-                      key: EmployeePermissionsEnum.HANDLE_TASKS,
-                      label: "Handle Assigned Tasks",
-                    },
-                    {
-                      key: EmployeePermissionsEnum.ADD_FAQS,
-                      label: "Add FAQs",
-                    },
-                    {
-                      key: EmployeePermissionsEnum.VIEW_ANALYTICS,
-                      label: "View Analytics Dashboard",
-                    },
-                    {
-                      key: EmployeePermissionsEnum.CLOSE_TICKETS,
-                      label: "Close Answered Tickets",
-                    },
-                  ].map((permission, index) => {
-                    const isSelected =
-                      formData.permissions?.includes(permission.key) || false;
-                    return (
-                      <motion.button
-                        key={permission.key}
-                        type="button"
-                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{
-                          duration: 0.3,
-                          delay: 0.8 + index * 0.05,
-                          ease: "backOut",
-                        }}
-                        whileHover={{
-                          scale: 1.05,
-                          y: -2,
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() =>
-                          handleCheckboxChange(
-                            "permissions",
-                            permission.key,
-                            !isSelected
-                          )
-                        }
-                        className={`
+                  {Object.values(EmployeePermissionsEnum).map(
+                    (permission, index) => {
+                      const isSelected =
+                        formData.permissions?.includes(permission) || false;
+                      const permissionLabel = permission
+                        .replace(/_/g, " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, (l) => l.toUpperCase());
+                      return (
+                        <motion.button
+                          key={permission}
+                          type="button"
+                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{
+                            duration: 0.3,
+                            delay: 0.8 + index * 0.05,
+                            ease: "backOut",
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            y: -2,
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() =>
+                            handleCheckboxChange(
+                              "permissions",
+                              permission,
+                              !isSelected
+                            )
+                          }
+                          className={`
                           relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
                           ${
                             isSelected
@@ -406,52 +390,53 @@ export default function EditEmployeeModal() {
                               : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
                           }
                         `}
-                      >
-                        <motion.span
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{
-                            duration: 0.2,
-                            delay: 0.9 + index * 0.05,
-                          }}
-                          className="relative z-10 block"
                         >
-                          {permission.label}
-                        </motion.span>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ duration: 0.3, ease: "backOut" }}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{
+                              duration: 0.2,
+                              delay: 0.9 + index * 0.05,
+                            }}
+                            className="relative z-10 block"
                           >
-                            <motion.svg
-                              initial={{ pathLength: 0 }}
-                              animate={{ pathLength: 1 }}
-                              transition={{ duration: 0.3, delay: 0.1 }}
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            {permissionLabel}
+                          </motion.span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ duration: 0.3, ease: "backOut" }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </motion.svg>
-                          </motion.div>
-                        )}
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: isSelected ? 1 : 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg"
-                        />
-                      </motion.button>
-                    );
-                  })}
+                              <motion.svg
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </motion.svg>
+                            </motion.div>
+                          )}
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isSelected ? 1 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg"
+                          />
+                        </motion.button>
+                      );
+                    }
+                  )}
                 </motion.div>
               </motion.div>
 

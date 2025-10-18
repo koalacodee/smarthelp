@@ -13,6 +13,7 @@ import AttachmentGroupModal from "./AttachmentGroupModal";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { AttachmentGroup } from "@/lib/api/v2/services/attachment-group";
 import { Attachment as UploadAttachment } from "@/lib/api/v2/services/shared/upload";
+import { EmployeePermissions } from "@/lib/api/types";
 
 interface AnimatedFilesPageProps {
   attachments: UploadAttachment[];
@@ -48,6 +49,19 @@ export default function AnimatedFilesPage({
     []
   );
   const { addToast } = useToastStore();
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<string>("");
+
+  useEffect(() => {
+    (async () => {
+      const user = await fetch("/server/me").then(
+        async (res) => (await res.json()).user
+      );
+
+      setUserPermissions(user.permissions);
+      setUserRole(user.role);
+    })();
+  }, []);
 
   const fetchAttachmentGroups = async () => {
     setIsLoading(true);
@@ -292,35 +306,12 @@ export default function AnimatedFilesPage({
         </motion.div>
 
         {/* Tab Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="flex justify-center mb-6"
-        >
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-1 shadow-md inline-flex">
-            <button
-              onClick={() => setActiveTab("files")}
-              className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
-                activeTab === "files"
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Individual Files
-            </button>
-            <button
-              onClick={() => setActiveTab("groups")}
-              className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
-                activeTab === "groups"
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Attachment Groups
-            </button>
-          </div>
-        </motion.div>
+        {(userRole !== "EMPLOYEE" ||
+          userPermissions.includes(
+            EmployeePermissions.MANAGE_ATTACHMENT_GROUPS
+          )) && (
+          <NavigationTabs onTabChange={setActiveTab} activeTab={activeTab} />
+        )}
 
         {/* Content Section */}
         <motion.div
@@ -538,5 +529,48 @@ export default function AnimatedFilesPage({
         mode={attachmentGroupModalMode}
       />
     </motion.div>
+  );
+}
+
+function NavigationTabs({
+  onTabChange,
+  activeTab,
+}: {
+  onTabChange: (tab: "files" | "groups") => void;
+  activeTab: "files" | "groups";
+}) {
+  return (
+    <>
+      {/* Tab Navigation */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="flex justify-center mb-6"
+      >
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-1 shadow-md inline-flex">
+          <button
+            onClick={() => onTabChange("files")}
+            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === "files"
+                ? "bg-blue-500 text-white shadow-md"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Individual Files
+          </button>
+          <button
+            onClick={() => onTabChange("groups")}
+            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === "groups"
+                ? "bg-blue-500 text-white shadow-md"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Attachment Groups
+          </button>
+        </div>
+      </motion.div>
+    </>
   );
 }
