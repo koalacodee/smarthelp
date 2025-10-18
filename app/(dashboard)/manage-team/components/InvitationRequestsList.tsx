@@ -39,7 +39,6 @@ export default function InvitationRequestsList({
         message: `Invitation for ${result.invitationDetails.fullName} has been approved successfully!`,
       });
     } catch (error: any) {
-      console.error("Failed to accept invitation:", error);
       addToast({
         type: "error",
         message:

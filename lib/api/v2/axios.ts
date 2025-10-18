@@ -21,7 +21,6 @@ api.interceptors.request.use(
       }
     } catch (error) {
       // Ignore cookie errors in SSR context
-      console.error("Cookie access error:", error);
     }
 
     return config;

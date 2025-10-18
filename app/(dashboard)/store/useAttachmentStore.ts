@@ -145,21 +145,15 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     const { attachments, existingsToDelete } = get();
     const formData = new FormData();
 
-    console.log("getFormData - attachments:", attachments);
-    console.log("getFormData - attachments.length:", attachments.length);
-    console.log("getFormData - existingsToDelete:", existingsToDelete);
-
     // Add new files
     if (attachments.length > 0) {
-      console.log("Adding attachments to FormData");
       if (attachments.length === 1) {
         // Single attachment - use 'file' field
-        console.log("Adding single file:", attachments[0].file);
+
         formData.append("file", attachments[0].file);
       } else {
         // Multiple attachments - use 'files' field multiple times
         attachments.forEach((attachment, index) => {
-          console.log(`Adding file ${index}:`, attachment.file);
           formData.append("files", attachment.file);
         });
       }
@@ -185,7 +179,6 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
         });
       }
     } else {
-      console.log("No attachments found in store");
     }
 
     // Add information about deleted existing attachments
@@ -196,18 +189,10 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
       );
     }
 
-    console.log("getFormData - final FormData entries:");
     for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
     }
 
     // Additional FormData debugging
-    console.log(
-      "FormData size check:",
-      formData.has("file") || formData.has("files")
-    );
-    console.log("FormData keys:", Array.from(formData.keys()));
-    console.log("FormData values:", Array.from(formData.values()));
 
     return formData;
   },

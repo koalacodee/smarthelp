@@ -25,12 +25,10 @@ type UserRole = "EMPLOYEE" | "ADMIN" | "SUPERVISOR";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  console.log(env("NEXT_PUBLIC_BASE_URL"));
 
   const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/server/me`, {
     headers: { Cookie: cookieStore.toString() },
   }).then((res) => {
-    console.log(res);
     return res.json();
   });
   const userRole = user.user.role;
@@ -70,7 +68,6 @@ export default async function Page() {
       DepartmentsService.getAllDepartments(),
     ]);
     departments = fetchedDepartments;
-    console.log(taskSubmissions);
   } else if (userRole === "SUPERVISOR") {
     const [_, fetchedSubDepartments] = await Promise.all([
       Promise.all([
@@ -120,7 +117,6 @@ export default async function Page() {
       DepartmentsService.getAllSubDepartments(),
     ]);
     subDepartments = fetchedSubDepartments;
-    console.log(taskSubmissions);
   }
 
   return (

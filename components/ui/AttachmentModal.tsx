@@ -70,7 +70,6 @@ export default function AttachmentModal({
       setFile(null);
       setExpirationDate("");
     } catch (error) {
-      console.error("Error adding attachment:", error);
       alert("Failed to add attachment. Please try again.");
     } finally {
       setIsSubmitting(false);

@@ -122,10 +122,6 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
               setMetadata(attachmentId, metadata);
               return { attachmentId, metadata };
             } catch (error) {
-              console.error(
-                `Failed to load metadata for attachment ${attachmentId}:`,
-                error
-              );
               return { attachmentId, metadata: null };
             }
           }
@@ -170,10 +166,6 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
               setMetadata(attachmentId, metadata);
               return { attachmentId, metadata };
             } catch (error) {
-              console.error(
-                `Failed to load metadata for submission attachment ${attachmentId}:`,
-                error
-              );
               return { attachmentId, metadata: null };
             }
           }

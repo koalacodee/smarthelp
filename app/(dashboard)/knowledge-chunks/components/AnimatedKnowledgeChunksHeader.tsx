@@ -35,7 +35,6 @@ export default function AnimatedKnowledgeChunksHeader() {
       setChunks(Array.from(groupedMap.values()));
       return true;
     } catch (error) {
-      console.error("Error loading knowledge chunks:", error);
       return false;
     }
   }

@@ -28,10 +28,7 @@ export default async function SupervisorRegistrationPage({
   try {
     // Fetch invitation data on server side
     invitation = await SupervisorInvitationService.getInvitation({ token });
-    console.log(invitation);
   } catch (error: any) {
-    console.error("Failed to fetch invitation:", error);
-
     // Return error page for invalid/expired tokens
     return (
       <AnimatedErrorPage

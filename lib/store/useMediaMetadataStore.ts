@@ -127,7 +127,6 @@ export const useMediaMetadataStore = create<MediaMetadataState>((set, get) => ({
           );
           return { attachmentId, metadata };
         } catch (error) {
-          console.error(`Failed to fetch metadata for ${attachmentId}:`, error);
           return null;
         }
       });
@@ -149,7 +148,6 @@ export const useMediaMetadataStore = create<MediaMetadataState>((set, get) => ({
 
       setMultipleMetadata(metadataMap);
     } catch (error) {
-      console.error("Failed to fetch metadata:", error);
       setError("Failed to fetch attachment metadata");
     } finally {
       setFetching(false);

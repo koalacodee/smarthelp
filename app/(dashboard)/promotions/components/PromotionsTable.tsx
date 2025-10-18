@@ -46,7 +46,6 @@ export default function PromotionsTable({
       setPromotions(res.promotions);
       setPromotionAttachments(res.attachments);
     } catch (error) {
-      console.error("Failed to load promotions:", error);
       addToast({
         message: "Failed to load promotions",
         type: "error",
@@ -70,7 +69,6 @@ export default function PromotionsTable({
         type: "success",
       });
     } catch (error: any) {
-      console.error("Failed to toggle promotion status:", error);
       addToast({
         message: "Failed to update promotion status",
         type: "error",
@@ -95,7 +93,6 @@ export default function PromotionsTable({
         type: "success",
       });
     } catch (error: any) {
-      console.error("Failed to delete promotion:", error);
       addToast({
         message: "Failed to delete promotion",
         type: "error",

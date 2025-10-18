@@ -152,15 +152,12 @@ export default function AttachmentPageClient({
       } else {
         // If not in fullscreen, enter
         fullScreenHandle.enter().catch((err) => {
-          console.warn("Fullscreen request failed:", err);
           // Fallback to original method if react-full-screen fails
           if (elementRef.current) {
             try {
               if (document.fullscreenElement) {
                 // Exit fullscreen if already in fullscreen
-                document.exitFullscreen().catch((e) => {
-                  console.warn("Exit fullscreen failed:", e);
-                });
+                document.exitFullscreen().catch((e) => {});
               } else {
                 // Enter fullscreen
                 if (elementRef.current.requestFullscreen) {
@@ -171,9 +168,7 @@ export default function AttachmentPageClient({
                   elementRef.current.msRequestFullscreen();
                 }
               }
-            } catch (e) {
-              console.warn("Native fullscreen toggle failed:", e);
-            }
+            } catch (e) {}
           }
         });
       }

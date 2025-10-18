@@ -44,9 +44,7 @@ export default function SupervisorEditModal({
       try {
         const response = await DepartmentsService.getAllDepartments();
         setDepartments(response);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-      }
+      } catch (error) {}
     };
     fetchDepartments();
   }, []);
@@ -113,7 +111,6 @@ export default function SupervisorEditModal({
       setIsEditing(false);
       onSuccess?.();
     } catch (error: any) {
-      console.error("Supervisor save error:", error);
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
       } else {

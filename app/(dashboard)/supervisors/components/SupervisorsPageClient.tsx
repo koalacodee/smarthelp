@@ -59,9 +59,7 @@ export default function SupervisorsPageClient({
       .then((data) => {
         setSupervisors(data);
       })
-      .catch((error) => {
-        console.error("Failed to fetch supervisors:", error);
-      });
+      .catch((error) => {});
   };
 
   const filteredSupervisors = supervisors.filter((supervisor) => {

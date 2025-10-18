@@ -77,6 +77,7 @@ button {
 
 * {
   @apply outline-none;
+  unicode-bidi: plaintext;
 }
 
 /* 🌞 Light Theme Variables */

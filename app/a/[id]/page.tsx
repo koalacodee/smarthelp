@@ -15,7 +15,6 @@ export default async function AttachmentPage({ params }: PageProps) {
   const metadataResponse = await UploadService.getAttachmentMetadata({
     tokenOrId: id,
   });
-  console.log(metadataResponse);
 
   const mediaRetrievalType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");
 
@@ -39,7 +38,6 @@ export default async function AttachmentPage({ params }: PageProps) {
     // and to handle the media access properly
     return <AttachmentPageClient meta={metadataResponse} url={mediaUrl} />;
   } catch (error) {
-    console.error("Error loading attachment page:", error);
     notFound();
   }
 }

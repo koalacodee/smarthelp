@@ -67,7 +67,6 @@ export const useNotificationSystem = () => {
       setError(
         err instanceof Error ? err.message : "Failed to fetch notifications"
       );
-      console.error("Failed to fetch notifications:", err);
     } finally {
       setIsLoading(false);
     }

@@ -17,7 +17,7 @@ export default function LoginForm() {
   ]);
 
   // Debug: Log errors whenever they change
-  console.log("Current errors:", errors);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
@@ -28,17 +28,9 @@ export default function LoginForm() {
       // window.location.href = "/";
       router.push("/");
     } catch (error: any) {
-      console.log("Login error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError("Invalid username or password. Please try again");
       }
     }

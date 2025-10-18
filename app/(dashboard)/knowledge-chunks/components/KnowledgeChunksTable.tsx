@@ -38,9 +38,7 @@ export default function KnowledgeChunksTable() {
       });
 
       setChunks(Array.from(groupedMap.values()));
-    } catch (error) {
-      console.error("Error loading knowledge chunks:", error);
-    }
+    } catch (error) {}
   }
 
   return (

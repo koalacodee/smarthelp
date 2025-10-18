@@ -304,18 +304,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       moveAllSelectedToExisting();
       handleClose();
     } catch (error: any) {
-      console.error("Update task error:", error);
-      console.log("Update task error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             "Failed to update task. Please try again."

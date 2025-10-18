@@ -54,7 +54,6 @@ export default function DelegateSupervisorModal({
           );
           setSupervisors(filteredSupervisors);
         } catch (error) {
-          console.error("Failed to fetch supervisors:", error);
           addToast({
             message: "Failed to load supervisors",
             type: "error",
@@ -161,7 +160,6 @@ export default function DelegateSupervisorModal({
       handleClose();
       onSuccess?.();
     } catch (error: any) {
-      console.error("Delegate supervisor error:", error);
       setRootError(
         error?.response?.data?.message ||
           "Failed to delegate supervisor. Please try again."

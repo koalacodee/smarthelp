@@ -349,8 +349,6 @@ export default function CreateTaskFromPresetModal({
       resetPresetStore();
       setChangedFields(new Set());
     } catch (error: any) {
-      console.error("Create task from preset error:", error);
-
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
       } else {

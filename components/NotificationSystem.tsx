@@ -249,9 +249,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
         response;
       setCounts(fetchedCounts);
       setNotificationQueue(fetchedNotifications);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
+    } catch (error) {}
   }, []);
 
   // Process notification queue one by one

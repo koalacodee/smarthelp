@@ -17,7 +17,6 @@ const LogoutButton = () => {
       await api.authService.logout();
       router.push("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
     } finally {
       setIsLoading(false);
     }

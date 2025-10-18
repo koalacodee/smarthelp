@@ -39,7 +39,6 @@ export default function TaskPresetsModal() {
       const response = await TaskService.getTaskPresets();
       setPresets(response.presets);
     } catch (error) {
-      console.error("Failed to fetch task presets:", error);
       addToast({
         message: "Failed to load task presets. Please try again.",
         type: "error",

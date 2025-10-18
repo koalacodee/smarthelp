@@ -21,7 +21,6 @@ export default async function Page() {
     promotions = res.promotions;
     attachments = res.attachments;
   } catch (error) {
-    console.error("Failed to fetch promotions:", error);
     // Continue with empty arrays - the component will handle empty state
   }
 

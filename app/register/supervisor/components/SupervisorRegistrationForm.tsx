@@ -81,8 +81,6 @@ export default function SupervisorRegistrationForm({
 
     try {
       // Debug: Log invitation object
-      console.log("Invitation object:", invitation);
-      console.log("Token type:", typeof token, "Value:", token);
 
       // Prepare completion data
       const completionData = {
@@ -91,10 +89,6 @@ export default function SupervisorRegistrationForm({
         name: invitation.name,
         password: formData.password,
       };
-
-      console.log(completionData);
-
-      console.log("Completion data:", completionData);
 
       // Complete the invitation
       const result = await SupervisorInvitationService.completeInvitation({
@@ -112,18 +106,9 @@ export default function SupervisorRegistrationForm({
       // Redirect to success page or login
       router.push("/");
     } catch (err: any) {
-      console.error("Registration failed:", err);
-      console.log("Registration error:", err);
-      console.log("Error response data:", err?.response?.data);
-
       if (err?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          err?.response?.data?.data?.details
-        );
         setErrors(err?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           err?.response?.data?.message ||
             "Registration failed. Please try again."

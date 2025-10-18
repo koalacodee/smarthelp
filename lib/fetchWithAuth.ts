@@ -50,7 +50,6 @@ export async function fetchWithAuth(
         credentials: "include",
       });
     } catch (refreshError) {
-      console.error("Refresh token failed", refreshError);
       throw refreshError;
     }
   }

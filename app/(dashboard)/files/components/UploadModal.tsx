@@ -42,7 +42,6 @@ export default function UploadModal({
       const response = await UploadService.generateUploadKey();
       setUploadKey(response.uploadKey);
     } catch (error) {
-      console.error("Failed to generate upload key:", error);
       setError("Failed to generate upload key. Please try again.");
     } finally {
       setIsGeneratingKey(false);
@@ -103,7 +102,6 @@ export default function UploadModal({
       // Notify parent component of successful upload
       onUploadSuccess?.();
     } catch (error) {
-      console.error("Upload failed:", error);
       setError("Upload failed. Please try again.");
 
       // Show error toast

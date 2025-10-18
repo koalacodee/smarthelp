@@ -17,8 +17,6 @@ export async function GET() {
     },
   });
 
-  console.log(cookieStore);
-
   let user = session.user ?? null;
 
   if (!user) {

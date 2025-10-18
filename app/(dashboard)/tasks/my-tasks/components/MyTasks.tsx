@@ -122,10 +122,6 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                 setMetadata(attachmentId, metadata);
                 return { attachmentId, metadata };
               } catch (error) {
-                console.error(
-                  `Failed to load metadata for attachment ${attachmentId}:`,
-                  error
-                );
                 return { attachmentId, metadata: null };
               }
             }

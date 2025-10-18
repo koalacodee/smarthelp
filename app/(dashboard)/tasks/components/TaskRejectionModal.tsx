@@ -43,18 +43,9 @@ export default function TaskRejectionModal({
       });
       onClose();
     } catch (error: any) {
-      console.error("Reject task error:", error);
-      console.log("Reject task error:", error);
-      console.log("Error response data:", error?.response?.data);
-
       if (error?.response?.data?.data?.details) {
-        console.log(
-          "Setting field errors:",
-          error?.response?.data?.data?.details
-        );
         setErrors(error?.response?.data?.data?.details);
       } else {
-        console.log("Setting root error");
         setRootError(
           error?.response?.data?.message ||
             "Failed to reject task. Please try again."

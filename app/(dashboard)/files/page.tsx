@@ -19,7 +19,6 @@ export default async function Page() {
       />
     );
   } catch (error) {
-    console.error("Failed to fetch attachments:", error);
     return (
       <AnimatedFilesPage attachments={[]} totalCount={0} hasMore={false} />
     );

@@ -65,10 +65,6 @@ export default function DetailedTaskCard() {
               setMetadata(attachmentId, metadata);
               return { id: attachmentId, metadata };
             } catch (error) {
-              console.error(
-                `Failed to load metadata for attachment ${attachmentId}:`,
-                error
-              );
               return { id: attachmentId, metadata: null };
             }
           });

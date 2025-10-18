@@ -205,7 +205,28 @@ function SidebarContent({
       }`}
     >
       <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
-        <nav className="space-y-1 px-4 flex-1">
+        {/* Header with Logo and Title */}
+        <div className="px-4 pb-6 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+              <img
+                src="/icons/smarthelp.png"
+                alt="SmartHelp Logo"
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
+                SmartHelp
+              </h1>
+              <p className="text-xs text-slate-500 font-medium">
+                Support Dashboard
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="space-y-1 px-4 flex-1 pt-4">
           {tabs.map((tab) => {
             // For tasks, only show sub-links for supervisors
             const shouldShowSubLinks =

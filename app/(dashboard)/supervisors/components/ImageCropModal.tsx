@@ -104,11 +104,9 @@ export default function ImageCropModal({
     e.stopPropagation();
 
     if (handle) {
-      console.log("Starting resize with handle:", handle);
       setIsResizing(true);
       setResizeHandle(handle);
     } else {
-      console.log("Starting drag");
       setIsDragging(true);
     }
     // Set drag start to current mouse position, not the crop area position
@@ -147,7 +145,6 @@ export default function ImageCropModal({
         setCropArea(newCropArea);
         setDragStart({ x: e.clientX, y: e.clientY });
       } else if (isResizing && resizeHandle) {
-        console.log("Resizing with handle:", resizeHandle);
         let newCropArea = { ...cropArea };
 
         // Get the actual image display size within the container
@@ -162,13 +159,6 @@ export default function ImageCropModal({
         const imageX = e.clientX - imageRect.left;
         const imageY = e.clientY - imageRect.top;
 
-        console.log("Image coords:", {
-          imageX,
-          imageY,
-          actualImageWidth,
-          actualImageHeight,
-        });
-
         // Calculate maximum crop size (up to the full display size)
         const maxCropSize = Math.min(actualImageWidth, actualImageHeight);
 
@@ -179,10 +169,7 @@ export default function ImageCropModal({
               Math.min(maxCropSize, imageX - cropArea.x)
             );
             newCropArea.height = newCropArea.width; // 1:1 ratio
-            console.log("SE resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-            });
+
             break;
           case "sw":
             newCropArea.width = Math.max(
@@ -191,11 +178,7 @@ export default function ImageCropModal({
             );
             newCropArea.height = newCropArea.width; // 1:1 ratio
             newCropArea.x = cropArea.x + cropArea.width - newCropArea.width;
-            console.log("SW resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-              newX: newCropArea.x,
-            });
+
             break;
           case "ne":
             newCropArea.height = Math.max(
@@ -204,11 +187,7 @@ export default function ImageCropModal({
             );
             newCropArea.width = newCropArea.height; // 1:1 ratio
             newCropArea.y = cropArea.y + cropArea.height - newCropArea.height;
-            console.log("NE resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-              newY: newCropArea.y,
-            });
+
             break;
           case "nw":
             newCropArea.width = Math.max(
@@ -218,12 +197,7 @@ export default function ImageCropModal({
             newCropArea.height = newCropArea.width; // 1:1 ratio
             newCropArea.x = cropArea.x + cropArea.width - newCropArea.width;
             newCropArea.y = cropArea.y + cropArea.height - newCropArea.height;
-            console.log("NW resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-              newX: newCropArea.x,
-              newY: newCropArea.y,
-            });
+
             break;
           case "n":
             newCropArea.height = Math.max(
@@ -232,11 +206,7 @@ export default function ImageCropModal({
             );
             newCropArea.width = newCropArea.height; // 1:1 ratio
             newCropArea.y = cropArea.y + cropArea.height - newCropArea.height;
-            console.log("N resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-              newY: newCropArea.y,
-            });
+
             break;
           case "s":
             newCropArea.height = Math.max(
@@ -244,10 +214,7 @@ export default function ImageCropModal({
               Math.min(maxCropSize, imageY - cropArea.y)
             );
             newCropArea.width = newCropArea.height; // 1:1 ratio
-            console.log("S resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-            });
+
             break;
           case "e":
             newCropArea.width = Math.max(
@@ -255,10 +222,7 @@ export default function ImageCropModal({
               Math.min(maxCropSize, imageX - cropArea.x)
             );
             newCropArea.height = newCropArea.width; // 1:1 ratio
-            console.log("E resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-            });
+
             break;
           case "w":
             newCropArea.width = Math.max(
@@ -267,11 +231,7 @@ export default function ImageCropModal({
             );
             newCropArea.height = newCropArea.width; // 1:1 ratio
             newCropArea.x = cropArea.x + cropArea.width - newCropArea.width;
-            console.log("W resize:", {
-              newWidth: newCropArea.width,
-              newHeight: newCropArea.height,
-              newX: newCropArea.x,
-            });
+
             break;
         }
 
@@ -392,28 +352,6 @@ export default function ImageCropModal({
       naturalHeight - finalSourceY
     );
 
-    console.log("Crop calculation:", {
-      display: { width: displayWidth, height: displayHeight },
-      natural: { width: naturalWidth, height: naturalHeight },
-      actualImage: { width: actualImageWidth, height: actualImageHeight },
-      offset: { x: offsetX, y: offsetY },
-      cropArea: {
-        x: cropArea.x,
-        y: cropArea.y,
-        width: cropArea.width,
-        height: cropArea.height,
-      },
-      cropRelative: { x: cropXRelativeToImage, y: cropYRelativeToImage },
-      clamped: { x: clampedCropX, y: clampedCropY },
-      source: {
-        x: finalSourceX,
-        y: finalSourceY,
-        width: finalSourceWidth,
-        height: finalSourceHeight,
-      },
-      scaleToNatural,
-    });
-
     // Set canvas size to match the crop area size (maintain 1:1 aspect ratio)
     const outputSize = Math.round(finalSourceWidth);
     canvas.width = outputSize;
@@ -440,13 +378,6 @@ export default function ImageCropModal({
             type: "image/jpeg",
           });
           const croppedUrl = URL.createObjectURL(blob);
-
-          console.log("Cropped image created:", {
-            file: croppedFile,
-            size: `${croppedFile.size} bytes`,
-            dimensions: `${canvas.width} x ${canvas.height}`,
-            url: croppedUrl,
-          });
 
           setCroppedImage(croppedUrl, croppedFile);
           onCropComplete?.(croppedFile);
@@ -575,7 +506,6 @@ export default function ImageCropModal({
                             cursor: getCursorStyle(handle),
                           }}
                           onMouseDown={(e) => {
-                            console.log("Handle clicked:", handle);
                             handleMouseDown(e, handle);
                           }}
                         />
@@ -638,7 +568,6 @@ export default function ImageCropModal({
                             }),
                           }}
                           onMouseDown={(e) => {
-                            console.log("Edge handle clicked:", handle);
                             handleMouseDown(e, handle);
                           }}
                         />

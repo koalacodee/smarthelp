@@ -78,7 +78,6 @@ async function getOrStreamAndCacheVideo(
       const store = tx.objectStore(storeName);
       store.put(blob, url);
     } catch (err) {
-      console.warn("Cache failed:", err);
     } finally {
       onCaching?.(false);
     }
