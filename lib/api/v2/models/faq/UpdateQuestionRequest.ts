@@ -1,4 +1,5 @@
 import type { UUID } from "./UUID";
+import type { SupportedLanguage } from "@/types/translation";
 
 export interface UpdateQuestionRequest {
   text?: string;
@@ -8,4 +9,5 @@ export interface UpdateQuestionRequest {
   attach?: boolean;
   deleteAttachments?: UUID[];
   chooseAttachments?: UUID[];
+  translateTo?: SupportedLanguage[];
 }

@@ -12,6 +12,8 @@ import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FAQService, UploadService } from "@/lib/api/v2";
 import useFormErrors from "@/hooks/useFormErrors";
+import { TRANSLATION_MAP } from "@/constants/translation";
+import type { SupportedLanguage } from "@/types/translation";
 
 export default function FaqEditModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -26,6 +28,7 @@ export default function FaqEditModal() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const [attachmentRefreshKey, setAttachmentRefreshKey] = useState(0);
+  const [translateTo, setTranslateTo] = useState<SupportedLanguage[]>([]);
   const { addToast } = useToastStore();
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
@@ -64,6 +67,10 @@ export default function FaqEditModal() {
           setDepartmentId(faq.departmentId);
         } else {
           setSubDepartmentId(faq.departmentId);
+          setDepartmentId(
+            subDepartments.find((dept) => dept.id == faq.departmentId)?.parent
+              ?.id || ""
+          );
         }
       };
       init();
@@ -113,6 +120,14 @@ export default function FaqEditModal() {
     }
   }, [departmentId, subDepartmentsForCategory, subDepartmentId]);
 
+  const toggleLanguage = (language: SupportedLanguage) => {
+    setTranslateTo((prev) =>
+      prev.includes(language)
+        ? prev.filter((l) => l !== language)
+        : [...prev, language]
+    );
+  };
+
   const handleClose = () => {
     setIsEditing(false);
     // Reset attachment refresh key when closing
@@ -139,6 +154,7 @@ export default function FaqEditModal() {
         deleteAttachments: Object.keys(existingsToDelete),
         attach: attachments.length > 0,
         chooseAttachments: Array.from(selectedAttachmentIds),
+        translateTo: translateTo.length ? translateTo : undefined,
       })
         .then(async (response) => {
           const { question: updated } = response;
@@ -202,6 +218,7 @@ export default function FaqEditModal() {
         departmentId: deptId,
         attach: attachments.length > 0,
         chooseAttachments: Array.from(selectedAttachmentIds),
+        translateTo: translateTo.length ? translateTo : undefined,
       })
         .then(async (response) => {
           const { question: created } = response;
@@ -268,6 +285,7 @@ export default function FaqEditModal() {
     clearExistingsToDelete();
     setExistingAttachments({});
     moveAllSelectedToExisting();
+    setTranslateTo([]);
   };
 
   const modalTitle = faq && faq.answer ? "Edit FAQ" : "Add New FAQ";
@@ -543,6 +561,106 @@ export default function FaqEditModal() {
                   attachmentId={faq?.id}
                   getAttachmentTokens={getAttachments}
                 />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.8 }}
+                  className="flex items-center gap-2 mb-4"
+                >
+                  <label className="text-sm font-medium text-slate-700">
+                    Translate To (Optional)
+                  </label>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.9 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-4 bg-slate-50/30"
+                >
+                  {Object.entries(TRANSLATION_MAP).map(
+                    ([code, label], index) => {
+                      const lang = code as SupportedLanguage;
+                      const isSelected = translateTo.includes(lang);
+                      return (
+                        <motion.button
+                          key={code}
+                          type="button"
+                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{
+                            duration: 0.3,
+                            delay: 1.0 + index * 0.05,
+                            ease: "backOut",
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            y: -2,
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => toggleLanguage(lang)}
+                          className={`
+                          relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
+                          ${
+                            isSelected
+                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30"
+                              : "bg-white text-slate-700 border border-slate-300 hover:border-green-400 hover:bg-green-50"
+                          }
+                        `}
+                        >
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{
+                              duration: 0.2,
+                              delay: 1.1 + index * 0.05,
+                            }}
+                            className="relative z-10 block"
+                          >
+                            {label}
+                          </motion.span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ duration: 0.3, ease: "backOut" }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                            >
+                              <motion.svg
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </motion.svg>
+                            </motion.div>
+                          )}
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isSelected ? 1 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg"
+                          />
+                        </motion.button>
+                      );
+                    }
+                  )}
+                </motion.div>
               </motion.div>
             </motion.div>
             <motion.div
