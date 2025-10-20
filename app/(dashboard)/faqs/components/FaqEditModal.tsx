@@ -63,6 +63,7 @@ export default function FaqEditModal() {
       const init = async () => {
         setQuestion(faq.text);
         setAnswer(faq.answer || "");
+        setTranslateTo(faq.availableLangs);
         if (departments.find((dept) => dept.id == faq.departmentId)) {
           setDepartmentId(faq.departmentId);
         } else {
@@ -237,6 +238,7 @@ export default function FaqEditModal() {
             views: 0,
             createdAt: new Date(),
             updatedAt: new Date(),
+            availableLangs: translateTo ?? [],
           });
           handleClose();
           if (formData && response.uploadKey) {

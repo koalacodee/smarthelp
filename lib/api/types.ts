@@ -1,5 +1,8 @@
 // =======================
 // Enums
+
+import { SupportedLanguage } from "@/types/translation";
+
 // =======================
 export enum UserRole {
   SUPERVISOR = "SUPERVISOR",
@@ -160,6 +163,7 @@ export interface Question {
   satisfaction: number;
   dissatisfaction: number;
   views: number;
+  availableLangs: SupportedLanguage[];
 }
 
 export interface KnowledgeChunk {
