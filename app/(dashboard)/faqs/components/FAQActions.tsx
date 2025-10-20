@@ -23,7 +23,12 @@ export default function FAQActions({
   const flattedQuestions = useMemo(() => {
     const questions = [];
     for (const faq of faqs) {
-      questions.push(...faq.questions);
+      questions.push(
+        ...faq.questions.map((question) => ({
+          ...question,
+          departmentId: question.departmentId ?? faq.departmentId,
+        }))
+      );
     }
     return questions;
   }, [faqs]);
