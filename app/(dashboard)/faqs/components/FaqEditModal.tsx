@@ -64,14 +64,29 @@ export default function FaqEditModal() {
         setQuestion(faq.text);
         setAnswer(faq.answer || "");
         setTranslateTo(faq.availableLangs);
-        if (departments.find((dept) => dept.id == faq.departmentId)) {
+
+        // Check if departmentId is a main category
+        const mainDept = departments.find(
+          (dept) => dept.id === faq.departmentId
+        );
+        if (mainDept) {
+          // It's a main category
           setDepartmentId(faq.departmentId);
+          setSubDepartmentId(null);
         } else {
-          setSubDepartmentId(faq.departmentId);
-          setDepartmentId(
-            subDepartments.find((dept) => dept.id == faq.departmentId)?.parent
-              ?.id || ""
+          // Check if it's a sub-department
+          const subDept = subDepartments.find(
+            (dept) => dept.id === faq.departmentId
           );
+          if (subDept) {
+            // It's a sub-department
+            setSubDepartmentId(faq.departmentId);
+            setDepartmentId(subDept.parent?.id || "");
+          } else {
+            // Fallback - assume it's a main category
+            setDepartmentId(faq.departmentId);
+            setSubDepartmentId(null);
+          }
         }
       };
       init();
@@ -83,7 +98,7 @@ export default function FaqEditModal() {
       setDepartmentId(firstCatId);
       setSubDepartmentId(null);
     }
-  }, [faq, departments]);
+  }, [faq, departments, subDepartments]);
 
   // Separate effect to handle attachment loading when FAQ changes or attachments are updated
   useEffect(() => {
