@@ -1054,7 +1054,7 @@ export const KnowledgeChunksService = {
       data: { knowledgeChunk: any; uploadKey?: string };
     }>("/knowledge-chunks", {
       ...dto,
-      attach: !!formData,
+      // attach: !!formData,
     });
 
     if (response.data.data.uploadKey && formData) {
@@ -1072,7 +1072,7 @@ export const KnowledgeChunksService = {
       data: { knowledgeChunk: any; uploadKey?: string };
     }>(`/knowledge-chunks/${id}`, {
       ...dto,
-      attach: !!formData,
+      // attach: !!formData,
     });
 
     if (response.data.data.uploadKey && formData) {
