@@ -12,26 +12,28 @@ import SubDepartmentFilters from "./SubDepartmentFilters";
 import { Department as APIDepartment } from "@/lib/api/departments";
 import api from "@/lib/api";
 import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartmentsStore";
-import { useCreateSubDepartmentStore } from "@/app/(dashboard)/store/useCreateSubDepartmentStore";
 import RefreshButton from "@/components/ui/RefreshButton";
 
 interface CombinedDepartmentsPageProps {
-  departments: APIDepartment[];
+  departments?: APIDepartment[];
+  subDepartments?: APIDepartment[];
+  userRole: string;
 }
 
 export default function CombinedDepartmentsPage({
   departments,
+  subDepartments,
+  userRole,
 }: CombinedDepartmentsPageProps) {
   const {
-    subDepartments,
+    subDepartments: storeSubDepartments,
     isLoading,
     error,
     setSubDepartments,
     setLoading,
     setError,
   } = useSubDepartmentsStore();
-  const [localDepartments] = useState<APIDepartment[]>(departments);
-  const { openModal: openCreateSubDepartment } = useCreateSubDepartmentStore();
+  const [localDepartments] = useState<APIDepartment[]>(departments || []);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,7 +41,7 @@ export default function CombinedDepartmentsPage({
 
   // Filter sub-departments based on search term and selected department
   const filteredSubDepartments = useMemo(() => {
-    return subDepartments.filter((subDept) => {
+    return storeSubDepartments.filter((subDept) => {
       const matchesSearch =
         searchTerm === "" ||
         subDept.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -49,15 +51,18 @@ export default function CombinedDepartmentsPage({
 
       return matchesSearch && matchesDepartment;
     });
-  }, [subDepartments, searchTerm, selectedDepartment]);
+  }, [storeSubDepartments, searchTerm, selectedDepartment]);
 
   useEffect(() => {
     const fetchSubDepartments = async () => {
       try {
         setLoading(true);
         setError(null);
-        const subDepartmentsData =
-          await api.DepartmentsService.getAllSubDepartments();
+        let subDepartmentsData = subDepartments;
+        if (!subDepartmentsData) {
+          subDepartmentsData =
+            await api.DepartmentsService.getAllSubDepartments();
+        }
         setSubDepartments(subDepartmentsData);
       } catch (err) {
         setError("Failed to fetch sub-departments");
@@ -85,7 +90,7 @@ export default function CombinedDepartmentsPage({
         >
           <div>
             <h1 className="text-3xl font-extrabold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-              Departments & Sub-departments
+              {userRole === "ADMIN" ? "Departments &" : ""} Sub-departments
             </h1>
             <p className="text-slate-600 mt-1">
               Manage main categories and their sections in one unified view.
@@ -95,70 +100,72 @@ export default function CombinedDepartmentsPage({
 
         <div className="grid grid-cols-1 gap-8">
           {/* Departments table */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg" />
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-800">
-                    Departments
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    Manage your main categories
-                  </p>
+          {userRole === "ADMIN" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg" />
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-800">
+                      Departments
+                    </h2>
+                    <p className="text-xs text-slate-600">
+                      Manage your main categories
+                    </p>
+                  </div>
                 </div>
+                <RefreshButton
+                  onRefresh={async () => {
+                    // Optionally implement reload if departments can change elsewhere
+                  }}
+                />
               </div>
-              <RefreshButton
-                onRefresh={async () => {
-                  // Optionally implement reload if departments can change elsewhere
-                }}
-              />
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <tbody className="bg-white divide-y divide-slate-200">
-                  {localDepartments.length === 0 ? (
-                    <tr>
-                      <td className="px-6 py-12 text-center text-slate-500">
-                        No departments found
-                      </td>
-                    </tr>
-                  ) : (
-                    localDepartments.map((department) => (
-                      <tr
-                        key={department.id}
-                        className="group hover:bg-slate-50 transition-all duration-200"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">
-                                {department.name}
-                              </p>
-                              <p className="text-xs text-slate-500">
-                                {department.visibility}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="opacity-100">
-                            <DepartmentActions department={department} />
-                          </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200">
+                  <tbody className="bg-white divide-y divide-slate-200">
+                    {localDepartments.length === 0 ? (
+                      <tr>
+                        <td className="px-6 py-12 text-center text-slate-500">
+                          No departments found
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
+                    ) : (
+                      localDepartments.map((department) => (
+                        <tr
+                          key={department.id}
+                          className="group hover:bg-slate-50 transition-all duration-200"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {department.name}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {department.visibility}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="opacity-100">
+                              <DepartmentActions department={department} />
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
 
           {/* Sub-departments table */}
           <motion.div
@@ -205,7 +212,7 @@ export default function CombinedDepartmentsPage({
                   ) : filteredSubDepartments.length === 0 ? (
                     <tr>
                       <td className="px-6 py-12 text-center text-slate-500">
-                        {subDepartments.length === 0
+                        {storeSubDepartments.length === 0
                           ? "No sub-departments found"
                           : "No sub-departments match your filters"}
                       </td>
@@ -247,11 +254,11 @@ export default function CombinedDepartmentsPage({
         </div>
 
         {/* Modals */}
-        <DepartmentEditingModal />
+        {userRole === "ADMIN" && <DepartmentEditingModal />}
         <EditSubDepartmentModal />
         <CreateSubDepartmentModal />
       </div>
-      <AddDepartmentButton />
+      {userRole === "ADMIN" && <AddDepartmentButton />}
     </motion.div>
   );
 }

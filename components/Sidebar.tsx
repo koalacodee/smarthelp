@@ -133,7 +133,7 @@ const tabs: Tab[] = [
     label: "Categories",
     icon: <MagnifyingGlassCircle className={ICON_SIZE} />,
     href: "/department",
-    allowed: (r) => r === "ADMIN",
+    allowed: (r) => r === "ADMIN" || r === "SUPERVISOR",
   },
   {
     id: "supervisors",

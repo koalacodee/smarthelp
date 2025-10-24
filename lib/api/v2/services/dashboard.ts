@@ -51,7 +51,9 @@ export interface GetPendingRequestsData {
 export interface DashboardSummaryData {
   totalUsers: number;
   activeTickets: number;
+  completedTickets: number;
   completedTasks: number;
+  pendingTasks: number;
   faqSatisfaction: number;
 }
 
@@ -91,6 +93,22 @@ export interface GetOverviewQuery {
   range?: string; // '7d'
   limit?: number; // 10
 }
+export interface ExpiredAttachment {
+  id: string;
+  type: string;
+  filename: string;
+  originalName: string;
+  expirationDate: string;
+  userId: string | null;
+  guestId: string | null;
+  isGlobal: boolean;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+  targetId: string;
+  cloned: boolean;
+}
+
 export interface GetOverviewData {
   summary: DashboardSummaryData;
   pendingRequests: GetPendingRequestsData;
@@ -98,6 +116,7 @@ export interface GetOverviewData {
   performance: GetPerformanceData;
   analyticsSummary: GetAnalyticsSummaryData;
   generatedAt: IsoDateString;
+  expiredAttachments: ExpiredAttachment[];
 }
 
 /* ========== Services (methods return the unwrapped data) ========== */
