@@ -6,6 +6,7 @@ import { setCookie } from "@/lib/api/cookies";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -192,77 +193,116 @@ export default function LoginForm() {
               )}
             </AnimatePresence>
 
-            {[
-              {
-                id: "username",
-                name: "username",
-                label: "Username",
-                type: "text",
-                placeholder: "Enter your username",
-                required: true,
-                value: username,
-                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                  setUsername(e.target.value),
-              },
-              {
-                id: "password",
-                name: "password",
-                label: "Password",
-                type: "password",
-                placeholder: "Enter your password",
-                required: true,
-                value: password,
-                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPassword(e.target.value),
-              },
-            ].map((field, index) => (
-              <motion.div
-                key={field.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.9 + index * 0.1 }}
+            {/* Username Field */}
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.9 }}
+            >
+              <motion.label
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 1.0 }}
+                htmlFor="username"
+                className="block text-sm font-medium text-slate-700 mb-2"
               >
-                <motion.label
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 1.0 + index * 0.1 }}
-                  htmlFor={field.id}
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                Username *
+              </motion.label>
+              <motion.input
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 1.1 }}
+                whileFocus={{
+                  scale: 1.02,
+                  boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                }}
+                type="text"
+                id="username"
+                name="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
+                placeholder="Enter your username"
+                required
+                autoComplete="username"
+              />
+              {errors.username && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="mt-1 text-sm text-red-700"
                 >
-                  {field.label} *
-                </motion.label>
-                <motion.input
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 1.1 + index * 0.1 }}
-                  whileFocus={{
-                    scale: 1.02,
-                    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-                  }}
-                  type={field.type}
-                  id={field.id}
-                  name={field.name}
-                  value={field.value}
-                  onChange={field.onChange}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                  placeholder={field.placeholder}
-                  required={field.required}
-                  autoComplete={
-                    field.type === "password" ? "current-password" : "username"
-                  }
-                />
-                {errors[field.name as keyof typeof errors] && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
-                    className="mt-1 text-sm text-red-700"
+                  {errors.username}
+                </motion.p>
+              )}
+            </motion.div>
+
+            {/* Password Field with Forgot Password Link */}
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, delay: 1.0 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 1.1 }}
+                className="flex items-center justify-between mb-2"
+              >
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Password *
+                </label>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href="/password-reset"
+                    className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200 hover:underline"
                   >
-                    {errors[field.name as keyof typeof errors]}
-                  </motion.p>
-                )}
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 1.2 }}
+                    >
+                      Forgot Password?
+                    </motion.span>
+                  </Link>
+                </motion.div>
               </motion.div>
-            ))}
+              <motion.input
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 1.2 }}
+                whileFocus={{
+                  scale: 1.02,
+                  boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                }}
+                type="password"
+                id="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
+                placeholder="Enter your password"
+                required
+                autoComplete="current-password"
+              />
+              {errors.password && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="mt-1 text-sm text-red-700"
+                >
+                  {errors.password}
+                </motion.p>
+              )}
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}

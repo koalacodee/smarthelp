@@ -15,6 +15,7 @@ import { createEmployeeService } from "./services/employee";
 import { createPromotionService } from "./services/promotion";
 import { createTaskService } from "./services/task";
 import { createAttachmentGroupService } from "./services/attachment-group";
+import { createPasswordResetService } from "./services/password-reset";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -29,3 +30,4 @@ export const EmployeeService = createEmployeeService(api);
 export const PromotionService = createPromotionService(api);
 export const TaskService = createTaskService(api);
 export const AttachmentGroupService = createAttachmentGroupService(api);
+export const PasswordResetService = createPasswordResetService(api);
