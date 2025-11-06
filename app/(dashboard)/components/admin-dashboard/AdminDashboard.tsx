@@ -11,7 +11,6 @@ import ClipboardList from "@/icons/ClipboardList";
 import QuickActionsPanel from "./QuickActionsPanel";
 import BarChartPanel from "./BarChartPanel";
 import AnalyticsSummary from "./AnalyticsSummary";
-import PendingStaffRequests from "./PendingStaffRequests";
 import RecentActivity from "./RecentActivity";
 import ExpiredAttachments from "./ExpiredAttachments";
 import AnimatedHeader from "./AnimatedHeader";
@@ -193,7 +192,6 @@ export default async function AdminDashboard() {
             <ExpiredAttachments items={expiredAttachments} />
           </div>
           <div className="space-y-6">
-            <PendingStaffRequests items={pending.items} total={pending.total} />
             <RecentActivity items={recent.items} />
           </div>
         </div>

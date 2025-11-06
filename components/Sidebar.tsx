@@ -12,14 +12,12 @@ import Eye from "@/icons/Eye";
 import MagnifyingGlassCircle from "@/icons/MagnifyingGlassCircle";
 import Megaphone from "@/icons/Megaphone";
 import Ticket from "@/icons/Ticket";
-import UserPlus from "@/icons/UserPlus";
 import SidebarItem from "./Sidebar/SidebarItem";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
 import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
-import Car from "@/icons/Car";
 import UserInfo from "./UserInfo";
 import { UserResponse } from "@/lib/api";
 
@@ -44,7 +42,7 @@ const tabs: Tab[] = [
     id: "analytics",
     label: "Analytics And Insights",
     icon: <AnalyticsInsights className={ICON_SIZE} />,
-    href: "/analytics",
+    href: "/",
     allowed: (r, p) =>
       r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_ANALYTICS),
   },
@@ -200,9 +198,8 @@ function SidebarContent({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
+      className={`fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
     >
       <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
         {/* Header with Logo and Title */}

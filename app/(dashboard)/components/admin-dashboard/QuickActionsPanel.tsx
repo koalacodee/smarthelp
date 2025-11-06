@@ -1,17 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Plus from "@/icons/Plus";
 import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
+import { SupervisorPermissions } from "@/lib/api/supervisors";
+import { UserResponse } from "@/lib/api";
 
 interface ActionItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  allowed: (role: string, permissions: string[]) => boolean;
 }
 
 const actions: ActionItem[] = [
@@ -19,30 +22,38 @@ const actions: ActionItem[] = [
     label: "Create Department",
     href: "/department",
     icon: <Plus className="h-4 w-4" />,
-  },
-  {
-    label: "Create Sub-department",
-    href: "/sub-departments",
-    icon: <Plus className="h-4 w-4" />,
-  },
-  {
-    label: "Approve Staff Requests",
-    href: "/staff-requests",
-    icon: <Team className="h-4 w-4" />,
+    allowed: (r) => r === "ADMIN" || r === "SUPERVISOR",
   },
   {
     label: "Create Supervisor",
     href: "/supervisors",
     icon: <Supervisors className="h-4 w-4" />,
+    allowed: (r) => r === "ADMIN",
   },
   {
     label: "View Reports",
     href: "/analytics",
     icon: <AnalyticsInsights className="h-4 w-4" />,
+    allowed: (r, p) =>
+      r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_ANALYTICS),
   },
 ];
 
 export default function QuickActionsPanel() {
+  const [user, setUser] = useState<UserResponse | null>(null);
+
+  useEffect(() => {
+    fetch("/server/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
+
+  const visibleActions = useMemo(() => {
+    if (!user) return [];
+    return actions.filter((action) =>
+      action.allowed(user.role, user.permissions ?? [])
+    );
+  }, [user]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -59,7 +70,7 @@ export default function QuickActionsPanel() {
         Quick Actions
       </motion.h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {actions.map((a, index) => (
+        {visibleActions.map((a, index) => (
           <motion.div
             key={a.label}
             initial={{ opacity: 0, y: 20, scale: 0.9 }}

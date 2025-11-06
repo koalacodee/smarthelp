@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
 import { env } from "next-runtime-env";
 import AdminDashboard from "./components/admin-dashboard/AdminDashboard";
+import EmployeeDashboard from "./components/employee-dashboard/EmployeeDashboard";
+
 export const metadata = {
-  title: "Main Page | Admin Overview",
-  description: "Executive overview of system metrics and actions",
+  title: "Dashboard | SmartHelp",
+  description: "Overview of system metrics and actions",
 };
 
 export default async function Page() {
@@ -15,9 +17,9 @@ export default async function Page() {
   });
   const userRole = user.user.role;
 
-  if (userRole === "ADMIN") {
-    return <AdminDashboard />;
+  if (userRole === "EMPLOYEE") {
+    return <EmployeeDashboard />;
   } else {
-    return <h1>Main Page</h1>;
+    return <AdminDashboard />;
   }
 }
