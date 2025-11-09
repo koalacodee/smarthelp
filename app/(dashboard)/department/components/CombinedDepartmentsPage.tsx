@@ -258,7 +258,7 @@ export default function CombinedDepartmentsPage({
         <EditSubDepartmentModal />
         <CreateSubDepartmentModal />
       </div>
-      {userRole === "ADMIN" && <AddDepartmentButton />}
+      {userRole !== "EMPLOYEE" && <AddDepartmentButton userRole={userRole} />}
     </motion.div>
   );
 }

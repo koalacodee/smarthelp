@@ -123,20 +123,26 @@ export default async function AdminDashboard() {
             title="Total Users"
             value={summary.totalUsers}
             accentClassName="bg-indigo-500"
+            borderGradient="from-indigo-400 via-indigo-500 to-indigo-600"
+            iconGradient="from-indigo-50 to-indigo-100"
             icon={<User className="h-5 w-5" />}
             index={0}
           />
           <DashboardCard
             title="Active Tickets"
             value={summary.activeTickets}
-            accentClassName="bg-blue-500"
+            accentClassName="bg-amber-500"
+            borderGradient="from-amber-400 via-yellow-500 to-amber-600"
+            iconGradient="from-amber-50 to-yellow-100"
             icon={<Ticket className="h-5 w-5" />}
             index={1}
           />
           <DashboardCard
             title="Completed Tickets"
             value={summary.completedTickets}
-            accentClassName="bg-blue-500"
+            accentClassName="bg-amber-500"
+            borderGradient="from-amber-400 via-yellow-500 to-amber-600"
+            iconGradient="from-amber-50 to-yellow-100"
             icon={<Ticket className="h-5 w-5" />}
             index={2}
           />
@@ -144,6 +150,8 @@ export default async function AdminDashboard() {
             title="Pending Tasks"
             value={summary.pendingTasks}
             accentClassName="bg-blue-500"
+            borderGradient="from-blue-400 via-blue-500 to-blue-600"
+            iconGradient="from-blue-50 to-blue-100"
             icon={<Ticket className="h-5 w-5" />}
             index={3}
           />
@@ -151,20 +159,26 @@ export default async function AdminDashboard() {
             title="Completed Tasks"
             value={summary.completedTasks}
             accentClassName="bg-emerald-500"
+            borderGradient="from-emerald-400 via-green-500 to-emerald-600"
+            iconGradient="from-emerald-50 to-green-100"
             icon={<CheckCircle className="h-5 w-5" />}
             index={4}
           />
           <DashboardCard
             title="FAQ Satisfaction"
             value={`${summary.faqSatisfaction}%`}
-            accentClassName="bg-amber-500"
+            accentClassName="bg-purple-500"
+            borderGradient="from-purple-400 via-purple-500 to-purple-600"
+            iconGradient="from-purple-50 to-purple-100"
             icon={<ClipboardList className="h-5 w-5" />}
             index={5}
           />
           <DashboardCard
             title="Expired Attachments"
             value={`${summary.expiredAttachments}`}
-            accentClassName="bg-amber-500"
+            accentClassName="bg-red-500"
+            borderGradient="from-red-400 via-red-500 to-red-600"
+            iconGradient="from-red-50 to-red-100"
             icon={<ClipboardList className="h-5 w-5" />}
             index={6}
           />

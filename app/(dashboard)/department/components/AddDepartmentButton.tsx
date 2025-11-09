@@ -4,7 +4,10 @@ import { motion } from "framer-motion";
 import { useCurrentEditingDepartment } from "@/app/(dashboard)/department/store/useCurrentEditingDepartment";
 import { useCreateSubDepartmentStore } from "@/app/(dashboard)/store/useCreateSubDepartmentStore";
 
-export default function AddDepartmentButton() {
+export default function AddDepartmentButton({ userRole }: { userRole: string }) {
+  if (userRole == "EMPLOYEE") {
+    return null;
+  }
   const { openModal: openDepartmentModal } = useCurrentEditingDepartment();
   const { openModal: openCreateSubDepartment } = useCreateSubDepartmentStore();
 
@@ -16,7 +19,7 @@ export default function AddDepartmentButton() {
         transition={{ duration: 0.6, delay: 0.6 }}
         className="flex flex-row gap-4 items-end"
       >
-        <motion.button
+        {userRole === "ADMIN" && <motion.button
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{
@@ -53,7 +56,7 @@ export default function AddDepartmentButton() {
             />
           </svg>
           <span className="relative z-10">Add Department</span>
-        </motion.button>
+        </motion.button>}
 
         <motion.button
           initial={{ opacity: 0, scale: 0.8, y: 20 }}

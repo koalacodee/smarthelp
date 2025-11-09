@@ -47,12 +47,24 @@ const tabs: Tab[] = [
       r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_ANALYTICS),
   },
   {
-    id: "faqs",
-    label: "FAQs",
+    id: "faqsAndCategories",
+    label: "FAQs & Categories",
     icon: <ClipboardList className={ICON_SIZE} />,
     href: "/faqs",
     allowed: (r, p) =>
-      r !== "EMPLOYEE" || p.includes(EmployeePermissions.ADD_FAQS),
+      r === "ADMIN" ||
+      r === "SUPERVISOR" ||
+      (r === "EMPLOYEE" && p.includes(EmployeePermissions.ADD_FAQS)),
+    subLinks: [
+      {
+        label: "FAQs",
+        href: "/faqs",
+      },
+      {
+        label: "Categories",
+        href: "/department",
+      },
+    ],
   },
   {
     id: "tickets",
@@ -125,13 +137,6 @@ const tabs: Tab[] = [
     href: "/promotions",
     allowed: (r, p) =>
       r === "ADMIN" || p.includes(SupervisorPermissions.MANAGE_PROMOTIONS),
-  },
-  {
-    id: "categories",
-    label: "Categories",
-    icon: <MagnifyingGlassCircle className={ICON_SIZE} />,
-    href: "/department",
-    allowed: (r) => r === "ADMIN" || r === "SUPERVISOR",
   },
   {
     id: "supervisors",
@@ -226,12 +231,37 @@ function SidebarContent({
         <nav className="space-y-1 px-4 flex-1 pt-4">
           {tabs.map((tab) => {
             // For tasks, only show sub-links for supervisors
-            const shouldShowSubLinks =
-              tab.id === "tasks" ? user?.role === "SUPERVISOR" : tab.subLinks;
+            // For FAQs & Categories, filter subLinks based on user permissions
+            let filteredSubLinks = tab.subLinks;
+
+            if (tab.id === "tasks") {
+              filteredSubLinks = user?.role === "SUPERVISOR" ? tab.subLinks : undefined;
+            } else if (tab.id === "faqsAndCategories" && tab.subLinks) {
+              // Filter subLinks based on user role and permissions
+              filteredSubLinks = tab.subLinks.filter((subLink) => {
+                if (subLink.href === "/faqs") {
+                  // FAQs: accessible to ADMIN, SUPERVISOR, or EMPLOYEE with ADD_FAQS permission
+                  return (
+                    user?.role === "ADMIN" ||
+                    user?.role === "SUPERVISOR" ||
+                    (user?.role === "EMPLOYEE" &&
+                      user?.permissions?.includes(EmployeePermissions.ADD_FAQS))
+                  );
+                } else if (subLink.href === "/department") {
+                  // Categories: only accessible to ADMIN and SUPERVISOR
+                  return user?.role === "ADMIN" || user?.role === "SUPERVISOR";
+                }
+                return true;
+              });
+              // If no subLinks remain, don't show subLinks at all
+              if (filteredSubLinks.length === 0) {
+                filteredSubLinks = undefined;
+              }
+            }
 
             const itemWithSubLinks = {
               ...tab,
-              subLinks: shouldShowSubLinks ? tab.subLinks : undefined,
+              subLinks: filteredSubLinks,
             };
 
             return (
