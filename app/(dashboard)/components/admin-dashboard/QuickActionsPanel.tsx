@@ -4,10 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Plus from "@/icons/Plus";
-import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
-import AnalyticsInsights from "@/icons/AnalyticsInsights";
-import { SupervisorPermissions } from "@/lib/api/supervisors";
 import { UserResponse } from "@/lib/api";
 
 interface ActionItem {
@@ -29,13 +26,6 @@ const actions: ActionItem[] = [
     href: "/supervisors",
     icon: <Supervisors className="h-4 w-4" />,
     allowed: (r) => r === "ADMIN",
-  },
-  {
-    label: "View Reports",
-    href: "/analytics",
-    icon: <AnalyticsInsights className="h-4 w-4" />,
-    allowed: (r, p) =>
-      r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_ANALYTICS),
   },
 ];
 
