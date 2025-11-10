@@ -72,7 +72,7 @@ export default function AnimatedFilesPage({
     } catch (error) {
       // Failed to fetch attachment groups:
       addToast({
-        message: "Failed to fetch attachment groups",
+        message: "Failed to fetch TV content",
         type: "error",
       });
     } finally {
@@ -114,7 +114,7 @@ export default function AnimatedFilesPage({
     try {
       await AttachmentGroupService.deleteAttachmentGroup(group.id);
       addToast({
-        message: "Attachment group deleted successfully",
+        message: "TV content deleted successfully",
         type: "success",
       });
 
@@ -128,7 +128,7 @@ export default function AnimatedFilesPage({
     } catch (error) {
       // Failed to delete attachment group:
       addToast({
-        message: "Failed to delete attachment group",
+        message: "Failed to delete TV content",
         type: "error",
       });
     }
@@ -440,7 +440,7 @@ export default function AnimatedFilesPage({
                       transition={{ duration: 0.5, delay: 0.8 }}
                       className="text-xl font-bold text-slate-800 flex items-center gap-2"
                     >
-                      Attachment Groups
+                      TV Content
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -505,7 +505,7 @@ export default function AnimatedFilesPage({
         attachment={shareModalAttachment as any}
       />
 
-      {/* Share Modal for Attachment Groups */}
+      {/* Share Modal for TV Content */}
       <ShareModal
         isOpen={isGroupShareModalOpen}
         onClose={() => {
@@ -553,8 +553,8 @@ function NavigationTabs({
           <button
             onClick={() => onTabChange("files")}
             className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "files"
-                ? "bg-blue-500 text-white shadow-md"
-                : "text-slate-600 hover:text-slate-900"
+              ? "bg-blue-500 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900"
               }`}
           >
             Individual Files
@@ -562,11 +562,11 @@ function NavigationTabs({
           <button
             onClick={() => onTabChange("groups")}
             className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "groups"
-                ? "bg-blue-500 text-white shadow-md"
-                : "text-slate-600 hover:text-slate-900"
+              ? "bg-blue-500 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900"
               }`}
           >
-            Attachment Groups
+            TV Content
           </button>
         </div>
       </motion.div>

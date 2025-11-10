@@ -16,6 +16,7 @@ export enum SupervisorPermissions {
   VIEW_USER_ACTIVITY = "VIEW_USER_ACTIVITY",
   MANAGE_STAFF_DIRECTLY = "MANAGE_STAFF_DIRECTLY",
   MANAGE_TASKS = "MANAGE_TASKS",
+  MANAGE_ATTACHMENT_GROUPS = "MANAGE_ATTACHMENT_GROUPS",
 }
 
 /* ========== Supervisor Entity ========== */
@@ -185,7 +186,7 @@ export interface GetSupervisorInvitationsData {
 
 /* ========== Services ========== */
 export class SupervisorService {
-  constructor(private readonly http: AxiosInstance) {}
+  constructor(private readonly http: AxiosInstance) { }
 
   async addByAdmin(
     request: AddSupervisorByAdminRequest
@@ -248,7 +249,7 @@ export class SupervisorService {
 }
 
 export class SupervisorInvitationService {
-  constructor(private readonly http: AxiosInstance) {}
+  constructor(private readonly http: AxiosInstance) { }
 
   async getInvitation(
     query: GetSupervisorInvitationQuery

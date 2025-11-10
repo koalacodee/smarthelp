@@ -123,7 +123,7 @@ export default function ShareModal({
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-slate-800">
-            {isGroup ? "Share Attachment Group" : "Share Attachment"}
+            {isGroup ? "Share TV Content" : "Share Attachment"}
           </h3>
           <button
             type="button"
@@ -166,22 +166,20 @@ export default function ShareModal({
               <button
                 type="button"
                 onClick={() => setShareType("single")}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  shareType === "single"
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${shareType === "single"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
               >
                 Single File
               </button>
               <button
                 type="button"
                 onClick={() => setShareType("group")}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  shareType === "group"
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${shareType === "group"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
               >
                 Sequential View
               </button>
@@ -245,11 +243,10 @@ export default function ShareModal({
               <button
                 type="button"
                 onClick={handleCopyToClipboard}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                  copied
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${copied
+                  ? "bg-green-600 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
               >
                 <DocumentDuplicate className="w-4 h-4" />
                 {copied ? "Copied!" : "Copy"}

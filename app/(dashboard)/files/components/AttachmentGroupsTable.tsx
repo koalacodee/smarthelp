@@ -45,10 +45,10 @@ export default function AttachmentGroupsTable({
       >
         <DocumentDuplicate className="w-16 h-16 text-slate-300 mx-auto mb-4" />
         <p className="text-slate-500 text-lg font-medium">
-          No attachment groups found
+          No TV content found
         </p>
         <p className="text-slate-400 text-sm mt-1">
-          Create an attachment group to see it here
+          Create TV content to see it here
         </p>
       </motion.div>
     );
@@ -161,40 +161,40 @@ export default function AttachmentGroupsTable({
                         },
                         ...(onShare
                           ? [
-                              {
-                                label: "Share",
-                                onClick: () => onShare(group),
-                                color: "blue" as "blue",
-                              },
-                            ]
+                            {
+                              label: "Share",
+                              onClick: () => onShare(group),
+                              color: "blue" as "blue",
+                            },
+                          ]
                           : []),
                         ...(onDelete
                           ? [
-                              {
-                                label:
-                                  deletingId === group.id
-                                    ? "Deleting..."
-                                    : "Delete",
-                                onClick: () => {
-                                  if (deletingId !== group.id) {
-                                    if (
-                                      window.confirm(
-                                        "Are you sure you want to delete this attachment group?"
-                                      )
-                                    ) {
-                                      setDeletingId(group.id);
-                                      onDelete(group);
-                                      // Reset deleting state after a short delay
-                                      setTimeout(
-                                        () => setDeletingId(null),
-                                        500
-                                      );
-                                    }
+                            {
+                              label:
+                                deletingId === group.id
+                                  ? "Deleting..."
+                                  : "Delete",
+                              onClick: () => {
+                                if (deletingId !== group.id) {
+                                  if (
+                                    window.confirm(
+                                      "Are you sure you want to delete this TV content?"
+                                    )
+                                  ) {
+                                    setDeletingId(group.id);
+                                    onDelete(group);
+                                    // Reset deleting state after a short delay
+                                    setTimeout(
+                                      () => setDeletingId(null),
+                                      500
+                                    );
                                   }
-                                },
-                                color: "red" as "red",
+                                }
                               },
-                            ]
+                              color: "red" as "red",
+                            },
+                          ]
                           : []),
                       ]}
                     />

@@ -64,8 +64,8 @@ export default function EditEmployeeModal() {
         permissions: formData.permissions || currentEmployee.permissions,
         subDepartments: formData.subDepartmentIds
           ? subDepartments.filter((subDept) =>
-              formData.subDepartmentIds?.includes(subDept.id)
-            )
+            formData.subDepartmentIds?.includes(subDept.id)
+          )
           : currentEmployee.subDepartments,
         user: {
           ...currentEmployee.user,
@@ -84,7 +84,7 @@ export default function EditEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to update employee. Please try again."
+          "Failed to update employee. Please try again."
         );
       }
     } finally {
@@ -263,9 +263,9 @@ export default function EditEmployeeModal() {
                                 formData.subDepartmentIds || [];
                               const newSubDeptIds = isSelected
                                 ? currentSubDeptIds.filter(
-                                    (subDeptId: string) =>
-                                      subDeptId !== subDept.id
-                                  )
+                                  (subDeptId: string) =>
+                                    subDeptId !== subDept.id
+                                )
                                 : [...currentSubDeptIds, subDept.id];
 
                               setFormData({
@@ -274,10 +274,9 @@ export default function EditEmployeeModal() {
                             }}
                             className={`
                               relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                              ${
-                                isSelected
-                                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                                  : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
+                              ${isSelected
+                                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                                : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
                               }
                             `}
                           >
@@ -354,7 +353,7 @@ export default function EditEmployeeModal() {
                     (permission, index) => {
                       const isSelected =
                         formData.permissions?.includes(permission) || false;
-                      const permissionLabel = permission
+                      const permissionLabel = permission == "MANAGE_ATTACHMENT_GROUPS" ? "Manage TV Content" : permission
                         .replace(/_/g, " ")
                         .toLowerCase()
                         .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -384,11 +383,10 @@ export default function EditEmployeeModal() {
                           }
                           className={`
                           relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                          ${
-                            isSelected
+                          ${isSelected
                               ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
                               : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
-                          }
+                            }
                         `}
                         >
                           <motion.span
@@ -520,54 +518,6 @@ export default function EditEmployeeModal() {
                       {errors.employeeId}
                     </p>
                   )}
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.9 }}
-                >
-                  <motion.label
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 1.0 }}
-                    htmlFor="employee-password"
-                    className="block text-sm font-medium text-slate-700 mb-2"
-                  >
-                    Set New Password
-                  </motion.label>
-                  <motion.input
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 1.1 }}
-                    whileFocus={{
-                      scale: 1.02,
-                      boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-                    }}
-                    id="employee-password"
-                    type="password"
-                    className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                    placeholder="Leave blank to keep unchanged"
-                    autoComplete="new-password"
-                    value={formData.password || ""}
-                    onChange={(e) =>
-                      handleInputChange("password", e.target.value)
-                    }
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-700">
-                      {errors.password}
-                    </p>
-                  )}
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 1.2 }}
-                    className="text-xs text-slate-500 mt-2"
-                  >
-                    The employee will need to be informed of their new password
-                    manually.
-                  </motion.p>
                 </motion.div>
               </motion.div>
             </motion.div>

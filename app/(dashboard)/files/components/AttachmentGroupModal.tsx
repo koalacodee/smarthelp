@@ -56,7 +56,7 @@ export default function AttachmentGroupModal({
         });
 
         addToast({
-          message: "Attachment group created successfully",
+          message: "TV content created successfully",
           type: "success",
         });
       } else if (attachmentGroup) {
@@ -66,7 +66,7 @@ export default function AttachmentGroupModal({
         });
 
         addToast({
-          message: "Attachment group updated successfully",
+          message: "TV content updated successfully",
           type: "success",
         });
       }
@@ -78,7 +78,7 @@ export default function AttachmentGroupModal({
     } catch (error) {
       // Failed to ${mode} attachment group:
       addToast({
-        message: `Failed to ${mode} attachment group`,
+        message: `Failed to ${mode} TV content`,
         type: "error",
       });
     } finally {
@@ -125,10 +125,10 @@ export default function AttachmentGroupModal({
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
                 <DocumentDuplicate className="w-6 h-6 text-blue-500" />
                 {mode === "create"
-                  ? "Create Attachment Group"
+                  ? "Create TV Content"
                   : mode === "edit"
-                  ? "Edit Attachment Group"
-                  : "Attachment Group"}
+                    ? "Edit TV Content"
+                    : "TV Content"}
               </h2>
               <button
                 onClick={onClose}
@@ -143,7 +143,7 @@ export default function AttachmentGroupModal({
                 <div className="space-y-6">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      Create a new attachment group by selecting files from your
+                      Create new TV content by selecting files from your
                       available attachments.
                     </p>
                   </div>
@@ -265,11 +265,10 @@ export default function AttachmentGroupModal({
                         {attachmentGroup.attachments.map((attachment) => (
                           <div
                             key={attachment.id}
-                            className={`border rounded-lg p-3 flex items-center justify-between ${
-                              selectedAttachmentIds.includes(attachment.id)
+                            className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
                                 ? "border-blue-400 bg-blue-50"
                                 : "border-slate-200"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div className="text-2xl">📄</div>
@@ -284,11 +283,10 @@ export default function AttachmentGroupModal({
                             </div>
                             <button
                               onClick={() => toggleAttachment(attachment.id)}
-                              className={`p-2 rounded-md ${
-                                selectedAttachmentIds.includes(attachment.id)
+                              className={`p-2 rounded-md ${selectedAttachmentIds.includes(attachment.id)
                                   ? "bg-red-100 text-red-600 hover:bg-red-200"
                                   : "bg-blue-100 text-blue-600 hover:bg-blue-200"
-                              }`}
+                                }`}
                             >
                               {selectedAttachmentIds.includes(attachment.id) ? (
                                 <Trash className="w-4 h-4" />
@@ -317,11 +315,10 @@ export default function AttachmentGroupModal({
                             .map((attachment) => (
                               <div
                                 key={attachment.id}
-                                className={`border rounded-lg p-3 flex items-center justify-between ${
-                                  selectedAttachmentIds.includes(attachment.id)
+                                className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
                                     ? "border-blue-400 bg-blue-50"
                                     : "border-slate-200"
-                                }`}
+                                  }`}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="text-2xl">📄</div>
@@ -338,13 +335,12 @@ export default function AttachmentGroupModal({
                                   onClick={() =>
                                     toggleAttachment(attachment.id)
                                   }
-                                  className={`p-2 rounded-md ${
-                                    selectedAttachmentIds.includes(
-                                      attachment.id
-                                    )
+                                  className={`p-2 rounded-md ${selectedAttachmentIds.includes(
+                                    attachment.id
+                                  )
                                       ? "bg-red-100 text-red-600 hover:bg-red-200"
                                       : "bg-blue-100 text-blue-600 hover:bg-blue-200"
-                                  }`}
+                                    }`}
                                 >
                                   {selectedAttachmentIds.includes(
                                     attachment.id
@@ -377,18 +373,17 @@ export default function AttachmentGroupModal({
                   isLoading ||
                   (mode === "create" && selectedAttachmentIds.length === 0)
                 }
-                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-                  isLoading ||
-                  (mode === "create" && selectedAttachmentIds.length === 0)
+                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${isLoading ||
+                    (mode === "create" && selectedAttachmentIds.length === 0)
                     ? "bg-blue-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"
-                } transition-colors`}
+                  } transition-colors`}
               >
                 {isLoading
                   ? "Saving..."
                   : mode === "create"
-                  ? "Create Group"
-                  : "Save Changes"}
+                    ? "Create Group"
+                    : "Save Changes"}
               </button>
             </div>
           </motion.div>

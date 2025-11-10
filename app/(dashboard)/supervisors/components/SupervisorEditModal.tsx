@@ -44,7 +44,7 @@ export default function SupervisorEditModal({
       try {
         const response = await DepartmentsService.getAllDepartments();
         setDepartments(response);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchDepartments();
   }, []);
@@ -116,7 +116,7 @@ export default function SupervisorEditModal({
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Operation failed. Please try again."
+          "Operation failed. Please try again."
         );
       }
     }
@@ -384,10 +384,9 @@ export default function SupervisorEditModal({
                         onClick={() => toggleCategory(department.id)}
                         className={`
                           relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                          ${
-                            isSelected
-                              ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                              : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
+                          ${isSelected
+                            ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                            : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
                           }
                         `}
                       >
@@ -460,7 +459,7 @@ export default function SupervisorEditModal({
                 >
                   {permissionOptions.map((permission, index) => {
                     const isSelected = permissions.includes(permission);
-                    const permissionLabel = permission
+                    const permissionLabel = permission == "MANAGE_ATTACHMENT_GROUPS" ? "Manage TV Content" : permission
                       .replace(/_/g, " ")
                       .toLowerCase()
                       .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -484,10 +483,9 @@ export default function SupervisorEditModal({
                         onClick={() => togglePermission(permission)}
                         className={`
                           relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                          ${
-                            isSelected
-                              ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
-                              : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
+                          ${isSelected
+                            ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
+                            : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
                           }
                         `}
                       >
