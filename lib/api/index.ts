@@ -325,6 +325,9 @@ export const TicketsService = {
   closeTicket: async (id: string) => {
     return await api.put(`/support-tickets/${id}/close`);
   },
+  deleteTicket: async (id: string) => {
+    return await api.delete(`/support-tickets/${id}`);
+  }
 };
 
 export interface UserResponse {

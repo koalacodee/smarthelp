@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
 import api, { Ticket, TicketStatus, UserResponse } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
+import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
+import { useToastStore } from "../../store/useToastStore";
 
 interface TicketActionsDropdownProps {
   ticket: Ticket;
@@ -17,6 +19,7 @@ export default function TicketActionsDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isManager = user?.role == "ADMIN" || user?.role == "SUPERVISOR";
+  const isAdmin = user?.role == "ADMIN";
   const isAllowedEmployee =
     user?.role == "EMPLOYEE" && user.permissions.includes("CLOSE_TICKETS");
 
@@ -43,7 +46,9 @@ export default function TicketActionsDropdown({
   }, []);
 
   const { setTicket } = useCurrentEditingTicketStore();
-  const { setHoveredTicket, updateStatus } = useTicketStore();
+  const { updateStatus, removeTicket } = useTicketStore();
+  const { openModal } = useConfirmationModalStore();
+  const { addToast } = useToastStore();
 
   const handleReopenTicket = async (id: string) => {
     await api.TicketsService.reopenTicket(id);
@@ -62,15 +67,43 @@ export default function TicketActionsDropdown({
     setIsOpen(false);
   };
 
+  const handleDeleteTicket = (id: string) => {
+    openModal({
+      title: "Delete Ticket",
+      message: "Are you sure you want to delete this ticket? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        await api.TicketsService.deleteTicket(id);
+        removeTicket(id);
+        setIsOpen(false);
+        addToast({
+          message: "Ticket deleted successfully",
+          type: "success",
+        });
+      },
+    });
+  };
+
   const getActions = () => {
     if (ticket.status === TicketStatus.CLOSED) {
-      return [
+      const actions = [
         {
           label: "View Details",
           onClick: () => handleViewDetails(ticket),
           className: "text-blue-600 hover:bg-blue-50",
         },
       ];
+
+      if (isAdmin) {
+        actions.push({
+          label: "Delete",
+          onClick: () => handleDeleteTicket(ticket.id),
+          className: "text-red-600 hover:bg-red-50",
+        });
+      }
+
+      return actions;
     }
 
     if (ticket.status === TicketStatus.ANSWERED) {
@@ -98,17 +131,35 @@ export default function TicketActionsDropdown({
         });
       }
 
+      if (isAdmin) {
+        actions.push({
+          label: "Delete",
+          onClick: () => handleDeleteTicket(ticket.id),
+          className: "text-red-600 hover:bg-red-50",
+        });
+      }
+
       return actions;
     }
 
     // Status is New or Seen
-    return [
+    const actions = [
       {
         label: ticket.answer ? "View / Edit Reply" : "Reply",
         onClick: () => handleViewDetails(ticket),
         className: "text-blue-600 hover:bg-blue-50",
       },
     ];
+
+    if (isAdmin) {
+      actions.push({
+        label: "Delete",
+        onClick: () => handleDeleteTicket(ticket.id),
+        className: "text-red-600 hover:bg-red-50",
+      });
+    }
+
+    return actions;
   };
 
   const actions = getActions();

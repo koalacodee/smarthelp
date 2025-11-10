@@ -9,7 +9,7 @@ export interface CreateSupervisorDto {
   permissions: SupervisorPermissions[];
 }
 
-export interface UpdateSupervisorDto extends Partial<CreateSupervisorDto> {}
+export interface UpdateSupervisorDto extends Partial<CreateSupervisorDto> { }
 
 export enum SupervisorPermissions {
   VIEW_ANALYTICS = "VIEW_ANALYTICS",
@@ -18,6 +18,7 @@ export enum SupervisorPermissions {
   VIEW_USER_ACTIVITY = "VIEW_USER_ACTIVITY",
   MANAGE_STAFF_DIRECTLY = "MANAGE_STAFF_DIRECTLY",
   MANAGE_TASKS = "MANAGE_TASKS",
+  MANAGE_ATTACHMENT_GROUPS = "MANAGE_ATTACHMENT_GROUPS"
 }
 
 export interface SupervisorsResponse {
