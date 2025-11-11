@@ -286,6 +286,17 @@ export interface TrackTicketResponse extends TicketAttachmentsResponse {
   answer?: string;
 }
 
+export interface ExportTicketsResponse {
+  shareKey: string;
+  id: string;
+  type: "CSV" | "JSON";
+  objectPath: string;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+  rows: number;
+}
+
 export const TicketsService = {
   getAllTickets: async () => {
     const response = await api.get<{
@@ -327,7 +338,12 @@ export const TicketsService = {
   },
   deleteTicket: async (id: string) => {
     return await api.delete(`/support-tickets/${id}`);
-  }
+  },
+  exportTickets: async (startDate?: string, endDate?: string) => {
+    return await api.post<{
+      data: ExportTicketsResponse;
+    }>("/support-tickets/export", { start: startDate ?? undefined, end: endDate ?? undefined }).then((res) => res.data.data);
+  },
 };
 
 export interface UserResponse {
