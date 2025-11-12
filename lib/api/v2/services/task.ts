@@ -45,6 +45,7 @@ import type {
   CreateTaskFromPresetResponse,
 } from "../models/task";
 import type { JSend } from "../models/jsend";
+import { ExportTicketsResponse } from "../..";
 
 /* =========================
    Request/Response Contracts
@@ -57,7 +58,7 @@ import type { JSend } from "../models/jsend";
 export class TaskService {
   private static instances = new WeakMap<AxiosInstance, TaskService>();
 
-  private constructor(private readonly http: AxiosInstance) {}
+  private constructor(private readonly http: AxiosInstance) { }
 
   static getInstance(http: AxiosInstance): TaskService {
     let inst = TaskService.instances.get(http);
@@ -310,6 +311,12 @@ export class TaskService {
       body
     );
     return data.data;
+  }
+
+  async exportTickets(startDate?: string, endDate?: string) {
+    return await this.http.post<{
+      data: ExportTicketsResponse;
+    }>("/tasks/export", { start: startDate ?? undefined, end: endDate ?? undefined }).then((res) => res.data.data);
   }
 }
 

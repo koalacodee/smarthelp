@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ReplyToTicketModal from "./ReplyToTicketModal";
-import { Ticket, TicketMetrics, TicketsService } from "@/lib/api";
+import { Ticket, TicketMetrics, TicketsService, UserResponse } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
 import TicketsFilters from "./TicketsFilters";
@@ -32,7 +32,15 @@ export default function TicketsPageClient({
   const [endDate, setEndDate] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportForm, setShowExportForm] = useState(false);
+  const [user, setUser] = useState<UserResponse | null>(null);
   const { addToast } = useToastStore();
+
+  // Fetch user to check admin status
+  useEffect(() => {
+    fetch("/server/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   // Initialize with server data
   useEffect(() => {
@@ -158,72 +166,74 @@ export default function TicketsPageClient({
                 </motion.p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {showExportForm && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-2"
-                >
-                  <div className="flex flex-col">
-                    <label className="text-xs text-slate-500 mb-1">Start Date (Optional)</label>
-                    <input
-                      type="date"
-                      value={startDate ?? ""}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-slate-500 mb-1">End Date (Optional)</label>
-                    <input
-                      type="date"
-                      value={endDate ?? ""}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+            {user?.role === "ADMIN" && (
+              <div className="flex items-center gap-3">
+                {showExportForm && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="flex flex-col">
+                      <label className="text-xs text-slate-500 mb-1">Start Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={startDate ?? ""}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-slate-500 mb-1">End Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={endDate ?? ""}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <button
+                      onClick={handleExport}
+                      disabled={isExporting}
+                      className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isExporting ? "Exporting..." : "Export"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowExportForm(false);
+                        setStartDate(null);
+                        setEndDate(null);
+                      }}
+                      className="px-3 py-1.5 text-slate-600 text-sm font-medium rounded-md hover:bg-slate-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </motion.div>
+                )}
+                {!showExportForm && (
                   <button
-                    onClick={handleExport}
-                    disabled={isExporting}
-                    className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setShowExportForm(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
                   >
-                    {isExporting ? "Exporting..." : "Export"}
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Export Tickets
                   </button>
-                  <button
-                    onClick={() => {
-                      setShowExportForm(false);
-                      setStartDate(null);
-                      setEndDate(null);
-                    }}
-                    className="px-3 py-1.5 text-slate-600 text-sm font-medium rounded-md hover:bg-slate-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </motion.div>
-              )}
-              {!showExportForm && (
-                <button
-                  onClick={() => setShowExportForm(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Export Tickets
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 
