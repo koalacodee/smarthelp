@@ -117,7 +117,8 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
           ticket.guestEmail
             ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
-          ticket.guestName?.toLowerCase().includes(filters.search.toLowerCase())
+          ticket.guestName?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          ticket.guestPhone?.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 

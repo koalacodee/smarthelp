@@ -33,7 +33,7 @@ export default function TicketsFilters() {
         value={filters.search}
         onChange={(e) => handleFilterChange("search", e.target.value)}
         className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
-        placeholder="Search tickets..."
+        placeholder="Search by name, email, phone, subject, or description..."
       />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
