@@ -92,6 +92,10 @@ const tabs: Tab[] = [
         label: "My Tasks",
         href: "/tasks/my-tasks",
       },
+      {
+        label: "My Delegations",
+        href: "/tasks/my-delegations",
+      },
     ],
   },
   // {
@@ -235,7 +239,20 @@ function SidebarContent({
             let filteredSubLinks = tab.subLinks;
 
             if (tab.id === "tasks") {
-              filteredSubLinks = user?.role === "SUPERVISOR" ? tab.subLinks : undefined;
+              // Filter subLinks for tasks: show all for supervisors, but filter for others
+              if (user?.role === "SUPERVISOR") {
+                filteredSubLinks = tab.subLinks;
+              } else if (user?.role === "ADMIN") {
+                // Admins see Team Tasks only
+                filteredSubLinks = tab.subLinks?.filter(
+                  (subLink) => subLink.href === "/tasks"
+                );
+              } else {
+                // Employees only see My Tasks
+                filteredSubLinks = tab.subLinks?.filter(
+                  (subLink) => subLink.href === "/tasks/my-tasks"
+                );
+              }
             } else if (tab.id === "faqsAndCategories" && tab.subLinks) {
               // Filter subLinks based on user role and permissions
               filteredSubLinks = tab.subLinks.filter((subLink) => {

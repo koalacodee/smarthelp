@@ -18,6 +18,7 @@ import { createAttachmentGroupService } from "./services/attachment-group";
 import { createPasswordResetService } from "./services/password-reset";
 import { createEmployeeDashboardService } from "./services/employee-dash";
 import { createExportFileService } from "./export-file";
+import { createTaskDelegationService } from "./services/delegations";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -35,3 +36,4 @@ export const AttachmentGroupService = createAttachmentGroupService(api);
 export const PasswordResetService = createPasswordResetService(api);
 export const EmployeeDashboardService = createEmployeeDashboardService(api);
 export const ExportFileService = createExportFileService(api);
+export const TaskDelegationService = createTaskDelegationService(api);

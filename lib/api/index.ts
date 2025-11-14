@@ -44,6 +44,7 @@ import {
   UploadMultipleFilesResponse,
   UploadSingleFileResponse,
 } from "./v2/services/shared/upload";
+import { TaskDelegationDTO, TaskDelegationSubmissionDTO } from "./v2/services/delegations";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -637,6 +638,7 @@ export interface MultipleTasksResponse extends TaskAttachmentsResponse {
 
 export interface MyTasksResponse extends TaskAttachmentsResponse {
   data: Task[];
+  delegations: TaskDelegationDTO[];
   total: number;
   canSubmitWork: boolean[];
   metrics: {
@@ -644,6 +646,7 @@ export interface MyTasksResponse extends TaskAttachmentsResponse {
     completedCount: number;
     completionPercentage: number;
   };
+  delegationAttachments: { [delegationId: string]: string[] };
 }
 
 export interface DepartmentLevelTaskData
@@ -695,7 +698,8 @@ export interface TaskSubmission {
 // Interface for the overall response
 export interface TaskSubmissionsResponse {
   taskSubmissions: TaskSubmission[];
-  attachments: Record<string, string[]>;
+  attachments: Record<string, string[]>; // Tasks and Delegation submissions attachments are merged here
+  delegationSubmissions: TaskDelegationSubmissionDTO[];
 }
 
 /**

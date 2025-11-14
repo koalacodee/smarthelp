@@ -32,6 +32,7 @@ interface TasksPageClientProps {
     completionPercentage: number;
   };
   initialTaskSubmissions?: Record<string, TaskSubmission[]>;
+  initialDelegationSubmissions?: Record<string, any[]>;
   initialSubmissionAttachments?: Record<string, string[]>;
   userRole?: string;
 }
@@ -43,6 +44,7 @@ export default function TasksPageClient({
   initialAttachments,
   initialMetrics,
   initialTaskSubmissions,
+  initialDelegationSubmissions,
   initialSubmissionAttachments,
   userRole,
 }: TasksPageClientProps) {
@@ -59,7 +61,7 @@ export default function TasksPageClient({
   const { setTaskAttachments } = useTaskAttachments();
   const { setAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
-  const { setAllTaskSubmissions, setAllSubmissionAttachments } =
+  const { setAllTaskSubmissions, setAllDelegationSubmissions, setAllSubmissionAttachments } =
     useTaskSubmissionsStore();
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -152,6 +154,9 @@ export default function TasksPageClient({
     }
     if (initialTaskSubmissions) {
       setAllTaskSubmissions(initialTaskSubmissions);
+    }
+    if (initialDelegationSubmissions) {
+      setAllDelegationSubmissions(initialDelegationSubmissions);
     }
     if (initialSubmissionAttachments) {
       setAllSubmissionAttachments(initialSubmissionAttachments);

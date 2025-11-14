@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Metadata } from "next";
-import api, {
+import {
   DepartmentsService,
   TasksService,
   TaskSubmission,
@@ -13,15 +13,12 @@ import CreateTaskFromPresetModal from "./components/CreateTaskFromPresetModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
 import { env } from "next-runtime-env";
-import { TaskService } from "@/lib/api/v2";
 
 // Add the button back to the JSX
 export const metadata: Metadata = {
   title: "Tasks | Task Management System",
   description: "Manage and track team tasks, assignments, and project progress",
 };
-
-type UserRole = "EMPLOYEE" | "ADMIN" | "SUPERVISOR";
 
 export default async function Page() {
   const cookieStore = await cookies();
@@ -44,6 +41,7 @@ export default async function Page() {
   let attachments: any = {};
   let metrics: any = null;
   let taskSubmissions: Record<string, TaskSubmission[]> = {};
+  let delegationSubmissions: Record<string, any[]> = {};
   let submissionAttachments: Record<string, string[]> = {};
 
   if (userRole === "ADMIN") {
@@ -53,7 +51,9 @@ export default async function Page() {
           data.data.map(async (task) => {
             const submissions = await TasksService.getTaskSubmissions(task.id);
             taskSubmissions[task.id] = submissions.taskSubmissions;
-            // Store submission attachments
+            delegationSubmissions[task.id] = submissions.delegationSubmissions || [];
+
+            // Store submission attachments (for both task submissions and delegation submissions)
             Object.entries(submissions.attachments).forEach(
               ([submissionId, attachmentIds]) => {
                 submissionAttachments[submissionId] = attachmentIds;
@@ -79,7 +79,9 @@ export default async function Page() {
           allTasks.map(async (task) => {
             const submissions = await TasksService.getTaskSubmissions(task.id);
             taskSubmissions[task.id] = submissions.taskSubmissions;
-            // Store submission attachments
+            delegationSubmissions[task.id] = submissions.delegationSubmissions || [];
+
+            // Store submission attachments (for both task submissions and delegation submissions)
             Object.entries(submissions.attachments).forEach(
               ([submissionId, attachmentIds]) => {
                 submissionAttachments[submissionId] = attachmentIds;
@@ -105,12 +107,12 @@ export default async function Page() {
               (empTasks.metrics?.completedCount || 0)) /
               Math.max(
                 (subTasks.metrics?.pendingCount || 0) +
-                  (empTasks.metrics?.pendingCount || 0) +
-                  (subTasks.metrics?.completedCount || 0) +
-                  (empTasks.metrics?.completedCount || 0),
+                (empTasks.metrics?.pendingCount || 0) +
+                (subTasks.metrics?.completedCount || 0) +
+                (empTasks.metrics?.completedCount || 0),
                 1
               )) *
-              100
+            100
           ),
         };
       }),
@@ -133,6 +135,7 @@ export default async function Page() {
           initialAttachments={attachments}
           initialMetrics={metrics}
           initialTaskSubmissions={taskSubmissions}
+          initialDelegationSubmissions={delegationSubmissions}
           initialSubmissionAttachments={submissionAttachments}
           userRole={userRole}
         />

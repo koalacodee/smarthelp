@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
-interface MenuOption {
+export interface MenuOption {
   label: string;
   onClick: () => void;
   color?: "green" | "red" | "blue" | "gray";
