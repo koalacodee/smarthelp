@@ -84,7 +84,7 @@ const excludedPages = [
   "/register/supervisor",
   "/register/employee",
   "/password-reset",
-  "server/me",
+  "/server/me",
 ];
 
 const extractSessionCookie = async (response: NextResponse, accessToken: string, apiUrl: string) => {
