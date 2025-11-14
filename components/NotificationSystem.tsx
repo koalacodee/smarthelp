@@ -14,6 +14,7 @@ type NotificationType =
   | "task_approved"
   | "task_rejected"
   | "task_submitted"
+  | "task_delegation_created"
   | "ticket_assigned"
   | "ticket_created"
   | "ticket_reopened"
@@ -25,13 +26,6 @@ interface AppNotification {
   title: string;
   createdAt: string;
   updatedAt: string;
-}
-
-interface NotificationResponse {
-  data: {
-    notifications: AppNotification[];
-    counts: { [key: string]: number };
-  };
 }
 
 interface NotificationSystemProps {
@@ -62,6 +56,8 @@ const generateNotificationMessage = (
       return `Your task "${title}" was rejected and requires changes.`;
     case "task_submitted":
       return `Task "${title}" has been submitted for review.`;
+    case "task_delegation_created":
+      return `A new task has been delegated: "${title}".`;
 
     // Ticket notifications
     case "ticket_assigned":
@@ -85,6 +81,7 @@ const getNotificationHref = (type: NotificationType): string => {
     case "task_approved":
     case "task_rejected":
     case "task_submitted":
+    case "task_delegation_created":
       return "/tasks";
 
     // Ticket notifications -> Tickets page
@@ -249,7 +246,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
         response;
       setCounts(fetchedCounts);
       setNotificationQueue(fetchedNotifications);
-    } catch (error) {}
+    } catch (error) { }
   }, []);
 
   // Process notification queue one by one
