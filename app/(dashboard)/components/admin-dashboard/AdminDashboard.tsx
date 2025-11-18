@@ -3,29 +3,14 @@ import {
   DashboardService,
   EmployeeRequestsService,
 } from "@/lib/api/v2";
-import DashboardCard from "./DashboardCard";
-import CheckCircle from "@/icons/CheckCircle";
-import Ticket from "@/icons/Ticket";
-import User from "@/icons/User";
-import ClipboardList from "@/icons/ClipboardList";
-import QuickActionsPanel from "./QuickActionsPanel";
-import BarChartPanel from "./BarChartPanel";
-import AnalyticsSummary from "./AnalyticsSummary";
-import RecentActivity from "./RecentActivity";
-import ExpiredAttachments from "./ExpiredAttachments";
-import AnimatedHeader from "./AnimatedHeader";
+import { DepartmentsService } from "@/lib/api";
+import AdminDashboardClient, {
+  AdminDashboardData,
+} from "./AdminDashboardClient";
 
 export default async function AdminDashboard() {
   // Fetch unified overview; if unavailable, fall back to individual calls
-  let summary: {
-    totalUsers: number;
-    activeTickets: number;
-    completedTickets: number;
-    completedTasks: number;
-    pendingTasks: number;
-    faqSatisfaction: number;
-    expiredAttachments: number;
-  } = {
+  let summary: AdminDashboardData["summary"] = {
     totalUsers: 0,
     activeTickets: 0,
     completedTickets: 0,
@@ -34,51 +19,22 @@ export default async function AdminDashboard() {
     faqSatisfaction: 0,
     expiredAttachments: 0,
   };
-  let pending = {
+  let pending: AdminDashboardData["pending"] = {
     total: 0,
-    items: [] as {
-      id: string;
-      candidateName: string | null;
-      requestedBy: { id: string; name: string } | null;
-      createdAt: string;
-    }[],
+    items: [],
   };
-  let recent = {
-    items: [] as {
-      id: string;
-      type: "task" | "ticket" | "faq" | "user" | "promotion";
-      description: string;
-      timestamp: string;
-      meta?: Record<string, any>;
-    }[],
+  let recent: AdminDashboardData["recent"] = {
+    items: [],
   };
-  let performance = {
-    series: [] as {
-      label: string;
-      tasksCompleted: number;
-      ticketsClosed: number;
-      avgFirstResponseSeconds: number;
-    }[],
+  let performance: AdminDashboardData["performance"] = {
+    series: [],
   };
-  let analyticsSummary = {
+  let analyticsSummary: AdminDashboardData["analyticsSummary"] = {
     kpis: [] as { label: string; value: string }[],
     departmentPerformance: [] as { name: string; score: number }[],
   };
-  let expiredAttachments = [] as {
-    id: string;
-    type: string;
-    filename: string;
-    originalName: string;
-    expirationDate: string;
-    userId: string | null;
-    guestId: string | null;
-    isGlobal: boolean;
-    size: number;
-    createdAt: string;
-    updatedAt: string;
-    targetId: string;
-    cloned: boolean;
-  }[];
+  let departments = [] as { id: string; name: string }[];
+  let expiredAttachments: AdminDashboardData["expiredAttachments"] = [];
 
   try {
     const overview = await DashboardService.getOverview({
@@ -94,122 +50,37 @@ export default async function AdminDashboard() {
     performance = overview.performance;
     analyticsSummary = overview.analyticsSummary;
     expiredAttachments = overview.expiredAttachments;
+    departments = await DepartmentsService.getAllDepartments();
   } catch {
-    const [s, p, r, perf, as] = await Promise.all([
+    const [s, p, r, perf, as, depts] = await Promise.all([
       DashboardService.getSummary(),
       EmployeeRequestsService.getPending({ limit: 5 }),
       ActivityService.getRecent({ limit: 10 }),
       DashboardService.getPerformance({ range: "7d" }),
       DashboardService.getAnalyticsSummary({ range: "7d" }),
+      DepartmentsService.getAllDepartments(),
     ]);
     summary = { ...s, expiredAttachments: 0 };
     pending = p as any;
     recent = r as any;
     performance = perf;
     analyticsSummary = as;
+    departments = depts;
   }
 
-  console.log(summary);
+  const initialData: AdminDashboardData = {
+    summary,
+    pending,
+    recent,
+    performance,
+    analyticsSummary,
+    expiredAttachments,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header */}
-        <AnimatedHeader />
-
-        {/* Metrics cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <DashboardCard
-            title="Total Users"
-            value={summary.totalUsers}
-            accentClassName="bg-indigo-500"
-            borderGradient="from-indigo-400 via-indigo-500 to-indigo-600"
-            iconGradient="from-indigo-50 to-indigo-100"
-            icon={<User className="h-5 w-5" />}
-            index={0}
-          />
-          <DashboardCard
-            title="Active Tickets"
-            value={summary.activeTickets}
-            accentClassName="bg-amber-500"
-            borderGradient="from-amber-400 via-yellow-500 to-amber-600"
-            iconGradient="from-amber-50 to-yellow-100"
-            icon={<Ticket className="h-5 w-5" />}
-            index={1}
-          />
-          <DashboardCard
-            title="Completed Tickets"
-            value={summary.completedTickets}
-            accentClassName="bg-amber-500"
-            borderGradient="from-amber-400 via-yellow-500 to-amber-600"
-            iconGradient="from-amber-50 to-yellow-100"
-            icon={<Ticket className="h-5 w-5" />}
-            index={2}
-          />
-          <DashboardCard
-            title="Pending Tasks"
-            value={summary.pendingTasks}
-            accentClassName="bg-blue-500"
-            borderGradient="from-blue-400 via-blue-500 to-blue-600"
-            iconGradient="from-blue-50 to-blue-100"
-            icon={<Ticket className="h-5 w-5" />}
-            index={3}
-          />
-          <DashboardCard
-            title="Completed Tasks"
-            value={summary.completedTasks}
-            accentClassName="bg-emerald-500"
-            borderGradient="from-emerald-400 via-green-500 to-emerald-600"
-            iconGradient="from-emerald-50 to-green-100"
-            icon={<CheckCircle className="h-5 w-5" />}
-            index={4}
-          />
-          <DashboardCard
-            title="FAQ Satisfaction"
-            value={`${summary.faqSatisfaction}%`}
-            accentClassName="bg-purple-500"
-            borderGradient="from-purple-400 via-purple-500 to-purple-600"
-            iconGradient="from-purple-50 to-purple-100"
-            icon={<ClipboardList className="h-5 w-5" />}
-            index={5}
-          />
-          <DashboardCard
-            title="Expired Attachments"
-            value={`${summary.expiredAttachments}`}
-            accentClassName="bg-red-500"
-            borderGradient="from-red-400 via-red-500 to-red-600"
-            iconGradient="from-red-50 to-red-100"
-            icon={<ClipboardList className="h-5 w-5" />}
-            index={6}
-          />
-        </div>
-
-        {/* Quick Actions */}
-        <QuickActionsPanel />
-
-        {/* Main grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
-            <BarChartPanel
-              title="Weekly Activity"
-              data={performance.series.map((s) => ({
-                day: s.label,
-                tasks: s.tasksCompleted,
-                tickets: s.ticketsClosed,
-                avgResp: s.avgFirstResponseSeconds,
-              }))}
-            />
-            <AnalyticsSummary
-              kpis={analyticsSummary.kpis}
-              departmentPerformance={analyticsSummary.departmentPerformance}
-            />
-            <ExpiredAttachments items={expiredAttachments} />
-          </div>
-          <div className="space-y-6">
-            <RecentActivity items={recent.items} />
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdminDashboardClient
+      initialData={initialData}
+      departments={departments}
+    />
   );
 }

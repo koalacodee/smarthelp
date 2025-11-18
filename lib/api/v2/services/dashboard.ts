@@ -66,6 +66,7 @@ export interface PerformanceSeriesPoint {
 }
 export interface GetPerformanceQuery {
   range?: string; // '7d'
+  departmentId?: string;
 }
 export interface GetPerformanceData {
   series: PerformanceSeriesPoint[];
@@ -82,6 +83,7 @@ export interface DepartmentPerformanceItem {
 }
 export interface GetAnalyticsSummaryQuery {
   range?: string; // '7d'
+  departmentId?: string;
 }
 export interface GetAnalyticsSummaryData {
   kpis: AnalyticsKpi[];
@@ -92,6 +94,7 @@ export interface GetAnalyticsSummaryData {
 export interface GetOverviewQuery {
   range?: string; // '7d'
   limit?: number; // 10
+  departmentId?: string;
 }
 export interface ExpiredAttachment {
   id: string;
@@ -151,9 +154,12 @@ export class EmployeeRequestsService {
 export class DashboardService {
   constructor(private readonly http: AxiosInstance) {}
 
-  async getSummary(): Promise<DashboardSummaryData> {
+  async getSummary(
+    query?: { departmentId?: string }
+  ): Promise<DashboardSummaryData> {
     const res = await this.http.get<JSendSuccess<DashboardSummaryData>>(
-      "/dashboard/summary"
+      "/dashboard/summary",
+      { params: { departmentId: query?.departmentId } }
     );
     return res.data.data;
   }
@@ -163,7 +169,7 @@ export class DashboardService {
   ): Promise<GetPerformanceData> {
     const res = await this.http.get<JSendSuccess<GetPerformanceData>>(
       "/dashboard/performance",
-      { params: { range: query?.range } }
+      { params: { range: query?.range, departmentId: query?.departmentId } }
     );
     return res.data.data;
   }
@@ -173,7 +179,7 @@ export class DashboardService {
   ): Promise<GetAnalyticsSummaryData> {
     const res = await this.http.get<JSendSuccess<GetAnalyticsSummaryData>>(
       "/dashboard/analytics-summary",
-      { params: { range: query?.range } }
+      { params: { range: query?.range, departmentId: query?.departmentId } }
     );
     return res.data.data;
   }
@@ -182,7 +188,11 @@ export class DashboardService {
     const res = await this.http.get<JSendSuccess<GetOverviewData>>(
       "/dashboard/overview",
       {
-        params: { range: query?.range, limit: query?.limit },
+        params: {
+          range: query?.range,
+          limit: query?.limit,
+          departmentId: query?.departmentId,
+        },
       }
     );
     return res.data.data;
