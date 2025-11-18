@@ -120,11 +120,15 @@ export default function ReplyToTicketModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to reply to ticket. Please try again."
+          "Failed to reply to ticket. Please try again."
         );
       }
     }
   };
+
+  const isTicketClosedOrAnswered =
+    ticket?.status === TicketStatus.CLOSED ||
+    ticket?.status === TicketStatus.ANSWERED;
   return (
     <AnimatePresence>
       {ticket && (
@@ -299,12 +303,11 @@ export default function ReplyToTicketModal() {
                     {ticketAttachments.map((attachment, idx) => (
                       <motion.div
                         key={`existing-${attachment.id}`}
-                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
-                          attachment.expiryDate &&
+                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${attachment.expiryDate &&
                           isExpired(new Date(attachment.expiryDate))
-                            ? "bg-red-50 border-red-200 hover:bg-red-100"
-                            : "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                        }`}
+                          ? "bg-red-50 border-red-200 hover:bg-red-100"
+                          : "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                          }`}
                         onClick={() =>
                           handlePreviewExistingAttachment(attachment)
                         }
@@ -341,125 +344,178 @@ export default function ReplyToTicketModal() {
                 </motion.div>
               )}
             </motion.div>
-            <motion.form
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.8 }}
-            >
-              <div className="space-y-6">
+            {isTicketClosedOrAnswered ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+                className="space-y-6"
+              >
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.9 }}
                 >
-                  <motion.textarea
+                  <p className="font-semibold text-sm text-slate-600 mb-2">
+                    Reply:
+                  </p>
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 1 }}
-                    whileFocus={{
-                      scale: 1.02,
-                      boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-                    }}
-                    rows={5}
-                    className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
-                    placeholder="Write your reply..."
-                    defaultValue={ticket.answer || ""}
-                    onChange={(e) => setAnswer(e.target.value)}
-                  />
-                  {errors.answer && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                      className="mt-1 text-sm text-red-700"
-                    >
-                      {errors.answer}
-                    </motion.p>
-                  )}
+                    className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200 whitespace-pre-wrap"
+                  >
+                    {ticket.answer || "No reply provided."}
+                  </motion.div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 1.1 }}
+                  className="flex justify-end"
                 >
-                  <AttachmentInput id="admin-reply-attachment" />
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.2 }}
+                    whileHover={{
+                      scale: 1.05,
+                      backgroundColor: "rgb(148 163 184)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    onClick={() => setTicket(null)}
+                  >
+                    Close
+                  </motion.button>
                 </motion.div>
+              </motion.div>
+            ) : (
+              <motion.form
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+              >
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.9 }}
+                  >
+                    <motion.textarea
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 1 }}
+                      whileFocus={{
+                        scale: 1.02,
+                        boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                      }}
+                      rows={5}
+                      className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
+                      placeholder="Write your reply..."
+                      defaultValue={ticket.answer || ""}
+                      onChange={(e) => setAnswer(e.target.value)}
+                    />
+                    {errors.answer && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                        className="mt-1 text-sm text-red-700"
+                      >
+                        {errors.answer}
+                      </motion.p>
+                    )}
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 1.1 }}
+                  >
+                    <AttachmentInput id="admin-reply-attachment" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 1.2 }}
+                    className="mt-4 flex items-start gap-4"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 1.3,
+                        ease: "backOut",
+                      }}
+                      className="flex items-center h-5 pt-0.5"
+                    >
+                      <input
+                        id="promote"
+                        className="h-4 w-4 text-blue-600 border-slate-300 rounded-md focus:ring-blue-500"
+                        type="checkbox"
+                      />
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 1.4 }}
+                      className="text-sm flex-1"
+                    >
+                      <label
+                        htmlFor="promote"
+                        className="font-medium text-slate-900"
+                      >
+                        Promote to public FAQ
+                      </label>
+                      <p className="text-xs text-slate-500">
+                        The ticket subject will be the question, and your reply
+                        will be the answer.
+                      </p>
+                    </motion.div>
+                  </motion.div>
+                </div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 1.2 }}
-                  className="mt-4 flex items-start gap-4"
+                  transition={{ duration: 0.4, delay: 1.5 }}
+                  className="mt-8 flex justify-end gap-4"
                 >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: 1.3, ease: "backOut" }}
-                    className="flex items-center h-5 pt-0.5"
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.6 }}
+                    whileHover={{
+                      scale: 1.05,
+                      backgroundColor: "rgb(148 163 184)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    onClick={() => setTicket(null)}
                   >
-                    <input
-                      id="promote"
-                      className="h-4 w-4 text-blue-600 border-slate-300 rounded-md focus:ring-blue-500"
-                      type="checkbox"
-                    />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 1.4 }}
-                    className="text-sm flex-1"
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="submit"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.7 }}
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 8px 20px -5px rgba(59, 130, 246, 0.4)",
+                      backgroundColor: "rgb(37 99 235)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    onClick={handleSubmit}
                   >
-                    <label
-                      htmlFor="promote"
-                      className="font-medium text-slate-900"
-                    >
-                      Promote to public FAQ
-                    </label>
-                    <p className="text-xs text-slate-500">
-                      The ticket subject will be the question, and your reply
-                      will be the answer.
-                    </p>
-                  </motion.div>
+                    Send Reply
+                  </motion.button>
                 </motion.div>
-              </div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 1.5 }}
-                className="mt-8 flex justify-end gap-4"
-              >
-                <motion.button
-                  type="button"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 1.6 }}
-                  whileHover={{
-                    scale: 1.05,
-                    backgroundColor: "rgb(148 163 184)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  onClick={() => setTicket(null)}
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  type="submit"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 1.7 }}
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 8px 20px -5px rgba(59, 130, 246, 0.4)",
-                    backgroundColor: "rgb(37 99 235)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  onClick={handleSubmit}
-                >
-                  Send Reply
-                </motion.button>
-              </motion.div>
-            </motion.form>
+              </motion.form>
+            )}
           </motion.div>
         </motion.div>
       )}
