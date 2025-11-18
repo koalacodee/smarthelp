@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeService } from "@/lib/api/v2";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 interface InvitationRequestsListProps {
   invitationRequests: any[];
@@ -44,6 +45,39 @@ export default function InvitationRequestsList({
         message:
           error?.response?.data?.message ||
           "Failed to accept invitation. Please try again.",
+      });
+    } finally {
+      setLoadingTokens((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(token);
+        return newSet;
+      });
+    }
+  };
+
+  const handleDeleteInvitation = async (token: string, fullName: string) => {
+    setLoadingTokens((prev) => new Set(prev).add(token));
+
+    try {
+      await EmployeeService.deleteEmployeeInvitation(token);
+
+      // Remove the invitation from the list
+      const updatedRequests = invitationRequests.filter(
+        (request) => request.token !== token
+      );
+
+      onInvitationUpdate(updatedRequests);
+
+      addToast({
+        type: "success",
+        message: `Invitation for ${fullName} has been deleted successfully!`,
+      });
+    } catch (error: any) {
+      addToast({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Failed to delete invitation. Please try again.",
       });
     } finally {
       setLoadingTokens((prev) => {
@@ -233,14 +267,14 @@ export default function InvitationRequestsList({
                 </motion.div>
               </div>
 
-              {userRole === "ADMIN" &&
-                request.status === "PENDING_APPROVAL" && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
-                    className="ml-4"
-                  >
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+                className="ml-4 flex items-center gap-2"
+              >
+                {userRole === "ADMIN" &&
+                  request.status === "PENDING_APPROVAL" && (
                     <motion.button
                       whileHover={{
                         scale: 1.05,
@@ -295,8 +329,18 @@ export default function InvitationRequestsList({
                         </motion.span>
                       )}
                     </motion.button>
-                  </motion.div>
-                )}
+                  )}
+                <ThreeDotMenu
+                  options={[
+                    {
+                      label: "Delete Invitation",
+                      onClick: () =>
+                        handleDeleteInvitation(request.token, request.fullName),
+                      color: "red",
+                    },
+                  ]}
+                />
+              </motion.div>
             </motion.div>
           ))}
         </AnimatePresence>

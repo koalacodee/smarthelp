@@ -6,7 +6,7 @@ import { SubDepartment } from "@/types";
    Request/Response Contracts
    ========================= */
 
-export interface UUID extends String {}
+export interface UUID extends String { }
 
 export enum EmployeePermissionsEnum {
   HANDLE_TICKETS = "HANDLE_TICKETS",
@@ -235,7 +235,7 @@ export interface CanDeleteEmployeeResponse {
 export class EmployeeService {
   private static instances = new WeakMap<AxiosInstance, EmployeeService>();
 
-  private constructor(private readonly http: AxiosInstance) {}
+  private constructor(private readonly http: AxiosInstance) { }
 
   static getInstance(http: AxiosInstance): EmployeeService {
     let inst = EmployeeService.instances.get(http);
@@ -387,6 +387,11 @@ export class EmployeeService {
       JSend<GetEmployeesByPermissionsResponse>
     >("/employees/by-permissions", body);
     return data.data;
+  }
+
+  // DELETE /employees/invitation/:token - Delete employee invitation
+  async deleteEmployeeInvitation(token: string): Promise<void> {
+    return await this.http.delete(`/employees/invitation/${token}`)
   }
 }
 

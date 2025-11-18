@@ -279,6 +279,12 @@ export class SupervisorInvitationService {
     );
     return res.data.data;
   }
+
+  async deleteInvitation(
+    token: string
+  ): Promise<void> {
+    return await this.http.delete(`/supervisor/invitations/${token}`)
+  }
 }
 
 /* ========== Factories ========== */

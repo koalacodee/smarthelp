@@ -10,9 +10,11 @@ import { useSupervisorStore } from "@/lib/store/useSupervisorStore";
 import { useCurrentEditingSupervisorStore } from "../store/useCurrentEditingSupervisorStore";
 import { useSupervisorInvitationsStore } from "../store/useSupervisorInvitationsStore";
 import { SupervisorsService } from "@/lib/api/index";
-import { SupervisorInvitationStatus } from "@/lib/api/v2/services/supervisor";
+import { SupervisorInvitationService } from "@/lib/api/v2";
 import { env } from "next-runtime-env";
-import { Datum as Supervisor } from "@/lib/api/supervisors";
+import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
+import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import { SupervisorInvitationStatus } from "@/lib/api/v2/services/supervisor";
 
 interface SupervisorsPageClientProps {
   initialSupervisors: any[];
@@ -44,9 +46,11 @@ export default function SupervisorsPageClient({
     isDelegating,
     setIsDelegating,
   } = useCurrentEditingSupervisorStore();
+  const { addToast } = useToastStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [deletingTokens, setDeletingTokens] = useState<Set<string>>(new Set());
 
   // Initialize with server data
   useEffect(() => {
@@ -59,7 +63,40 @@ export default function SupervisorsPageClient({
       .then((data) => {
         setSupervisors(data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
+  };
+
+  const handleDeleteInvitation = async (token: string, name: string) => {
+    setDeletingTokens((prev) => new Set(prev).add(token));
+
+    try {
+      await SupervisorInvitationService.deleteInvitation(token);
+
+      // Remove the invitation from the list
+      const updatedInvitations = invitations.filter(
+        (invitation) => invitation.token !== token
+      );
+
+      setInvitations(updatedInvitations);
+
+      addToast({
+        type: "success",
+        message: `Invitation for ${name} has been deleted successfully!`,
+      });
+    } catch (error: any) {
+      addToast({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Failed to delete invitation. Please try again.",
+      });
+    } finally {
+      setDeletingTokens((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(token);
+        return newSet;
+      });
+    }
   };
 
   const filteredSupervisors = supervisors.filter((supervisor) => {
@@ -479,13 +516,12 @@ export default function SupervisorsPageClient({
                   >
                     <motion.span
                       whileHover={{ scale: 1.1 }}
-                      className={`px-4 py-2 text-sm font-bold rounded-xl shadow-lg ${
-                        invitation.status === "pending"
-                          ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
-                          : invitation.status === "completed"
+                      className={`px-4 py-2 text-sm font-bold rounded-xl shadow-lg ${invitation.status === "pending"
+                        ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                        : invitation.status === "completed"
                           ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white"
                           : "bg-gradient-to-r from-red-400 to-pink-500 text-white"
-                      }`}
+                        }`}
                     >
                       {invitation.status.toUpperCase()}
                     </motion.span>
@@ -502,6 +538,19 @@ export default function SupervisorsPageClient({
                         {new Date(invitation.expiresAt).toLocaleDateString()}
                       </p>
                     </motion.div>
+                    <ThreeDotMenu
+                      options={[
+                        {
+                          label: "Delete Invitation",
+                          onClick: () =>
+                            handleDeleteInvitation(
+                              invitation.token,
+                              invitation.name
+                            ),
+                          color: "red",
+                        },
+                      ]}
+                    />
                   </motion.div>
                 </motion.div>
               ))}
