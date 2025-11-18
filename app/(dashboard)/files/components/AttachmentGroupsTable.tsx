@@ -86,6 +86,12 @@ export default function AttachmentGroupsTable({
               </th>
               <th
                 scope="col"
+                className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              >
+                Expires
+              </th>
+              <th
+                scope="col"
                 className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
                 Actions
@@ -144,6 +150,31 @@ export default function AttachmentGroupsTable({
                       {new Date(group.createdAt).toLocaleTimeString()}
                     </p>
                   </div>
+                </td>
+                <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600">
+                  {group.expiresAt ? (
+                    <div>
+                      <p
+                        className={`font-medium ${new Date(group.expiresAt) <
+                          new Date()
+                          ? "text-red-600"
+                          : "text-slate-800"
+                          }`}
+                      >
+                        {new Date(group.expiresAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(group.expiresAt).toLocaleTimeString()}
+                        {new Date(group.expiresAt) < new Date() && (
+                          <span className="ml-1 font-semibold text-red-600">
+                            (Expired)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-slate-400 text-xs">No expiration</span>
+                  )}
                 </td>
                 <td className="px-8 py-5 whitespace-nowrap text-center text-sm font-medium">
                   <div className="flex items-center justify-center">

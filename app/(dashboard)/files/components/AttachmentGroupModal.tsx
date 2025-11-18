@@ -34,6 +34,7 @@ export default function AttachmentGroupModal({
     []
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [expiresAtInput, setExpiresAtInput] = useState("");
   const { addToast } = useToastStore();
 
   useEffect(() => {
@@ -41,19 +42,30 @@ export default function AttachmentGroupModal({
       setSelectedAttachmentIds(
         attachmentGroup.attachments.map((att) => att.id)
       );
+      if (attachmentGroup.expiresAt) {
+        const date = new Date(attachmentGroup.expiresAt);
+        setExpiresAtInput(date.toISOString().slice(0, 16));
+      } else {
+        setExpiresAtInput("");
+      }
     } else {
       setSelectedAttachmentIds([]);
+      setExpiresAtInput("");
     }
   }, [attachmentGroup]);
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      const payload = {
+        attachmentIds: selectedAttachmentIds,
+        ...(expiresAtInput
+          ? { expiresAt: new Date(expiresAtInput) }
+          : {}),
+      };
       if (mode === "create") {
         // Create new attachment group
-        await AttachmentGroupService.createAttachmentGroup({
-          attachmentIds: selectedAttachmentIds,
-        });
+        await AttachmentGroupService.createAttachmentGroup(payload);
 
         addToast({
           message: "TV content created successfully",
@@ -61,9 +73,10 @@ export default function AttachmentGroupModal({
         });
       } else if (attachmentGroup) {
         // Update existing attachment group
-        await AttachmentGroupService.updateAttachmentGroup(attachmentGroup.id, {
-          attachmentIds: selectedAttachmentIds,
-        });
+        await AttachmentGroupService.updateAttachmentGroup(
+          attachmentGroup.id,
+          payload
+        );
 
         addToast({
           message: "TV content updated successfully",
@@ -145,6 +158,27 @@ export default function AttachmentGroupModal({
                     <p className="text-sm text-blue-700">
                       Create new TV content by selecting files from your
                       available attachments.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="attachment-group-expiration"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Expiration Date (optional)
+                    </label>
+                    <input
+                      id="attachment-group-expiration"
+                      type="datetime-local"
+                      value={expiresAtInput}
+                      onChange={(event) =>
+                        setExpiresAtInput(event.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                    <p className="text-xs text-slate-500">
+                      Leave empty to keep this group available indefinitely.
                     </p>
                   </div>
 
@@ -252,6 +286,45 @@ export default function AttachmentGroupModal({
                           {attachmentGroup.ips.length} IP addresses
                         </p>
                       </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-700">
+                          Expires At:
+                        </p>
+                        <p
+                          className={`text-sm ${attachmentGroup.expiresAt &&
+                            new Date(attachmentGroup.expiresAt) < new Date()
+                            ? "text-red-600 font-semibold"
+                            : "text-slate-600"
+                            }`}
+                        >
+                          {attachmentGroup.expiresAt
+                            ? new Date(
+                              attachmentGroup.expiresAt
+                            ).toLocaleString()
+                            : "No expiration"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="attachment-group-expiration-edit"
+                        className="text-sm font-medium text-slate-700"
+                      >
+                        Update Expiration Date
+                      </label>
+                      <input
+                        id="attachment-group-expiration-edit"
+                        type="datetime-local"
+                        value={expiresAtInput}
+                        onChange={(event) =>
+                          setExpiresAtInput(event.target.value)
+                        }
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <p className="text-xs text-slate-500">
+                        Leave empty to remove the expiration date.
+                      </p>
                     </div>
 
                     <div className="space-y-3">
@@ -266,8 +339,8 @@ export default function AttachmentGroupModal({
                           <div
                             key={attachment.id}
                             className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
-                                ? "border-blue-400 bg-blue-50"
-                                : "border-slate-200"
+                              ? "border-blue-400 bg-blue-50"
+                              : "border-slate-200"
                               }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
@@ -284,8 +357,8 @@ export default function AttachmentGroupModal({
                             <button
                               onClick={() => toggleAttachment(attachment.id)}
                               className={`p-2 rounded-md ${selectedAttachmentIds.includes(attachment.id)
-                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
                                 }`}
                             >
                               {selectedAttachmentIds.includes(attachment.id) ? (
@@ -316,8 +389,8 @@ export default function AttachmentGroupModal({
                               <div
                                 key={attachment.id}
                                 className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
-                                    ? "border-blue-400 bg-blue-50"
-                                    : "border-slate-200"
+                                  ? "border-blue-400 bg-blue-50"
+                                  : "border-slate-200"
                                   }`}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -338,8 +411,8 @@ export default function AttachmentGroupModal({
                                   className={`p-2 rounded-md ${selectedAttachmentIds.includes(
                                     attachment.id
                                   )
-                                      ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                      : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200"
                                     }`}
                                 >
                                   {selectedAttachmentIds.includes(
@@ -374,9 +447,9 @@ export default function AttachmentGroupModal({
                   (mode === "create" && selectedAttachmentIds.length === 0)
                 }
                 className={`px-4 py-2 rounded-md text-sm font-medium text-white ${isLoading ||
-                    (mode === "create" && selectedAttachmentIds.length === 0)
-                    ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                  (mode === "create" && selectedAttachmentIds.length === 0)
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
                   } transition-colors`}
               >
                 {isLoading

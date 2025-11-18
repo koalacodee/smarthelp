@@ -33,6 +33,7 @@ export interface AttachmentGroup {
   attachments: Attachment[];
   createdAt: Date;
   updatedAt: Date;
+  expiresAt?: Date;
 }
 
 /* =========================
@@ -41,6 +42,7 @@ export interface AttachmentGroup {
 
 export interface CreateAttachmentGroupRequest {
   attachmentIds: UUID[];
+  expiresAt?: Date;
 }
 
 export interface CreateAttachmentGroupResponse {
@@ -51,7 +53,7 @@ export interface GetAttachmentGroupByKeyResponse {
   attachments: Attachment[];
 }
 
-export interface GetAttachmentGroupDetailsResponse extends AttachmentGroup {}
+export interface GetAttachmentGroupDetailsResponse extends AttachmentGroup { }
 
 export interface GetMyAttachmentGroupsRequest {
   limit?: number;
@@ -66,6 +68,7 @@ export interface GetMyAttachmentGroupsResponse {
 
 export interface UpdateAttachmentGroupRequest {
   attachmentIds: UUID[];
+  expiresAt?: Date;
 }
 
 export interface UpdateAttachmentGroupResponse {
@@ -90,7 +93,7 @@ export class AttachmentGroupService {
     AttachmentGroupService
   >();
 
-  private constructor(private readonly http: AxiosInstance) {}
+  private constructor(private readonly http: AxiosInstance) { }
 
   static getInstance(http: AxiosInstance): AttachmentGroupService {
     let inst = AttachmentGroupService.instances.get(http);
