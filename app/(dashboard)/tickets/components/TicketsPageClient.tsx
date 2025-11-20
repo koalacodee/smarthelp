@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import ReplyToTicketModal from "./ReplyToTicketModal";
-import { Ticket, TicketMetrics, TicketsService, UserResponse } from "@/lib/api";
+import {
+  Ticket,
+  TicketMetrics,
+  TicketsService,
+  UserResponse,
+  TicketStatus,
+} from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
 import TicketsFilters from "./TicketsFilters";
@@ -13,19 +19,22 @@ import { ExportFileService } from "@/lib/api/v2";
 import { env } from "next-runtime-env";
 import { useToastStore } from "../../store/useToastStore";
 import api from "@/lib/api";
+import { Department } from "@/lib/api/departments";
 
 interface TicketsPageClientProps {
   initialTickets: Ticket[];
   initialAttachments: { [ticketId: string]: string[] };
   initialMetrics: TicketMetrics;
+  departments: Department[];
 }
 
 export default function TicketsPageClient({
   initialTickets,
   initialAttachments,
   initialMetrics,
+  departments,
 }: TicketsPageClientProps) {
-  const { filteredTickets, setTickets } = useTicketStore();
+  const { tickets, setTickets } = useTicketStore();
   const { setAttachments } = useAttachmentsStore();
   const [metrics, setMetrics] = useState<TicketMetrics>(initialMetrics);
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -33,6 +42,13 @@ export default function TicketsPageClient({
   const [isExporting, setIsExporting] = useState(false);
   const [showExportForm, setShowExportForm] = useState(false);
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isFetchingTickets, setIsFetchingTickets] = useState(false);
+  const latestStatusRef = useRef("");
+  const latestDepartmentRef = useRef("");
+  const didMountSearchRef = useRef(false);
   const { addToast } = useToastStore();
 
   // Fetch user to check admin status
@@ -47,6 +63,74 @@ export default function TicketsPageClient({
     setTickets(initialTickets);
     setAttachments("ticket", initialAttachments);
   }, [initialTickets, initialAttachments, setTickets, setAttachments]);
+
+  const fetchTickets = useCallback(
+    async (statusValue: string, departmentValue: string, searchValue: string) => {
+      setIsFetchingTickets(true);
+      try {
+        const response = await TicketsService.getAllTickets(
+          statusValue ? (statusValue as TicketStatus) : undefined,
+          departmentValue || undefined,
+          searchValue || undefined
+        );
+
+        setTickets(response.tickets);
+        setAttachments("ticket", response.attachments ?? {});
+        setMetrics({
+          totalTickets: response.metrics.totalTickets,
+          pendingTickets: response.metrics.pendingTickets,
+          answeredTickets: response.metrics.answeredTickets,
+          closedTickets: response.metrics.closedTickets,
+        });
+      } catch (error) {
+        addToast({
+          message:
+            "Failed to fetch tickets for the selected filters. Please try again.",
+          type: "error",
+        });
+      } finally {
+        setIsFetchingTickets(false);
+      }
+    },
+    [addToast, setAttachments, setTickets]
+  );
+
+  useEffect(() => {
+    latestStatusRef.current = statusFilter;
+  }, [statusFilter]);
+
+  useEffect(() => {
+    latestDepartmentRef.current = departmentFilter;
+  }, [departmentFilter]);
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value);
+    latestStatusRef.current = value;
+    fetchTickets(value, departmentFilter, searchTerm);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setDepartmentFilter(value);
+    latestDepartmentRef.current = value;
+    fetchTickets(statusFilter, value, searchTerm);
+  };
+
+  useEffect(() => {
+    if (!didMountSearchRef.current) {
+      didMountSearchRef.current = true;
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      fetchTickets(
+        latestStatusRef.current,
+        latestDepartmentRef.current,
+        searchTerm
+      );
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, fetchTickets]);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -161,8 +245,8 @@ export default function TicketsPageClient({
                   transition={{ duration: 0.4, delay: 0.3 }}
                   className="text-sm text-slate-600"
                 >
-                  {filteredTickets.length} ticket
-                  {filteredTickets.length !== 1 ? "s" : ""} available
+                  {tickets.length} ticket
+                  {tickets.length !== 1 ? "s" : ""} available
                 </motion.p>
               </div>
             </div>
@@ -270,7 +354,16 @@ export default function TicketsPageClient({
               }}
               className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
             >
-              <TicketsFilters />
+              <TicketsFilters
+                search={searchTerm}
+                status={statusFilter}
+                department={departmentFilter}
+                departments={departments}
+                isLoading={isFetchingTickets}
+                onSearchChange={setSearchTerm}
+                onStatusChange={handleStatusChange}
+                onDepartmentChange={handleDepartmentChange}
+              />
             </motion.div>
           </div>
 
@@ -285,7 +378,16 @@ export default function TicketsPageClient({
             }}
             className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
           >
-            <TicketsList tickets={filteredTickets} />
+            {isFetchingTickets ? (
+              <div className="flex flex-col items-center justify-center py-24">
+                <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+                <p className="mt-4 text-sm text-slate-500">
+                  Loading tickets...
+                </p>
+              </div>
+            ) : (
+              <TicketsList tickets={tickets} />
+            )}
           </motion.div>
         </motion.div>
 

@@ -299,10 +299,16 @@ export interface ExportTicketsResponse {
 }
 
 export const TicketsService = {
-  getAllTickets: async () => {
+  getAllTickets: async (status?: TicketStatus, departmentId?: string, search?: string) => {
     const response = await api.get<{
       data: SupportTicketsResponse;
-    }>("/support-tickets");
+    }>("/support-tickets", {
+      params: {
+        status,
+        departmentId,
+        search,
+      },
+    });
 
     return response.data.data;
   },

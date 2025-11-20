@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TicketsService, TicketMetrics } from "@/lib/api";
+import { TicketsService, TicketMetrics, DepartmentsService } from "@/lib/api";
 import TicketsPageClient from "./components/TicketsPageClient";
 
 export const metadata: Metadata = {
@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const response = await TicketsService.getAllTickets();
+  const [response, departments] = await Promise.all([
+    TicketsService.getAllTickets(),
+    DepartmentsService.getAllDepartments(),
+  ]);
 
   // Calculate metrics
   const totalTickets = response.metrics.totalTickets;
@@ -29,6 +32,7 @@ export default async function Page() {
       initialTickets={response.tickets}
       initialAttachments={response.attachments}
       initialMetrics={metrics}
+      departments={departments}
     />
   );
 }
