@@ -18,6 +18,7 @@ import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
 import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
+import User from "@/icons/User";
 import UserInfo from "./UserInfo";
 import { UserResponse } from "@/lib/api";
 
@@ -170,6 +171,13 @@ const tabs: Tab[] = [
     icon: <DocumentDuplicate className={ICON_SIZE} />,
     href: "/files",
     allowed: (r, p) => true, // Allow all users to access their files
+  },
+  {
+    id: "profile",
+    label: "My Profile",
+    icon: <User className={ICON_SIZE} />,
+    href: "/profile",
+    allowed: (r, p) => true, // Allow all users to access their profile
   },
 ];
 

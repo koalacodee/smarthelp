@@ -7,7 +7,7 @@ export interface JSendSuccess<T> {
 
 export interface JSendFail {
   status: "fail";
-  data: Record<string, unknown>;
+  data: { details: { field: string; message: string }[] };
 }
 
 export interface JSendError {
@@ -19,4 +19,4 @@ export interface JSendError {
 
 // If your API always returns success in this layer, alias to success only.
 // Otherwise, you can widen to JSendSuccess<T> | JSendFail | JSendError
-export type JSend<T> = JSendSuccess<T>;
+export type JSend<T> = JSendSuccess<T> | JSendFail;

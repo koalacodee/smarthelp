@@ -51,11 +51,11 @@ export interface GetProfilePictureData {
 
 /* ========== Services ========== */
 export class ProfilePictureService {
-  constructor(private readonly http: AxiosInstance) {}
+  constructor(private readonly http: AxiosInstance) { }
 
-  async generateUploadKey(userId: string): Promise<GenerateUploadKeyData> {
-    const res = await this.http.get<JSendSuccess<GenerateUploadKeyData>>(
-      `/profile/pictures/upload-key/${userId}`
+  async generateUploadKey(): Promise<GenerateUploadKeyData> {
+    const res = await this.http.post<JSendSuccess<GenerateUploadKeyData>>(
+      `/profile/pictures/generate-upload-key`
     );
     return res.data.data;
   }
