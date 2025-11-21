@@ -10,7 +10,7 @@ import {
 import { Question, User, VehicleLicenseStatus } from "./types";
 import { getCookie, setCookie } from "./cookies";
 import { DeepPartial } from "react-hook-form";
-import { CreateTaskDto, TaskData } from "./tasks";
+import { CreateTaskDto, TaskData, TaskStatus } from "./tasks";
 import { Task, Datum } from "./tasks";
 import {
   CreateDepartmentInputDto,
@@ -251,7 +251,6 @@ export interface ActivePromotion {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  // أضف أي حقل تاني موجود في جدول promotions
 }
 
 // ------------------ 5. Aggregated Result ------------------
@@ -725,21 +724,53 @@ export interface RejectTaskSubmissionRequest {
 }
 
 export const TasksService = {
-  getDepartmentLevel: async () => {
+  getDepartmentLevel: async (status?: TaskStatus, priority?: "LOW" | "MEDIUM" | "HIGH", search?: string, departmentId?: string) => {
     const response = await api.get<{
       data: DepartmentLevelTaskData;
-    }>("/tasks/admin/department-level");
+    }>("/tasks/admin/department-level", {
+      params: {
+        status,
+        priority,
+        search,
+        departmentId,
+      },
+    });
     return response.data.data;
   },
-  getSubDepartmentLevel: async () => {
+  getSubDepartmentLevel: async (
+    status?: TaskStatus,
+    priority?: "LOW" | "MEDIUM" | "HIGH",
+    search?: string,
+    departmentId?: string
+  ) => {
     const response = await api.get<{
       data: SubDepartmentLevelTaskData;
-    }>("/tasks/supervisor/sub-department");
+    }>("/tasks/supervisor/sub-department", {
+      params: {
+        status,
+        priority,
+        search,
+        departmentId,
+      },
+    });
     return response.data.data;
   },
-  getEmployeeLevel: async () => {
+  getEmployeeLevel: async (
+    status?: TaskStatus,
+    priority?: "LOW" | "MEDIUM" | "HIGH",
+    search?: string,
+    departmentId?: string
+  ) => {
     const response = await api.get<{ data: EmployeeLevelTaskData }>(
-      "/tasks/supervisor/employee-level"
+      "/tasks/supervisor/employee-level",
+      {
+        params: {
+          status,
+          priority,
+          search,
+          departmentId,
+        },
+      }
     );
     return response.data.data;
   },

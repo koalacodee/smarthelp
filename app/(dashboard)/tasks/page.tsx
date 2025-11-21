@@ -69,7 +69,7 @@ export default async function Page() {
     ]);
     departments = fetchedDepartments;
   } else if (userRole === "SUPERVISOR") {
-    const [_, fetchedSubDepartments] = await Promise.all([
+    const [_, fetchedSubDepartments, fetchedDepartments] = await Promise.all([
       Promise.all([
         TasksService.getSubDepartmentLevel(),
         TasksService.getEmployeeLevel(),
@@ -117,17 +117,15 @@ export default async function Page() {
         };
       }),
       DepartmentsService.getAllSubDepartments(),
+      DepartmentsService.getAllDepartments(),
     ]);
     subDepartments = fetchedSubDepartments;
+    departments = fetchedDepartments;
   }
 
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-foreground">Team Tasks</h2>
-        </div>
-
         <TasksPageClient
           initialTasks={tasks}
           initialDepartments={departments}

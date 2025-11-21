@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import TeamTaskCard from "./TeamTaskCard";
 import TeamTasksDashboard from "./TeamTasksDashboard";
@@ -12,7 +12,8 @@ import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
 import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
-import { FileService } from "@/lib/api";
+import { FileService, TasksService } from "@/lib/api";
+import { TaskStatus } from "@/lib/api/tasks";
 import { TaskSubmission } from "@/lib/api";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { TaskService } from "@/lib/api/v2";
@@ -67,7 +68,14 @@ export default function TasksPageClient({
   const [endDate, setEndDate] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportForm, setShowExportForm] = useState(false);
+  const [metrics, setMetrics] = useState(initialMetrics);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isFetchingTasks, setIsFetchingTasks] = useState(false);
   const { addToast } = useToastStore();
+  const isInitialMount = useRef(true);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -163,8 +171,172 @@ export default function TasksPageClient({
     }
   }, []); // Empty dependency array - only run once on mount
 
-  const handleFilterChange = (newFilters: typeof filters) => {
-    setFilters(newFilters);
+  const fetchTasks = useCallback(
+    async (
+      statusValue: string,
+      priorityValue: string,
+      searchValue: string,
+      departmentValue: string
+    ) => {
+      setIsFetchingTasks(true);
+      try {
+        let response: any;
+        let allTasks: any[] = [];
+        let allAttachments: any = {};
+        let combinedMetrics: any = null;
+
+        if (userRole === "ADMIN") {
+          response = await TasksService.getDepartmentLevel(
+            statusValue ? (statusValue as TaskStatus) : undefined,
+            priorityValue
+              ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
+              : undefined,
+            searchValue || undefined,
+            departmentValue || undefined
+          );
+          allTasks = response.data;
+          allAttachments = response.attachments;
+          combinedMetrics = response.metrics;
+        } else if (userRole === "SUPERVISOR") {
+          const [subTasks, empTasks] = await Promise.all([
+            TasksService.getSubDepartmentLevel(
+              statusValue ? (statusValue as TaskStatus) : undefined,
+              priorityValue
+                ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
+                : undefined,
+              searchValue || undefined,
+              departmentValue || undefined
+            ),
+            TasksService.getEmployeeLevel(
+              statusValue ? (statusValue as TaskStatus) : undefined,
+              priorityValue
+                ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
+                : undefined,
+              searchValue || undefined,
+              departmentValue || undefined
+            ),
+          ]);
+
+          allTasks = [...subTasks.data, ...empTasks.data];
+          allAttachments = {
+            ...(subTasks.attachments || {}),
+            ...(empTasks.attachments || {}),
+          };
+          combinedMetrics = {
+            pendingCount:
+              (subTasks.metrics?.pendingCount || 0) +
+              (empTasks.metrics?.pendingCount || 0),
+            completedCount:
+              (subTasks.metrics?.completedCount || 0) +
+              (empTasks.metrics?.completedCount || 0),
+            completionPercentage: Math.round(
+              (((subTasks.metrics?.completedCount || 0) +
+                (empTasks.metrics?.completedCount || 0)) /
+                Math.max(
+                  (subTasks.metrics?.pendingCount || 0) +
+                  (empTasks.metrics?.pendingCount || 0) +
+                  (subTasks.metrics?.completedCount || 0) +
+                  (empTasks.metrics?.completedCount || 0),
+                  1
+                )) *
+              100
+            ),
+          };
+        }
+
+        // Fetch submissions for all tasks
+        const submissions: Record<string, TaskSubmission[]> = {};
+        const delegationSubs: Record<string, any[]> = {};
+        const submissionAtts: Record<string, string[]> = {};
+
+        await Promise.all(
+          allTasks.map(async (task) => {
+            const taskSubs = await TasksService.getTaskSubmissions(task.id);
+            submissions[task.id] = taskSubs.taskSubmissions;
+            delegationSubs[task.id] = taskSubs.delegationSubmissions || [];
+            Object.entries(taskSubs.attachments).forEach(
+              ([submissionId, attachmentIds]) => {
+                submissionAtts[submissionId] = attachmentIds;
+              }
+            );
+          })
+        );
+
+        setTasks(allTasks);
+        setTaskAttachments(allAttachments);
+        setAttachments("task", allAttachments);
+        setAllTaskSubmissions(submissions);
+        setAllDelegationSubmissions(delegationSubs);
+        setAllSubmissionAttachments(submissionAtts);
+        if (combinedMetrics) {
+          setMetrics(combinedMetrics);
+        }
+
+        // Prefill metadata cache
+        const allIds: string[] = Object.values(allAttachments)
+          .flat()
+          .filter(Boolean) as string[];
+        if (allIds.length > 0) {
+          Promise.all(
+            allIds.map((id) =>
+              FileService.getAttachmentMetadata(id)
+                .then((m) => setMetadata(id, m))
+                .catch(() => null)
+            )
+          );
+        }
+      } catch (error) {
+        addToast({
+          message:
+            "Failed to fetch tasks for the selected filters. Please try again.",
+          type: "error",
+        });
+      } finally {
+        setIsFetchingTasks(false);
+      }
+    },
+    [
+      userRole,
+      addToast,
+      setTaskAttachments,
+      setAttachments,
+      setAllTaskSubmissions,
+      setAllDelegationSubmissions,
+      setAllSubmissionAttachments,
+      setMetadata,
+    ]
+  );
+
+  // Debounced search effect - only fetch when filters actually change (not on initial mount)
+  useEffect(() => {
+    // Skip fetch on initial mount since we already have initialTasks
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchTasks(statusFilter, priorityFilter, searchTerm, departmentFilter);
+    }, 400);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, statusFilter, priorityFilter, departmentFilter]);
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  const handlePriorityChange = (value: string) => {
+    setPriorityFilter(value);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setDepartmentFilter(value);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
   };
 
   return (
@@ -227,8 +399,8 @@ export default function TasksPageClient({
                       transition={{ duration: 0.4, delay: 0.3 }}
                       className="text-sm text-slate-600"
                     >
-                      {filteredTasks.length} task
-                      {filteredTasks.length !== 1 ? "s" : ""} available
+                      {tasks.length} task
+                      {tasks.length !== 1 ? "s" : ""} available
                     </motion.p>
                   </div>
                 </div>
@@ -312,7 +484,7 @@ export default function TasksPageClient({
               {/* Left Column - Dashboard and Filters */}
               <div className="space-y-6">
                 {/* Dashboard */}
-                {initialMetrics && (
+                {metrics && (
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -325,9 +497,9 @@ export default function TasksPageClient({
                   >
                     <TeamTasksDashboard
                       total={tasks.length}
-                      completedCount={initialMetrics.completedCount}
-                      pendingCount={initialMetrics.pendingCount}
-                      completionPercentage={initialMetrics.completionPercentage}
+                      completedCount={metrics.completedCount}
+                      pendingCount={metrics.pendingCount}
+                      completionPercentage={metrics.completionPercentage}
                     />
                   </motion.div>
                 )}
@@ -343,7 +515,18 @@ export default function TasksPageClient({
                   }}
                   className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
                 >
-                  <TeamTasksFilters onFilterChange={handleFilterChange} />
+                  <TeamTasksFilters
+                    search={searchTerm}
+                    status={statusFilter}
+                    priority={priorityFilter}
+                    department={departmentFilter}
+                    departments={initialDepartments}
+                    isLoading={isFetchingTasks}
+                    onSearchChange={handleSearchChange}
+                    onStatusChange={handleStatusChange}
+                    onPriorityChange={handlePriorityChange}
+                    onDepartmentChange={handleDepartmentChange}
+                  />
                 </motion.div>
               </div>
 
@@ -358,7 +541,14 @@ export default function TasksPageClient({
                 }}
                 className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
               >
-                {filteredTasks.length === 0 ? (
+                {isFetchingTasks ? (
+                  <div className="flex flex-col items-center justify-center py-24">
+                    <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+                    <p className="mt-4 text-sm text-slate-500">
+                      Loading tasks...
+                    </p>
+                  </div>
+                ) : tasks.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -412,7 +602,7 @@ export default function TasksPageClient({
                   </motion.div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredTasks.map((task: any, index: number) => (
+                    {tasks.map((task: any, index: number) => (
                       <motion.div
                         key={task.id}
                         initial={{ opacity: 0, y: 20, scale: 0.98 }}
