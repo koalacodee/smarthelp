@@ -56,10 +56,7 @@ export class ProfileService {
       "/profile",
       body
     );
-    if (data.status === "fail") {
-      throw new Error(data.data.details.map((detail) => detail.message).join(", "));
-    }
-    return data.data;
+    return data.data as UpdateProfileResponse;
   }
 
   // POST /profile/password/reset/send-otp
@@ -67,10 +64,7 @@ export class ProfileService {
     const { data } = await this.http.post<
       JSend<SendProfilePasswordResetOTPResponse>
     >("/profile/password/reset/send-otp");
-    if (data.status === "fail") {
-      throw new Error(data.data.details.map((detail) => detail.message).join(", "));
-    }
-    return data.data;
+    return data.data as SendProfilePasswordResetOTPResponse;
   }
 
   // POST /profile/password/reset/verify-otp

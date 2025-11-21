@@ -19,4 +19,4 @@ export interface JSendError {
 
 // If your API always returns success in this layer, alias to success only.
 // Otherwise, you can widen to JSendSuccess<T> | JSendFail | JSendError
-export type JSend<T> = JSendSuccess<T> | JSendFail;
+export type JSend<T> = JSendSuccess<T>;
