@@ -12,11 +12,13 @@ import { GroupedFAQs } from "../page";
 interface AnimatedFAQsPageProps {
   questions: GroupedFAQs[];
   attachments: Record<string, string[]>;
+  fileHubAttachments?: Record<string, Record<string, string>>;
 }
 
 export default function AnimatedFAQsPage({
   questions,
   attachments,
+  fileHubAttachments,
 }: AnimatedFAQsPageProps) {
   return (
     <motion.div
@@ -45,7 +47,11 @@ export default function AnimatedFAQsPage({
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <FaqsTable questions={questions} attachments={attachments} />
+            <FaqsTable
+              questions={questions}
+              attachments={attachments}
+              fileHubAttachments={fileHubAttachments}
+            />
           </div>
         </motion.div>
 

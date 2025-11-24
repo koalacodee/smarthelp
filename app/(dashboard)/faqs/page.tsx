@@ -22,7 +22,14 @@ export interface GroupedFAQsQuestion extends Question {
 export default async function Page() {
   const res = await FAQService.getAllGroupedByDepartment();
 
+  console.log(res);
+  
+
   return (
-    <AnimatedFAQsPage questions={res.questions} attachments={res.attachments} />
+    <AnimatedFAQsPage
+      questions={res.questions}
+      attachments={res.attachments}
+      fileHubAttachments={res.fileHubAttachments}
+    />
   );
 }

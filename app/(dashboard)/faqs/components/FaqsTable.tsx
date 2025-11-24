@@ -3,30 +3,59 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FAQActions from "./FAQActions";
 import { GroupedFAQs, useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { FAQService } from "@/lib/api/v2";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { useFAQAttachments } from "@/lib/store/useAttachmentsStore";
+import { useFileHubAttachmentsStore } from "../store/useFileHubAttachmentsStore";
 
 export default function FaqsTable({
   questions,
   attachments,
+  fileHubAttachments,
 }: {
   questions: GroupedFAQs[];
   attachments: Record<string, string[]>;
+  fileHubAttachments?: Record<string, Record<string, string>>;
 }) {
   const { filteredFaqs, setFAQs } = useGroupedFAQsStore();
   const { setFAQAttachments } = useFAQAttachments();
+  const { setFileHubAttachments } = useFileHubAttachmentsStore();
+  const prevQuestionsRef = useRef<string>("");
+  const prevAttachmentsRef = useRef<string>("");
+  const prevFileHubAttachmentsRef = useRef<string>("");
 
   useEffect(() => {
-    setFAQs(questions);
-    setFAQAttachments(attachments);
-  }, []);
+    // Use JSON.stringify to compare data and prevent unnecessary updates
+    const questionsKey = JSON.stringify(questions);
+    const attachmentsKey = JSON.stringify(attachments);
+    const fileHubAttachmentsKey = JSON.stringify(fileHubAttachments || {});
+
+    // Only update if data actually changed
+    if (
+      questionsKey !== prevQuestionsRef.current ||
+      attachmentsKey !== prevAttachmentsRef.current ||
+      fileHubAttachmentsKey !== prevFileHubAttachmentsRef.current
+    ) {
+      setFAQs(questions);
+      setFAQAttachments(attachments);
+      if (fileHubAttachments) {
+        setFileHubAttachments(fileHubAttachments);
+      }
+      prevQuestionsRef.current = questionsKey;
+      prevAttachmentsRef.current = attachmentsKey;
+      prevFileHubAttachmentsRef.current = fileHubAttachmentsKey;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, attachments, fileHubAttachments]);
 
   async function loadFAQs() {
     FAQService.getAllGroupedByDepartment().then((res) => {
       setFAQs(res.questions);
       setFAQAttachments(res.attachments);
+      if (res.fileHubAttachments) {
+        setFileHubAttachments(res.fileHubAttachments);
+      }
     });
   }
 

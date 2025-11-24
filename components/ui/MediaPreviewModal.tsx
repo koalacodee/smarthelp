@@ -22,6 +22,12 @@ export default function MediaPreviewModal() {
         // Check if it's already a blob URL (for new attachments)
         if (mediaInfo.tokenOrId.startsWith("blob:")) {
           setMediaUrl(mediaInfo.tokenOrId);
+        } else if (
+          mediaInfo.tokenOrId.startsWith("http://") ||
+          mediaInfo.tokenOrId.startsWith("https://")
+        ) {
+          // Already a full URL (e.g., signed URL from FileHub)
+          setMediaUrl(mediaInfo.tokenOrId);
         } else {
           // For existing attachments, construct the URL directly
           const mediaRetrievalType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");

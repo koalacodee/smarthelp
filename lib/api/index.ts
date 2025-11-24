@@ -44,7 +44,10 @@ import {
   UploadMultipleFilesResponse,
   UploadSingleFileResponse,
 } from "./v2/services/shared/upload";
-import { TaskDelegationDTO, TaskDelegationSubmissionDTO } from "./v2/services/delegations";
+import {
+  TaskDelegationDTO,
+  TaskDelegationSubmissionDTO,
+} from "./v2/services/delegations";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -298,7 +301,11 @@ export interface ExportTicketsResponse {
 }
 
 export const TicketsService = {
-  getAllTickets: async (status?: TicketStatus, departmentId?: string, search?: string) => {
+  getAllTickets: async (
+    status?: TicketStatus,
+    departmentId?: string,
+    search?: string
+  ) => {
     const response = await api.get<{
       data: SupportTicketsResponse;
     }>("/support-tickets", {
@@ -346,9 +353,14 @@ export const TicketsService = {
     return await api.delete(`/support-tickets/${id}`);
   },
   exportTickets: async (startDate?: string, endDate?: string) => {
-    return await api.post<{
-      data: ExportTicketsResponse;
-    }>("/support-tickets/export", { start: startDate ?? undefined, end: endDate ?? undefined }).then((res) => res.data.data);
+    return await api
+      .post<{
+        data: ExportTicketsResponse;
+      }>("/support-tickets/export", {
+        start: startDate ?? undefined,
+        end: endDate ?? undefined,
+      })
+      .then((res) => res.data.data);
   },
 };
 
@@ -724,7 +736,12 @@ export interface RejectTaskSubmissionRequest {
 }
 
 export const TasksService = {
-  getDepartmentLevel: async (status?: TaskStatus, priority?: "LOW" | "MEDIUM" | "HIGH", search?: string, departmentId?: string) => {
+  getDepartmentLevel: async (
+    status?: TaskStatus,
+    priority?: "LOW" | "MEDIUM" | "HIGH",
+    search?: string,
+    departmentId?: string
+  ) => {
     const response = await api.get<{
       data: DepartmentLevelTaskData;
     }>("/tasks/admin/department-level", {
@@ -761,17 +778,22 @@ export const TasksService = {
     search?: string,
     departmentId?: string
   ) => {
-    const response = await api.get<{ data: EmployeeLevelTaskData }>(
-      "/tasks/supervisor/employee-level",
-      {
-        params: {
-          status,
-          priority,
-          search,
-          departmentId,
-        },
-      }
-    );
+    const response = await api
+      .get<{ data: EmployeeLevelTaskData }>(
+        "/tasks/supervisor/employee-level",
+        {
+          params: {
+            status,
+            priority,
+            search,
+            departmentId,
+          },
+        }
+      )
+      .catch((error) => {
+        console.error(error.response.data);
+        throw error.response.data;
+      });
     return response.data.data;
   },
   createTask: async (dto: CreateTaskDto, formData?: FormData) => {

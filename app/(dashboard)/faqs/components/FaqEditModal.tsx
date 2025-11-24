@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AttachmentInput from "@/components/ui/AttachmentInput";
+import AttachmentInputV2 from "@/components/ui/AttachmentInputV2";
+import AttachmentPreviewer from "@/components/ui/AttachmentPreviewer";
 import api, { FileService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
@@ -11,6 +13,10 @@ import { useAttachmentStore } from "@/app/(dashboard)/store/useAttachmentStore";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FAQService, UploadService } from "@/lib/api/v2";
+import type { CreateQuestionResponse } from "@/lib/api/v2/models/faq/CreateQuestionResponse";
+import type { UpdateQuestionResponse } from "@/lib/api/v2/models/faq/UpdateQuestionResponse";
+import { useAttachmentUploadStore } from "@/app/(dashboard)/store/useAttachmentUploadStore";
+import { useFileHubAttachmentsStore } from "../store/useFileHubAttachmentsStore";
 import useFormErrors from "@/hooks/useFormErrors";
 import { TRANSLATION_MAP } from "@/constants/translation";
 import type { SupportedLanguage } from "@/types/translation";
@@ -36,6 +42,22 @@ export default function FaqEditModal() {
   const { getAttachments, addAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
   const { addExistingAttachment } = useAttachmentStore();
+  const tusOrderLength = useAttachmentUploadStore((state) => state.order.length);
+  const setTusUploadKey = useAttachmentUploadStore(
+    (state) => state.setFileHubUploadKey
+  );
+  const uploadAllTusFiles = useAttachmentUploadStore((state) => state.uploadAll);
+  const clearTusFiles = useAttachmentUploadStore((state) => state.clearAll);
+  const hasTusFiles = tusOrderLength > 0;
+  const getFileHubAttachmentsForQuestion =
+    useFileHubAttachmentsStore(
+      (state) => state.getFileHubAttachmentsForQuestion
+    );
+  
+  const currentFileHubAttachments = useMemo(() => {
+    if (!faq?.id) return {};
+    return getFileHubAttachmentsForQuestion(faq.id);
+  }, [faq?.id, getFileHubAttachmentsForQuestion]);
 
   useEffect(() => {
     Promise.all([
@@ -148,6 +170,7 @@ export default function FaqEditModal() {
     setIsEditing(false);
     // Reset attachment refresh key when closing
     setAttachmentRefreshKey(0);
+    clearTusFiles();
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -168,11 +191,11 @@ export default function FaqEditModal() {
         answer,
         departmentId: deptId,
         deleteAttachments: Object.keys(existingsToDelete),
-        attach: attachments.length > 0,
+        attach: attachments.length > 0 || hasTusFiles,
         chooseAttachments: Array.from(selectedAttachmentIds),
         translateTo: translateTo.length ? translateTo : undefined,
       })
-        .then(async (response) => {
+        .then(async (response: UpdateQuestionResponse) => {
           const { question: updated } = response;
           addToast({
             message: "FAQ Updated Successfully!",
@@ -188,7 +211,30 @@ export default function FaqEditModal() {
               (dept) => dept.id === deptId
             )?.name,
           });
-          handleClose();
+
+          if (hasTusFiles) {
+            if (response.fileHubUploadKey) {
+              try {
+                setTusUploadKey(response.fileHubUploadKey);
+                await uploadAllTusFiles();
+              } catch (uploadErr: any) {
+                addToast({
+                  message:
+                    uploadErr?.message ||
+                    "Failed to upload new attachments. Please try again.",
+                  type: "error",
+                });
+              } finally {
+                clearTusFiles();
+              }
+            } else {
+              addToast({
+                message:
+                  "Missing upload key for new attachments. Please retry the upload.",
+                type: "error",
+              });
+            }
+          }
           if (formData && response.uploadKey) {
             const uploadedFilesResponse =
               await UploadService.uploadFromFormData(
@@ -216,6 +262,7 @@ export default function FaqEditModal() {
               setAttachmentRefreshKey((prev) => prev + 1);
             }
           }
+          handleClose();
         })
         .catch((error) => {
           if (error?.response?.data?.data?.details) {
@@ -232,11 +279,11 @@ export default function FaqEditModal() {
         text: question,
         answer,
         departmentId: deptId,
-        attach: attachments.length > 0,
+        attach: attachments.length > 0 || hasTusFiles,
         chooseAttachments: Array.from(selectedAttachmentIds),
         translateTo: translateTo.length ? translateTo : undefined,
       })
-        .then(async (response) => {
+        .then(async (response: CreateQuestionResponse) => {
           const { question: created } = response;
           addToast({
             message: "FAQ Added Successfully!",
@@ -255,7 +302,30 @@ export default function FaqEditModal() {
             updatedAt: new Date(),
             availableLangs: translateTo ?? [],
           });
-          handleClose();
+
+          if (hasTusFiles) {
+            if (response.fileHubUploadKey) {
+              try {
+                setTusUploadKey(response.fileHubUploadKey);
+                await uploadAllTusFiles();
+              } catch (uploadErr: any) {
+                addToast({
+                  message:
+                    uploadErr?.message ||
+                    "Failed to upload new attachments. Please try again.",
+                  type: "error",
+                });
+              } finally {
+                clearTusFiles();
+              }
+            } else {
+              addToast({
+                message:
+                  "Missing upload key for new attachments. Please retry the upload.",
+                type: "error",
+              });
+            }
+          }
           if (formData && response.uploadKey) {
             const uploadedFilesResponse =
               await UploadService.uploadFromFormData(
@@ -283,6 +353,7 @@ export default function FaqEditModal() {
               setAttachmentRefreshKey((prev) => prev + 1);
             }
           }
+          handleClose();
         })
         .catch((error) => {
           if (error?.response?.data?.data?.details) {
@@ -579,6 +650,29 @@ export default function FaqEditModal() {
                   getAttachmentTokens={getAttachments}
                 />
               </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.72 }}
+              >
+                <AttachmentInputV2
+                  label="Attachments (FileHub beta)"
+                  description="Upload larger files with resumable support."
+                />
+              </motion.div>
+              {faq && Object.keys(currentFileHubAttachments).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.74 }}
+                >
+                  <AttachmentPreviewer
+                    fileHubAttachments={currentFileHubAttachments}
+                    questionId={faq.id}
+                    label="Existing FileHub Attachments"
+                  />
+                </motion.div>
+              )}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

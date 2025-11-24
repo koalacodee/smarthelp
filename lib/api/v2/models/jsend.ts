@@ -2,7 +2,7 @@ export type JSendStatus = "success" | "fail" | "error";
 
 export interface JSendSuccess<T> {
   status: "success";
-  data: { uploadKey?: string } & T;
+  data: { uploadKey?: string; fileHubUploadKey?: string } & T;
 }
 
 export interface JSendFail {
