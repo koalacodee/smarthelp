@@ -46,6 +46,7 @@ export interface Attachment {
   fileType: string; // e.g. "image"
   contentType: string; // e.g. "image/png"
   size: number;
+  signedUrl?: string;
 }
 
 // POST /files/multiple

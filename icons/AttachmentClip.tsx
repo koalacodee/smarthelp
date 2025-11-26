@@ -1,6 +1,8 @@
 import * as React from "react";
 
-export default function Eye(props: React.SVGProps<SVGSVGElement>) {
+export default function AttachmentClip(
+  props: React.SVGProps<SVGSVGElement>
+) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -13,13 +15,10 @@ export default function Eye(props: React.SVGProps<SVGSVGElement>) {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M2.25 12s3.75-6.75 9.75-6.75 9.75 6.75 9.75 6.75-3.75 6.75-9.75 6.75S2.25 12 2.25 12Z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+        d="M15.172 7 6.586 15.586a2 2 0 0 0 2.828 2.828l8.586-8.586a4 4 0 1 0-5.657-5.657L3.929 12.586a6 6 0 1 0 8.485 8.485L20.5 12"
       />
     </svg>
   );
 }
+
+

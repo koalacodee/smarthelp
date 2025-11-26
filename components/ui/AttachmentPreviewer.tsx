@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UploadService } from "@/lib/api/v2";
 import type { GetAttachmentMetadataResponse } from "@/lib/api/v2/services/shared/upload";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
-import DocumentDuplicate from "@/icons/DocumentDuplicate";
+import { useAttachmentStore } from "@/app/(dashboard)/store/useAttachmentStore";
+import AttachmentClip from "@/icons/AttachmentClip";
 import Eye from "@/icons/Eye";
+import Trash from "@/icons/Trash";
 
 interface AttachmentPreviewerProps {
   fileHubAttachments: Record<string, string>; // {attachmentId: signedUrl}
@@ -46,14 +48,21 @@ export default function AttachmentPreviewer({
   label = "FileHub Attachments",
 }: AttachmentPreviewerProps) {
   const { openPreview } = useMediaPreviewStore();
+  const { deleteExistingAttachment, restoreExistingAttachment } =
+    useAttachmentStore();
   const [attachments, setAttachments] = useState<
     Record<string, AttachmentWithMetadata>
   >({});
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const attachmentEntries = useMemo(
     () => Object.entries(fileHubAttachments || {}),
     [fileHubAttachments]
   );
+
+  useEffect(() => {
+    setDeletedIds(new Set());
+  }, [questionId, attachmentEntries.length]);
 
   useEffect(() => {
     if (attachmentEntries.length === 0) {
@@ -107,6 +116,7 @@ export default function AttachmentPreviewer({
               isLoading: false,
               error,
             };
+
           }
         });
         return updated;
@@ -117,7 +127,6 @@ export default function AttachmentPreviewer({
   }, [attachmentEntries]);
 
   const handlePreview = (
-    attachmentId: string,
     signedUrl: string,
     metadata: GetAttachmentMetadataResponse | null
   ) => {
@@ -133,6 +142,24 @@ export default function AttachmentPreviewer({
     });
   };
 
+  const handleDelete = (attachmentId: string) => {
+    deleteExistingAttachment(attachmentId);
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(attachmentId);
+      return next;
+    });
+  };
+
+  const handleRestore = (attachmentId: string) => {
+    restoreExistingAttachment(attachmentId);
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(attachmentId);
+      return next;
+    });
+  };
+
   if (attachmentEntries.length === 0) {
     return null;
   }
@@ -145,7 +172,7 @@ export default function AttachmentPreviewer({
         </label>
         <p className="text-xs text-slate-500 mt-1">
           {attachmentEntries.length} file
-          {attachmentEntries.length === 1 ? "" : "s"} attached via FileHub
+          {attachmentEntries.length === 1 ? "" : "s"} attached
         </p>
       </div>
 
@@ -156,6 +183,7 @@ export default function AttachmentPreviewer({
             const metadata = attachment?.metadata;
             const isLoading = attachment?.isLoading ?? true;
             const error = attachment?.error;
+            const isDeleted = deletedIds.has(attachmentId);
 
             return (
               <motion.div
@@ -165,19 +193,22 @@ export default function AttachmentPreviewer({
                 exit={{ opacity: 0, y: -10 }}
                 className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm transition hover:shadow-md"
               >
-                <div className="absolute left-4 top-3 z-20">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                    FileHub
-                  </span>
-                </div>
-
                 <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
-                    <DocumentDuplicate className="h-6 w-6" />
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+                    <AttachmentClip className="h-6 w-6" />
                   </div>
 
                   <div className="flex-1 space-y-1 text-sm">
-                    {isLoading ? (
+                    {isDeleted ? (
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold text-slate-900">
+                          Attachment removed
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          This file will be deleted when you save changes.
+                        </p>
+                      </div>
+                    ) : isLoading ? (
                       <>
                         <div className="h-4 w-48 animate-pulse rounded bg-slate-200" />
                         <div className="h-3 w-32 animate-pulse rounded bg-slate-200" />
@@ -221,16 +252,53 @@ export default function AttachmentPreviewer({
                   </div>
 
                   {metadata && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handlePreview(attachmentId, signedUrl, metadata)
-                      }
-                      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Preview
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {isDeleted ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRestore(attachmentId)}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-green-200 text-green-600 transition hover:bg-green-50"
+                          aria-label={`Restore ${metadata.originalName}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                          >
+                            <path d="M4 4v6h6" />
+                            <path d="M20 20v-6h-6" />
+                            <path d="M20 8a8 8 0 0 0-13.856-3.428L4 10" />
+                            <path d="M4 16a8 8 0 0 0 13.856 3.428L20 14" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handlePreview(signedUrl, metadata)
+                            }
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600"
+                            aria-label={`Preview ${metadata.originalName}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(attachmentId)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-200 text-red-500 transition hover:bg-red-50"
+                            aria-label={`Remove ${metadata.originalName}`}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
               </motion.div>
