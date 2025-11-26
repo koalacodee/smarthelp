@@ -32,7 +32,7 @@ export default function AnimatedKnowledgeChunksPage({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+          <div className="bg-white/90  rounded-2xl shadow-xl border border-white/20 overflow-hidden">
             <div className="p-6">
               <KnowledgeChunksTable />
             </div>

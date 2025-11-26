@@ -27,7 +27,7 @@ export default function AnimatedErrorPage({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 text-center"
+          className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-8 text-center"
         >
           <motion.div
             initial={{ scale: 0, rotate: -180 }}

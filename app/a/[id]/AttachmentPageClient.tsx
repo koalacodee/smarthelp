@@ -195,7 +195,7 @@ export default function AttachmentPageClient({
                 ? fullScreenHandle.exit()
                 : fullScreenHandle.enter()
             }
-            className="bg-black/40 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/60 transition-colors"
+            className="bg-black/40  text-white p-2 rounded-full hover:bg-black/60 transition-colors"
             title={
               fullScreenHandle.active ? "Exit Fullscreen" : "Enter Fullscreen"
             }
@@ -262,7 +262,7 @@ export default function AttachmentPageClient({
 
             {isAudio(fileType) && (
               <div className="flex justify-center">
-                <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-xl p-8">
+                <div className="w-full max-w-md bg-white/10  rounded-xl p-8">
                   <div className="text-center">
                     <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                       <svg
@@ -298,7 +298,7 @@ export default function AttachmentPageClient({
 
             {!isImage(fileType) && !isVideo(fileType) && !isAudio(fileType) && (
               <div className="text-center">
-                <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-24 h-24 bg-white/10  rounded-full flex items-center justify-center mx-auto mb-6">
                   <svg
                     className="w-12 h-12 text-gray-300"
                     fill="none"

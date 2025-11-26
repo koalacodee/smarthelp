@@ -63,7 +63,7 @@ export default function SupervisorsPageClient({
       .then((data) => {
         setSupervisors(data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const handleDeleteInvitation = async (token: string, name: string) => {
@@ -347,7 +347,7 @@ export default function SupervisorsPageClient({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
+            className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
           >
             <SupervisorsTable supervisors={filteredSupervisors} />
           </motion.div>
@@ -367,7 +367,7 @@ export default function SupervisorsPageClient({
               y: -2,
               transition: { duration: 0.3 },
             }}
-            className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8"
+            className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 p-8"
           >
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -516,12 +516,13 @@ export default function SupervisorsPageClient({
                   >
                     <motion.span
                       whileHover={{ scale: 1.1 }}
-                      className={`px-4 py-2 text-sm font-bold rounded-xl shadow-lg ${invitation.status === "pending"
-                        ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
-                        : invitation.status === "completed"
+                      className={`px-4 py-2 text-sm font-bold rounded-xl shadow-lg ${
+                        invitation.status === "pending"
+                          ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                          : invitation.status === "completed"
                           ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white"
                           : "bg-gradient-to-r from-red-400 to-pink-500 text-white"
-                        }`}
+                      }`}
                     >
                       {invitation.status.toUpperCase()}
                     </motion.span>

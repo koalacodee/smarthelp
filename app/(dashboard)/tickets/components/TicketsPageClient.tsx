@@ -65,7 +65,11 @@ export default function TicketsPageClient({
   }, [initialTickets, initialAttachments, setTickets, setAttachments]);
 
   const fetchTickets = useCallback(
-    async (statusValue: string, departmentValue: string, searchValue: string) => {
+    async (
+      statusValue: string,
+      departmentValue: string,
+      searchValue: string
+    ) => {
       setIsFetchingTickets(true);
       try {
         const response = await TicketsService.getAllTickets(
@@ -148,13 +152,14 @@ export default function TicketsPageClient({
       const mediaAccessType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");
 
       // Generate filename with date range if provided
-      const dateRange = startDate && endDate
-        ? `${startDate}-${endDate}`
-        : startDate
+      const dateRange =
+        startDate && endDate
+          ? `${startDate}-${endDate}`
+          : startDate
           ? `from-${startDate}`
           : endDate
-            ? `until-${endDate}`
-            : "all";
+          ? `until-${endDate}`
+          : "all";
       const filename = `tickets-export-${dateRange}.${exportResponse.type.toLowerCase()}`;
 
       let downloadUrl: string;
@@ -259,7 +264,9 @@ export default function TicketsPageClient({
                     className="flex items-center gap-2"
                   >
                     <div className="flex flex-col">
-                      <label className="text-xs text-slate-500 mb-1">Start Date (Optional)</label>
+                      <label className="text-xs text-slate-500 mb-1">
+                        Start Date (Optional)
+                      </label>
                       <input
                         type="date"
                         value={startDate ?? ""}
@@ -268,7 +275,9 @@ export default function TicketsPageClient({
                       />
                     </div>
                     <div className="flex flex-col">
-                      <label className="text-xs text-slate-500 mb-1">End Date (Optional)</label>
+                      <label className="text-xs text-slate-500 mb-1">
+                        End Date (Optional)
+                      </label>
                       <input
                         type="date"
                         value={endDate ?? ""}
@@ -338,7 +347,7 @@ export default function TicketsPageClient({
                 y: -2,
                 transition: { duration: 0.2 },
               }}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+              className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
             >
               <TicketsDashboard {...metrics} />
             </motion.div>
@@ -352,7 +361,7 @@ export default function TicketsPageClient({
                 y: -2,
                 transition: { duration: 0.2 },
               }}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+              className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
             >
               <TicketsFilters
                 search={searchTerm}
@@ -376,7 +385,7 @@ export default function TicketsPageClient({
               y: -2,
               transition: { duration: 0.2 },
             }}
-            className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+            className="bg-white/90  rounded-2xl shadow-xl border border-white/20 overflow-hidden"
           >
             {isFetchingTickets ? (
               <div className="flex flex-col items-center justify-center py-24">

@@ -126,7 +126,10 @@ export default function AttachmentInputV2({
     }
   };
 
-  const handleDrag = (event: React.DragEvent<HTMLDivElement>, over: boolean) => {
+  const handleDrag = (
+    event: React.DragEvent<HTMLDivElement>,
+    over: boolean
+  ) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragOver(over);
@@ -322,9 +325,7 @@ export default function AttachmentInputV2({
                       <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
                         <span>{formatBytes(item.file.size)}</span>
                         <span className="hidden sm:inline">•</span>
-                        <span>
-                          {item.file.type || "Unknown type"}
-                        </span>
+                        <span>{item.file.type || "Unknown type"}</span>
                         {item.status === "uploaded" && item.uploadedAt && (
                           <>
                             <span className="hidden sm:inline">•</span>
@@ -338,7 +339,8 @@ export default function AttachmentInputV2({
                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {item.expiration && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                            Expires {new Date(item.expiration).toLocaleDateString()}
+                            Expires{" "}
+                            {new Date(item.expiration).toLocaleDateString()}
                           </span>
                         )}
                         {item.isGlobal && (
@@ -391,7 +393,7 @@ export default function AttachmentInputV2({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 "
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}

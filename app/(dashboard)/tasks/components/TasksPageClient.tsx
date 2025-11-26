@@ -62,8 +62,11 @@ export default function TasksPageClient({
   const { setTaskAttachments } = useTaskAttachments();
   const { setAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
-  const { setAllTaskSubmissions, setAllDelegationSubmissions, setAllSubmissionAttachments } =
-    useTaskSubmissionsStore();
+  const {
+    setAllTaskSubmissions,
+    setAllDelegationSubmissions,
+    setAllSubmissionAttachments,
+  } = useTaskSubmissionsStore();
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -93,13 +96,14 @@ export default function TasksPageClient({
       const mediaAccessType = env("NEXT_PUBLIC_MEDIA_ACCESS_TYPE");
 
       // Generate filename with date range if provided
-      const dateRange = startDate && endDate
-        ? `${startDate}-${endDate}`
-        : startDate
+      const dateRange =
+        startDate && endDate
+          ? `${startDate}-${endDate}`
+          : startDate
           ? `from-${startDate}`
           : endDate
-            ? `until-${endDate}`
-            : "all";
+          ? `until-${endDate}`
+          : "all";
       const filename = `tasks-export-${dateRange}.${exportResponse.type.toLowerCase()}`;
 
       let downloadUrl: string;
@@ -234,12 +238,12 @@ export default function TasksPageClient({
                 (empTasks.metrics?.completedCount || 0)) /
                 Math.max(
                   (subTasks.metrics?.pendingCount || 0) +
-                  (empTasks.metrics?.pendingCount || 0) +
-                  (subTasks.metrics?.completedCount || 0) +
-                  (empTasks.metrics?.completedCount || 0),
+                    (empTasks.metrics?.pendingCount || 0) +
+                    (subTasks.metrics?.completedCount || 0) +
+                    (empTasks.metrics?.completedCount || 0),
                   1
                 )) *
-              100
+                100
             ),
           };
         }
@@ -413,7 +417,9 @@ export default function TasksPageClient({
                         className="flex items-center gap-2"
                       >
                         <div className="flex flex-col">
-                          <label className="text-xs text-slate-500 mb-1">Start Date (Optional)</label>
+                          <label className="text-xs text-slate-500 mb-1">
+                            Start Date (Optional)
+                          </label>
                           <input
                             type="date"
                             value={startDate ?? ""}
@@ -422,7 +428,9 @@ export default function TasksPageClient({
                           />
                         </div>
                         <div className="flex flex-col">
-                          <label className="text-xs text-slate-500 mb-1">End Date (Optional)</label>
+                          <label className="text-xs text-slate-500 mb-1">
+                            End Date (Optional)
+                          </label>
                           <input
                             type="date"
                             value={endDate ?? ""}
@@ -493,7 +501,7 @@ export default function TasksPageClient({
                       y: -2,
                       transition: { duration: 0.2 },
                     }}
-                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                    className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
                   >
                     <TeamTasksDashboard
                       total={tasks.length}
@@ -513,7 +521,7 @@ export default function TasksPageClient({
                     y: -2,
                     transition: { duration: 0.2 },
                   }}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                  className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
                 >
                   <TeamTasksFilters
                     search={searchTerm}
@@ -539,7 +547,7 @@ export default function TasksPageClient({
                   y: -2,
                   transition: { duration: 0.2 },
                 }}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
               >
                 {isFetchingTasks ? (
                   <div className="flex flex-col items-center justify-center py-24">

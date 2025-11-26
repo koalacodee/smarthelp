@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import api, { UserResponse } from "@/lib/api";
+import api from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
 import { Department } from "@/lib/api/departments";
@@ -28,28 +28,17 @@ export default function FaqEditModal() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const [translateTo, setTranslateTo] = useState<SupportedLanguage[]>([]);
-  const [user, setUser] = useState<UserResponse | null>(null);
   const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isWaitingToClose, setIsWaitingToClose] = useState(false);
-  const [faqId, setFaqId] = useState<string | undefined>(undefined);
-  const {moveCurrentNewTargetSelectionsToExisting, reset} = useAttachments()
+  const {
+    moveCurrentNewTargetSelectionsToExisting,
+    reset,
+    confirmExistingAttachmentsDeletionForTarget,
+  } = useAttachments();
   const { addToast } = useToastStore();
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
-
-  useEffect(() => {
-    fetch("/server/me")
-      .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch(() => {
-        addToast({
-          message: "Unable to load user context for attachments.",
-          type: "error",
-        });
-      });
-  }, [addToast]);
-
 
   useEffect(() => {
     Promise.all([
@@ -110,8 +99,6 @@ export default function FaqEditModal() {
     }
   }, [faq, departments, subDepartments]);
 
-
-
   useEffect(() => {
     // When category changes, reset sub-department if it's no longer valid
     if (!subDepartmentsForCategory.some((sd) => sd.id === subDepartmentId)) {
@@ -129,7 +116,6 @@ export default function FaqEditModal() {
 
   const handleClose = () => {
     setIsEditing(false);
-    // Reset attachment refresh key when closing
     setIsWaitingToClose(false);
     reset();
   };
@@ -163,7 +149,13 @@ export default function FaqEditModal() {
       })
         .then(async (response: UpdateQuestionResponse) => {
           const { question: updated } = response;
-          setFaqId(updated.id!);
+
+          if (updated.id && selectedAttachments.length > 0) {
+            moveCurrentNewTargetSelectionsToExisting(updated.id);
+          }
+          if (updated.id && deletedAttachments.length > 0) {
+            confirmExistingAttachmentsDeletionForTarget(updated.id);
+          }
           addToast({
             message: "FAQ Updated Successfully!",
             type: "success",
@@ -190,7 +182,7 @@ export default function FaqEditModal() {
                     "Failed to upload new attachments. Please try again.",
                   type: "error",
                 });
-              } 
+              }
             } else {
               addToast({
                 message:
@@ -233,7 +225,10 @@ export default function FaqEditModal() {
             type: "success",
           });
           // Add the new FAQ to the store
-          setFaqId(created.id!);
+
+          if (created.id) {
+            moveCurrentNewTargetSelectionsToExisting(created.id);
+          }
           addFAQ(deptId, {
             id: created.id!,
             text: created.text || question,
@@ -287,9 +282,6 @@ export default function FaqEditModal() {
         });
     }
 
-    if (selectedAttachments.length > 0 && faqId) {
-      moveCurrentNewTargetSelectionsToExisting(faqId);
-    }
     setTranslateTo([]);
   };
 
@@ -306,7 +298,7 @@ export default function FaqEditModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4"
         onClick={handleClose}
         aria-modal="true"
         role="dialog"
@@ -560,17 +552,22 @@ export default function FaqEditModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.74 }}
               >
-{ user?.id &&                <AttachmentInputV3
+                <AttachmentInputV3
                   targetId={faq?.id}
-                  userId={user.id}
                   uploadKey={uploadKeyV3 ?? undefined}
                   uploadWhenKeyProvided={true}
-                  onSelectedAttachmentsChange={(set) => setSelectedAttachments(Array.from(set))}
-                  onDeletedAttachmentsChange={(set) => setDeletedAttachments(Array.from(set))}
+                  onSelectedAttachmentsChange={(set) =>
+                    setSelectedAttachments(Array.from(set))
+                  }
+                  onDeletedAttachmentsChange={(set) =>
+                    setDeletedAttachments(Array.from(set))
+                  }
                   onUploadStart={() => setIsUploading(true)}
                   onUploadEnd={() => setIsUploading(false)}
-                  onHasFilesToUpload={(hasFiles) => setHasFilesToUpload(hasFiles)}
-                />}
+                  onHasFilesToUpload={(hasFiles) =>
+                    setHasFilesToUpload(hasFiles)
+                  }
+                />
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

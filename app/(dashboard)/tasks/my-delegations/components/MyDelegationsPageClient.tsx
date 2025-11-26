@@ -6,7 +6,10 @@ import DelegationCard from "./DelegationCard";
 import MyDelegationsDashboard from "./MyDelegationsDashboard";
 import MyDelegationsFilters from "./MyDelegationsFilters";
 import { useMyDelegationsStore } from "../store/useMyDelegationsStore";
-import { TaskDelegationDTO, TaskDelegationSubmissionDTO } from "@/lib/api/v2/services/delegations";
+import {
+  TaskDelegationDTO,
+  TaskDelegationSubmissionDTO,
+} from "@/lib/api/v2/services/delegations";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FileService } from "@/lib/api";
@@ -44,7 +47,7 @@ export default function MyDelegationsPageClient({
 
     // Store attachments
     if (initialAttachments) {
-      setAttachments("delegation", initialAttachments)
+      setAttachments("delegation", initialAttachments);
 
       // Prefill metadata cache
       const allIds: string[] = Object.values(initialAttachments)
@@ -163,7 +166,7 @@ export default function MyDelegationsPageClient({
                     y: -2,
                     transition: { duration: 0.2 },
                   }}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                  className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
                 >
                   <MyDelegationsDashboard
                     total={delegations.length}
@@ -182,7 +185,7 @@ export default function MyDelegationsPageClient({
                     y: -2,
                     transition: { duration: 0.2 },
                   }}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                  className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
                 >
                   <MyDelegationsFilters onFilterChange={handleFilterChange} />
                 </motion.div>
@@ -197,7 +200,7 @@ export default function MyDelegationsPageClient({
                   y: -2,
                   transition: { duration: 0.2 },
                 }}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+                className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
               >
                 {filteredDelegations.length === 0 ? (
                   <motion.div
@@ -270,8 +273,12 @@ export default function MyDelegationsPageClient({
                       >
                         <DelegationCard
                           delegation={delegation}
-                          submissions={initialSubmissions[delegation.id.toString()] || []}
-                          delegationSubmissionAttachments={initialDelegationSubmissionAttachments}
+                          submissions={
+                            initialSubmissions[delegation.id.toString()] || []
+                          }
+                          delegationSubmissionAttachments={
+                            initialDelegationSubmissionAttachments
+                          }
                         />
                       </motion.div>
                     ))}
@@ -285,4 +292,3 @@ export default function MyDelegationsPageClient({
     </>
   );
 }
-

@@ -21,7 +21,7 @@ export default function RecentActivity({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
-      className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-xl p-5"
+      className="rounded-2xl border border-white/20 bg-white/90  shadow-xl p-5"
     >
       <motion.h3
         initial={{ opacity: 0, y: -10 }}

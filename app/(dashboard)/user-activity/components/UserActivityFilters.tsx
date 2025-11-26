@@ -45,7 +45,7 @@ export default function UserActivityFilters() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
-      className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 p-6 mb-8"
+      className="bg-white/90  rounded-3xl shadow-xl border border-white/30 p-6 mb-8"
     >
       <motion.div
         initial={{ opacity: 0, y: -10 }}

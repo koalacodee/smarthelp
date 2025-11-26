@@ -87,7 +87,7 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
           y: -2,
           transition: { duration: 0.2 },
         }}
-        className={`max-w-sm w-full bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border ${config.borderColor} pointer-events-auto overflow-hidden relative group`}
+        className={`max-w-sm w-full bg-white/95  rounded-2xl shadow-2xl border ${config.borderColor} pointer-events-auto overflow-hidden relative group`}
         role="alert"
         aria-live="assertive"
         aria-atomic="true"

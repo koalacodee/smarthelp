@@ -3,26 +3,9 @@
 import { env } from "next-runtime-env";
 import { useAttachmentStore } from "./store/useAttachmentStore";
 import { TusService } from "@/lib/api/v2/services/shared/tus";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { UploadService } from "@/lib/api/v2";
-import { Socket, io } from "socket.io-client";
 // collision-resistant 10-digit ID for client-side use only
-type AttachmentEventPayload = {
-  id: string;
-  type: string;
-  filename: string;
-  originalName: string;
-  expirationDate: string | null;
-  createdAt: string;
-  updatedAt: string;
-  targetId: string | null;
-  userId?: string;
-  guestId?: string;
-  isGlobal: boolean;
-  size: number;
-  cloned?: boolean;
-  signedUrl: string;
-};
 
 const random10DigitId = (() => {
   let seq = 0; // per-page sequence
@@ -45,8 +28,6 @@ export const useAttachments = (targetId?: string) => {
     addCurrentNewTargetUpload,
     setMyAttachments,
     addMyAttachment,
-    removeMyAttachment,
-    clearMyAttachments,
     addAttachmentToUploadForTarget,
     updateAttachmentToUploadForTarget,
     deleteAttachmentFromExistingAttachments,
@@ -58,14 +39,11 @@ export const useAttachments = (targetId?: string) => {
     clearSelectedAttachmentsForTarget,
     selectCurrentNewTargetAttachment,
     deselectCurrentNewTargetAttachment,
-    toggleCurrentNewTargetAttachmentSelection,
     clearCurrentNewTargetSelections,
     moveCurrentNewTargetSelectionsToExisting,
-    moveSelectedFormMyAttachmentsToExisting,
-    moveCurrentNewTargetSelectionsToTarget,
-    moveCurrentNewTargetUploadsToTarget,
     removeCurrentNewTargetUpload,
     clearCurrentNewTargetUploads,
+    confirmExistingAttachmentsDeletionForTarget,
   } = useAttachmentStore();
   const targetUploads = targetId
     ? attachmentsToUpload[targetId] || []
@@ -75,64 +53,6 @@ export const useAttachments = (targetId?: string) => {
     Record<string, number>
   >({});
   const [isUploading, setIsUploading] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
-
-  const subscribeToFileHub = useCallback(
-    (userId: string) => {
-      if (socketRef.current?.connected) return;
-      socketRef.current?.disconnect();
-      socketRef.current = io(
-        `${env("NEXT_PUBLIC_API_URL")}/attachment-groups`,
-        {
-          transports: ["websocket"],
-          reconnectionAttempts: 5,
-          reconnectionDelay: 1000,
-        }
-      );
-      socketRef.current.on("connect", () => {
-        console.log("Connected to attachment groups");
-        socketRef.current?.emit("filehub:subscribe", { userId });
-      });
-      socketRef.current.on("disconnect", () => {
-        console.log("Disconnected from attachment groups");
-      });
-      socketRef.current.on("error", (error) => {
-        console.error("Error connecting to attachment groups", error);
-      });
-      socketRef.current.on(
-        "filehub:attachment",
-        (payload: AttachmentEventPayload) => {
-          console.log("Attachment event", payload);
-          addMyAttachment({
-            id: payload.id,
-            originalName: payload.originalName,
-            filename: payload.filename,
-            fileType: payload.type,
-            size: payload.size,
-            isGlobal: payload.isGlobal,
-            expirationDate: payload.expirationDate
-              ? payload.expirationDate
-              : undefined,
-            createdAt: payload.createdAt,
-            signedUrl: payload.signedUrl,
-          });
-          if (payload.targetId) {
-            addExistingAttachmentToTarget(payload.targetId, {
-              id: payload.id,
-              originalName: payload.originalName,
-              filename: payload.filename,
-              fileType: payload.type,
-              size: payload.size,
-              isGlobal: payload.isGlobal,
-              createdAt: payload.createdAt,
-              signedUrl: payload.signedUrl,
-            });
-          }
-        }
-      );
-    },
-    [addExistingAttachmentToTarget, addMyAttachment]
-  );
 
   const handleUploadAttachment = (
     file: File,
@@ -232,26 +152,22 @@ export const useAttachments = (targetId?: string) => {
     return uploadProgresses[uploadId] || 0;
   };
 
-  const fetchMyAttachments = useCallback(
-    async (userId: string) => {
-      const response = await UploadService.getMyAttachments();
-      setMyAttachments(
-        response.attachments.map((attachment) => ({
-          originalName: attachment.originalName,
-          filename: attachment.originalName,
-          fileType: attachment.fileType,
-          size: attachment.size,
-          isGlobal: attachment.isGlobal,
-          expirationDate: attachment.expirationDate ?? undefined,
-          createdAt: attachment.createdAt,
-          signedUrl: attachment.signedUrl,
-          id: attachment.id,
-        }))
-      );
-      subscribeToFileHub(userId);
-    },
-    [setMyAttachments, subscribeToFileHub]
-  );
+  const fetchMyAttachments = useCallback(async () => {
+    const response = await UploadService.getMyAttachments();
+    setMyAttachments(
+      response.attachments.map((attachment) => ({
+        originalName: attachment.originalName,
+        filename: attachment.originalName,
+        fileType: attachment.fileType,
+        size: attachment.size,
+        isGlobal: attachment.isGlobal,
+        expirationDate: attachment.expirationDate ?? undefined,
+        createdAt: attachment.createdAt,
+        signedUrl: attachment.signedUrl,
+        id: attachment.id,
+      }))
+    );
+  }, [setMyAttachments]);
 
   const reset = () => {
     clearCurrentNewTargetSelections();
@@ -264,6 +180,7 @@ export const useAttachments = (targetId?: string) => {
     getUploadProgress,
     fetchMyAttachments,
     deleteAttachmentFromExistingAttachments,
+    confirmExistingAttachmentsDeletionForTarget,
     removeAttachmentToUpload: (attachmentId: string) => {
       targetId
         ? removeAttachmentToUploadForTarget(targetId, attachmentId)
@@ -315,5 +232,7 @@ export const useAttachments = (targetId?: string) => {
     reset,
     moveCurrentNewTargetSelectionsToExisting,
     isUploading,
+    addMyAttachment,
+    addExistingAttachmentToTarget,
   };
 };

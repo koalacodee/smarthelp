@@ -99,8 +99,11 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   const { updateTask, deleteTask } = useTaskStore();
   const { openModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
-  const { getTaskSubmissions, getDelegationSubmissions, getSubmissionAttachments } =
-    useTaskSubmissionsStore();
+  const {
+    getTaskSubmissions,
+    getDelegationSubmissions,
+    getSubmissionAttachments,
+  } = useTaskSubmissionsStore();
   const [taskAttachmentsMetadata, setTaskAttachmentsMetadata] = useState<{
     [attachmentId: string]: any;
   }>({});
@@ -160,7 +163,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
 
       // Load attachments for delegation submissions
       delegationSubmissions.forEach((submission) => {
-        const submissionAttachments = getSubmissionAttachments(submission.id.toString());
+        const submissionAttachments = getSubmissionAttachments(
+          submission.id.toString()
+        );
         allSubmissionAttachments.push(...submissionAttachments);
       });
 
@@ -272,7 +277,8 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   const taskAttachments = taskAttachmentIds;
   const taskSubmissions = getTaskSubmissions(task.id);
   const delegationSubmissions = getDelegationSubmissions(task.id);
-  const allSubmissionsCount = taskSubmissions.length + delegationSubmissions.length;
+  const allSubmissionsCount =
+    taskSubmissions.length + delegationSubmissions.length;
 
   const toggleSubmission = (submissionId: string) => {
     setExpandedSubmissions((prev) => {
@@ -312,7 +318,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
 
   return (
     <>
-      <div className="relative bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      <div className="relative bg-white/90  border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
         {/* Priority colored line on the left */}
         <div
           className={`absolute left-0 top-0 bottom-0 w-1 ${getPriorityColor(
@@ -367,12 +373,13 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
               {task.status?.replace("_", " ") || "TODO"}
             </span>
             <span
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${task.priority === "HIGH"
-                ? "bg-red-100 text-red-800"
-                : task.priority === "MEDIUM"
+              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                task.priority === "HIGH"
+                  ? "bg-red-100 text-red-800"
+                  : task.priority === "MEDIUM"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-green-100 text-green-800"
-                }`}
+              }`}
             >
               {task.priority || "MEDIUM"}
             </span>
@@ -471,8 +478,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
               >
                 <div className="flex items-center gap-2">
                   <svg
-                    className={`w-3 h-3 transition-transform ${isSubmissionsExpanded ? "rotate-90" : ""
-                      }`}
+                    className={`w-3 h-3 transition-transform ${
+                      isSubmissionsExpanded ? "rotate-90" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -536,8 +544,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
                               >
                                 <svg
-                                  className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""
-                                    }`}
+                                  className={`w-3 h-3 transition-transform ${
+                                    isExpanded ? "rotate-90" : ""
+                                  }`}
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -608,7 +617,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                                     (attachmentId, index) => {
                                       const attachmentMetadata =
                                         submissionAttachmentsMetadata[
-                                        attachmentId
+                                          attachmentId
                                         ];
                                       const fileName =
                                         attachmentMetadata?.originalName ||
@@ -679,7 +688,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                     const submissionAttachments = getSubmissionAttachments(
                       submission.id.toString()
                     );
-                    const isExpanded = expandedSubmissions.has(submission.id.toString());
+                    const isExpanded = expandedSubmissions.has(
+                      submission.id.toString()
+                    );
                     const hasAttachments = submissionAttachments.length > 0;
                     const hasContent = submission.notes || hasAttachments;
 
@@ -693,12 +704,17 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                             <div className="w-4 h-4 bg-purple-100 rounded-full flex items-center justify-center">
                               <span className="text-xs font-medium text-purple-600">
                                 {submission.performerName
-                                  ? submission.performerName.charAt(0).toUpperCase()
-                                  : submission.performerType.charAt(0).toUpperCase()}
+                                  ? submission.performerName
+                                      .charAt(0)
+                                      .toUpperCase()
+                                  : submission.performerType
+                                      .charAt(0)
+                                      .toUpperCase()}
                               </span>
                             </div>
                             <span className="text-xs font-medium text-gray-900">
-                              {submission.performerName || submission.performerType}
+                              {submission.performerName ||
+                                submission.performerType}
                             </span>
                             <span className="text-xs text-purple-600 capitalize">
                               (Delegation)
@@ -714,12 +730,15 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                             </span>
                             {hasContent && (
                               <button
-                                onClick={() => toggleSubmission(submission.id.toString())}
+                                onClick={() =>
+                                  toggleSubmission(submission.id.toString())
+                                }
                                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
                               >
                                 <svg
-                                  className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""
-                                    }`}
+                                  className={`w-3 h-3 transition-transform ${
+                                    isExpanded ? "rotate-90" : ""
+                                  }`}
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -772,7 +791,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                                     (attachmentId, index) => {
                                       const attachmentMetadata =
                                         submissionAttachmentsMetadata[
-                                        attachmentId
+                                          attachmentId
                                         ];
                                       const fileName =
                                         attachmentMetadata?.originalName ||

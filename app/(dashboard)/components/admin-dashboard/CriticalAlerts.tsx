@@ -33,7 +33,7 @@ const badgeBySeverity: Record<AlertItem["severity"], string> = {
 
 export default function CriticalAlerts() {
   return (
-    <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-xl p-5">
+    <div className="rounded-2xl border border-white/20 bg-white/90  shadow-xl p-5">
       <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-800">
         <AlertTriangle className="h-4 w-4" /> Critical Alerts
       </h3>

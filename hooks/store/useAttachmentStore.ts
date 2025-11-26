@@ -49,6 +49,7 @@ interface AttachmentStore {
     targetId: string,
     attachmentId: string
   ) => void;
+  confirmExistingAttachmentsDeletionForTarget: (targetId: string) => void;
   // #endregion Existing Attachments
 
   // #region Attachments to Upload
@@ -345,6 +346,13 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
       const { [targetId]: _, ...rest } = state.attachmentsToDelete;
       return { attachmentsToDelete: rest };
     }),
+  confirmExistingAttachmentsDeletionForTarget: (targetId) => {
+    const state = get();
+    const toDelete = state.attachmentsToDelete[targetId] || [];
+    toDelete.forEach((att) => {
+      get().removeExistingAttachmentFromTarget(targetId, att.id);
+    });
+  },
   // #endregion Attachments to Delete
 
   // #region Selected Form My Attachments

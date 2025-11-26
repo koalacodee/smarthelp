@@ -23,7 +23,7 @@ export default function Loading() {
         </div>
 
         {/* Performance Table skeleton */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8">
+        <div className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl animate-pulse"></div>
             <div className="h-6 bg-slate-200 rounded-md w-48 animate-pulse"></div>
@@ -31,7 +31,7 @@ export default function Loading() {
           </div>
 
           <div className="overflow-x-auto">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm">
+            <div className="bg-white/70  rounded-2xl border border-slate-200/50 shadow-sm">
               <div className="bg-gradient-to-r from-slate-50/80 to-slate-100/50 px-8 py-5">
                 <div className="grid grid-cols-7 gap-8">
                   <div className="h-4 bg-slate-200 rounded animate-pulse"></div>
@@ -69,7 +69,7 @@ export default function Loading() {
         </div>
 
         {/* Activity Report skeleton */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8">
+        <div className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl animate-pulse"></div>
             <div className="h-6 bg-slate-200 rounded-md w-36 animate-pulse"></div>
@@ -80,7 +80,7 @@ export default function Loading() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden mb-6"
+              className="bg-white/50  rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden mb-6"
             >
               <div className="p-6 bg-gradient-to-r from-slate-50/80 to-slate-100/50">
                 <div className="flex items-center gap-4">
@@ -91,7 +91,7 @@ export default function Loading() {
               </div>
               <div className="p-4">
                 <div className="overflow-x-auto">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
+                  <div className="bg-white/70  rounded-xl border border-slate-200/50 shadow-sm">
                     <div className="bg-slate-50/80 px-6 py-4">
                       <div className="grid grid-cols-6 gap-6">
                         {[...Array(6)].map((_, j) => (

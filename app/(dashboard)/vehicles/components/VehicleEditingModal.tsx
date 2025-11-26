@@ -238,7 +238,7 @@ export default function VehicleEditingModal() {
   if (!isEditing) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
         <h4 className="text-lg font-semibold text-slate-800 mb-4">
           {vehicle ? "Edit Vehicle" : "Add New Vehicle"}

@@ -114,7 +114,9 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       window.location.reload();
     } catch (err: any) {
       addToast({
-        message: err?.response?.data?.message || "Failed to update profile picture. Please try again.",
+        message:
+          err?.response?.data?.message ||
+          "Failed to update profile picture. Please try again.",
         type: "error",
       });
     } finally {
@@ -157,7 +159,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       } else {
         setRootError(
           err?.response?.data?.message ||
-          "Failed to update profile. Please try again."
+            "Failed to update profile. Please try again."
         );
       }
     } finally {
@@ -272,7 +274,6 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
         type: "error",
       });
       console.log("error", err);
-
     } finally {
       setResettingPassword(false);
     }
@@ -363,7 +364,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
             y: -2,
             transition: { duration: 0.2 },
           }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 lg:col-span-1"
+          className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6 lg:col-span-1"
         >
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -494,7 +495,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
             y: -2,
             transition: { duration: 0.2 },
           }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 lg:col-span-2"
+          className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6 lg:col-span-2"
         >
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -818,7 +819,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
           y: -2,
           transition: { duration: 0.2 },
         }}
-        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+        className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
       >
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -995,7 +996,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                       name={field.name}
                       value={
                         passwordResetData[
-                        field.name as keyof typeof passwordResetData
+                          field.name as keyof typeof passwordResetData
                         ]
                       }
                       onChange={handlePasswordResetInputChange}
@@ -1082,4 +1083,3 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
     </motion.div>
   );
 }
-

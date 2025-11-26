@@ -4,7 +4,6 @@ import React from "react";
 import { motion } from "framer-motion";
 
 export default function PermissionDenied() {
-
   return (
     <div className="flex items-center justify-center min-h-[60vh] px-4">
       <motion.div
@@ -15,7 +14,7 @@ export default function PermissionDenied() {
       >
         {/* Gradient border card */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-rose-500 to-orange-500 p-[2px] shadow-2xl">
-          <div className="h-full w-full rounded-2xl bg-white/95 backdrop-blur-sm">
+          <div className="h-full w-full rounded-2xl bg-white/95 ">
             <div className="p-8 sm:p-10">
               {/* Animated icon */}
               <motion.div
@@ -96,7 +95,8 @@ export default function PermissionDenied() {
                 transition={{ duration: 0.5, delay: 0.5 }}
                 className="text-center text-sm text-slate-500"
               >
-                Please contact your administrator if you believe this is an error.
+                Please contact your administrator if you believe this is an
+                error.
               </motion.p>
 
               {/* Decorative elements */}
@@ -119,4 +119,3 @@ export default function PermissionDenied() {
     </div>
   );
 }
-

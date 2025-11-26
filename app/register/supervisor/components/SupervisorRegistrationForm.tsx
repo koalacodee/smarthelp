@@ -193,7 +193,7 @@ export default function SupervisorRegistrationForm({
             y: -2,
             transition: { duration: 0.2 },
           }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+          className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
         >
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -413,7 +413,7 @@ export default function SupervisorRegistrationForm({
             y: -2,
             transition: { duration: 0.2 },
           }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+          className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
         >
           <motion.div
             initial={{ opacity: 0, y: -10 }}

@@ -59,7 +59,7 @@ export default function BarChartPanel({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
       className={[
-        "w-full rounded-xl bg-white backdrop-blur",
+        "w-full rounded-xl bg-white",
         "shadow-sm ring-1 ring-black/5",
         "p-4 sm:p-6",
         className || "",

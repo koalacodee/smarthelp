@@ -27,7 +27,7 @@ export default function ConfirmationModal() {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in"
+          className="fixed inset-0 bg-black/60  flex items-center justify-center z-[100] p-4 animate-fade-in"
           onClick={() => {
             onCancel?.();
             closeModal();

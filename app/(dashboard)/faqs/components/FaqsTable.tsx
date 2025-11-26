@@ -8,6 +8,8 @@ import { FAQService } from "@/lib/api/v2";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { useFAQAttachments } from "@/lib/store/useAttachmentsStore";
 import { useFileHubAttachmentsStore } from "../store/useFileHubAttachmentsStore";
+import { FileHubAttachment } from "@/lib/api/v2/models/faq";
+import { useAttachments } from "@/hooks/useAttachments";
 
 export default function FaqsTable({
   questions,
@@ -16,11 +18,11 @@ export default function FaqsTable({
 }: {
   questions: GroupedFAQs[];
   attachments: Record<string, string[]>;
-  fileHubAttachments?: Record<string, Record<string, string>>;
+  fileHubAttachments?: FileHubAttachment[];
 }) {
   const { filteredFaqs, setFAQs } = useGroupedFAQsStore();
   const { setFAQAttachments } = useFAQAttachments();
-  const { setFileHubAttachments } = useFileHubAttachmentsStore();
+  const { addExistingAttachmentToTarget } = useAttachments();
   const prevQuestionsRef = useRef<string>("");
   const prevAttachmentsRef = useRef<string>("");
   const prevFileHubAttachmentsRef = useRef<string>("");
@@ -39,9 +41,19 @@ export default function FaqsTable({
     ) {
       setFAQs(questions);
       setFAQAttachments(attachments);
-      if (fileHubAttachments) {
-        setFileHubAttachments(fileHubAttachments);
-      }
+      fileHubAttachments?.forEach((attachment) => {
+        addExistingAttachmentToTarget(attachment.targetId, {
+          fileType: attachment.type,
+          originalName: attachment.originalName,
+          size: attachment.size,
+          expirationDate: attachment.expirationDate,
+          id: attachment.id,
+          filename: attachment.filename,
+          isGlobal: attachment.isGlobal,
+          createdAt: attachment.createdAt,
+          signedUrl: attachment.signedUrl,
+        });
+      });
       prevQuestionsRef.current = questionsKey;
       prevAttachmentsRef.current = attachmentsKey;
       prevFileHubAttachmentsRef.current = fileHubAttachmentsKey;
@@ -53,9 +65,19 @@ export default function FaqsTable({
     FAQService.getAllGroupedByDepartment().then((res) => {
       setFAQs(res.questions);
       setFAQAttachments(res.attachments);
-      if (res.fileHubAttachments) {
-        setFileHubAttachments(res.fileHubAttachments);
-      }
+      fileHubAttachments?.forEach((attachment) => {
+        addExistingAttachmentToTarget(attachment.targetId, {
+          fileType: attachment.type,
+          originalName: attachment.originalName,
+          size: attachment.size,
+          expirationDate: attachment.expirationDate,
+          id: attachment.id,
+          filename: attachment.filename,
+          isGlobal: attachment.isGlobal,
+          createdAt: attachment.createdAt,
+          signedUrl: attachment.signedUrl,
+        });
+      });
     });
   }
 

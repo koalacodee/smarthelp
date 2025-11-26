@@ -14,8 +14,15 @@ export default function SubmitDelegationModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "notes",
   ]);
-  const { isOpen, delegation, notes, isSubmitting, closeModal, setNotes, setIsSubmitting } =
-    useSubmitDelegationModalStore();
+  const {
+    isOpen,
+    delegation,
+    notes,
+    isSubmitting,
+    closeModal,
+    setNotes,
+    setIsSubmitting,
+  } = useSubmitDelegationModalStore();
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const { getFormData, moveAllSelectedToExisting } = useAttachmentStore();
@@ -58,7 +65,7 @@ export default function SubmitDelegationModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          "Failed to submit delegation for review. Please try again."
+            "Failed to submit delegation for review. Please try again."
         );
       }
     } finally {
@@ -69,7 +76,7 @@ export default function SubmitDelegationModal() {
   const taskTitle = delegation.task?.title || "Task";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4 text-slate-800">
           Submit Delegation for Review: {taskTitle}
@@ -105,9 +112,12 @@ export default function SubmitDelegationModal() {
           </div>
           {delegation.targetSubDepartment && (
             <div>
-              <p className="font-semibold text-sm text-slate-600">Assigned to:</p>
+              <p className="font-semibold text-sm text-slate-600">
+                Assigned to:
+              </p>
               <p className="text-slate-800">
-                {delegation.assignmentType === "INDIVIDUAL" && delegation.assignee
+                {delegation.assignmentType === "INDIVIDUAL" &&
+                delegation.assignee
                   ? `${delegation.assignee.user?.name || "Employee"}`
                   : delegation.targetSubDepartment.name}
               </p>
@@ -177,4 +187,3 @@ export default function SubmitDelegationModal() {
     </div>
   );
 }
-

@@ -40,7 +40,7 @@ export default function DashboardCard({
       whileTap={{ scale: 0.98 }}
       className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${borderGradient} p-[2px] shadow-xl`}
     >
-      <div className="h-full w-full rounded-2xl bg-white/95 backdrop-blur-sm">
+      <div className="h-full w-full rounded-2xl bg-white/95 ">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

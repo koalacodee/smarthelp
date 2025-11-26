@@ -59,9 +59,7 @@ export default function AttachmentGroupModal({
     try {
       const payload = {
         attachmentIds: selectedAttachmentIds,
-        ...(expiresAtInput
-          ? { expiresAt: new Date(expiresAtInput) }
-          : {}),
+        ...(expiresAtInput ? { expiresAt: new Date(expiresAtInput) } : {}),
       };
       if (mode === "create") {
         // Create new attachment group
@@ -126,7 +124,7 @@ export default function AttachmentGroupModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 "
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -140,8 +138,8 @@ export default function AttachmentGroupModal({
                 {mode === "create"
                   ? "Create TV Content"
                   : mode === "edit"
-                    ? "Edit TV Content"
-                    : "TV Content"}
+                  ? "Edit TV Content"
+                  : "TV Content"}
               </h2>
               <button
                 onClick={onClose}
@@ -291,16 +289,17 @@ export default function AttachmentGroupModal({
                           Expires At:
                         </p>
                         <p
-                          className={`text-sm ${attachmentGroup.expiresAt &&
+                          className={`text-sm ${
+                            attachmentGroup.expiresAt &&
                             new Date(attachmentGroup.expiresAt) < new Date()
-                            ? "text-red-600 font-semibold"
-                            : "text-slate-600"
-                            }`}
+                              ? "text-red-600 font-semibold"
+                              : "text-slate-600"
+                          }`}
                         >
                           {attachmentGroup.expiresAt
                             ? new Date(
-                              attachmentGroup.expiresAt
-                            ).toLocaleString()
+                                attachmentGroup.expiresAt
+                              ).toLocaleString()
                             : "No expiration"}
                         </p>
                       </div>
@@ -338,10 +337,11 @@ export default function AttachmentGroupModal({
                         {attachmentGroup.attachments.map((attachment) => (
                           <div
                             key={attachment.id}
-                            className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
-                              ? "border-blue-400 bg-blue-50"
-                              : "border-slate-200"
-                              }`}
+                            className={`border rounded-lg p-3 flex items-center justify-between ${
+                              selectedAttachmentIds.includes(attachment.id)
+                                ? "border-blue-400 bg-blue-50"
+                                : "border-slate-200"
+                            }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div className="text-2xl">📄</div>
@@ -356,10 +356,11 @@ export default function AttachmentGroupModal({
                             </div>
                             <button
                               onClick={() => toggleAttachment(attachment.id)}
-                              className={`p-2 rounded-md ${selectedAttachmentIds.includes(attachment.id)
-                                ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
-                                }`}
+                              className={`p-2 rounded-md ${
+                                selectedAttachmentIds.includes(attachment.id)
+                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                              }`}
                             >
                               {selectedAttachmentIds.includes(attachment.id) ? (
                                 <Trash className="w-4 h-4" />
@@ -388,10 +389,11 @@ export default function AttachmentGroupModal({
                             .map((attachment) => (
                               <div
                                 key={attachment.id}
-                                className={`border rounded-lg p-3 flex items-center justify-between ${selectedAttachmentIds.includes(attachment.id)
-                                  ? "border-blue-400 bg-blue-50"
-                                  : "border-slate-200"
-                                  }`}
+                                className={`border rounded-lg p-3 flex items-center justify-between ${
+                                  selectedAttachmentIds.includes(attachment.id)
+                                    ? "border-blue-400 bg-blue-50"
+                                    : "border-slate-200"
+                                }`}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="text-2xl">📄</div>
@@ -408,12 +410,13 @@ export default function AttachmentGroupModal({
                                   onClick={() =>
                                     toggleAttachment(attachment.id)
                                   }
-                                  className={`p-2 rounded-md ${selectedAttachmentIds.includes(
-                                    attachment.id
-                                  )
-                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200"
-                                    }`}
+                                  className={`p-2 rounded-md ${
+                                    selectedAttachmentIds.includes(
+                                      attachment.id
+                                    )
+                                      ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                      : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                  }`}
                                 >
                                   {selectedAttachmentIds.includes(
                                     attachment.id
@@ -446,17 +449,18 @@ export default function AttachmentGroupModal({
                   isLoading ||
                   (mode === "create" && selectedAttachmentIds.length === 0)
                 }
-                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${isLoading ||
+                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
+                  isLoading ||
                   (mode === "create" && selectedAttachmentIds.length === 0)
-                  ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-                  } transition-colors`}
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } transition-colors`}
               >
                 {isLoading
                   ? "Saving..."
                   : mode === "create"
-                    ? "Create Group"
-                    : "Save Changes"}
+                  ? "Create Group"
+                  : "Save Changes"}
               </button>
             </div>
           </motion.div>

@@ -68,7 +68,7 @@ const ActivitySection: React.FC<{
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
+    <div className="bg-white/50  rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
       <button
         className="w-full flex justify-between items-center p-6 bg-gradient-to-r from-slate-50/80 to-slate-100/50 hover:from-slate-100/80 hover:to-slate-150/50 transition-all duration-300 rounded-t-2xl"
         onClick={() => setIsOpen(!isOpen)}
@@ -92,7 +92,7 @@ const ActivitySection: React.FC<{
       {isOpen && (
         <div className="p-4">
           <div className="overflow-x-auto">
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
+            <div className="bg-white/70  rounded-xl border border-slate-200/50 shadow-sm">
               <table className="min-w-full">
                 <thead className="bg-slate-50/80">
                   <tr>

@@ -120,7 +120,7 @@ export default function ReplyToTicketModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          "Failed to reply to ticket. Please try again."
+            "Failed to reply to ticket. Please try again."
         );
       }
     }
@@ -137,7 +137,7 @@ export default function ReplyToTicketModal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4"
           onClick={() => setTicket(null)}
         >
           <motion.div
@@ -303,11 +303,12 @@ export default function ReplyToTicketModal() {
                     {ticketAttachments.map((attachment, idx) => (
                       <motion.div
                         key={`existing-${attachment.id}`}
-                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${attachment.expiryDate &&
+                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
+                          attachment.expiryDate &&
                           isExpired(new Date(attachment.expiryDate))
-                          ? "bg-red-50 border-red-200 hover:bg-red-100"
-                          : "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          }`}
+                            ? "bg-red-50 border-red-200 hover:bg-red-100"
+                            : "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                        }`}
                         onClick={() =>
                           handlePreviewExistingAttachment(attachment)
                         }

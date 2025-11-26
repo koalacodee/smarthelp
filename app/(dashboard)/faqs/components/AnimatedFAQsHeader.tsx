@@ -1,51 +1,51 @@
-"use client";
-
 import React from "react";
-import { motion } from "framer-motion";
-import AddNewFaqButton from "./AddNewFaqButton";
 
 export default function AnimatedFAQsHeader() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-2xl"
+    <div
+      className="relative overflow-hidden rounded-2xl animate-fade-in-down"
+      // animate-fade-in-down: custom animation for fade in and slide down
     >
-      <motion.div
-        initial={{ scale: 1.05, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10"
+      <div
+        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 animate-fade-in-scale"
+        // animate-fade-in-scale: fade and slight scale down, delay-100
+        style={{
+          animationDelay: "100ms",
+          animationFillMode: "both",
+        }}
       />
-      <motion.div
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="relative rounded-2xl border border-white/20 bg-white/80 p-8 shadow-xl backdrop-blur-sm"
+      <div
+        className="relative rounded-2xl border border-white/20 bg-white/80 p-8 shadow-xl  animate-fade-in-up"
+        // animate-fade-in-up: fade and slide up, delay-200
+        style={{
+          animationDelay: "200ms",
+          animationFillMode: "both",
+        }}
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-2">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent"
+            <h1
+              className="text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent animate-fade-in-up"
+              style={{
+                animationDelay: "300ms",
+                animationFillMode: "both",
+              }}
             >
               Knowledge Base
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-              className="text-slate-600 text-lg"
+            </h1>
+            <p
+              className="text-slate-600 text-lg animate-fade-in-up"
+              style={{
+                animationDelay: "400ms",
+                animationFillMode: "both",
+              }}
             >
               Manage frequently asked questions and build a comprehensive
               knowledge base
-            </motion.p>
+            </p>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

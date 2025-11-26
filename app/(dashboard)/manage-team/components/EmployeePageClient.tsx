@@ -239,7 +239,7 @@ export default function EmployeePageClient({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
+            className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
           >
             <div className="overflow-hidden">
               <table className="min-w-full divide-y divide-slate-200">

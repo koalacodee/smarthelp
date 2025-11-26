@@ -4,6 +4,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationSystem from "@/components/NotificationSystem";
 import MediaPreviewModal from "@/components/ui/MediaPreviewModal";
+import FileHubSubscriber from "@/components/side-effects/FIleHubSubscriber";
 
 export default async function RootLayout({
   children,
@@ -13,6 +14,7 @@ export default async function RootLayout({
   return (
     <>
       <ConfirmationModal />
+      <FileHubSubscriber />
       <div className="min-h-screen bg-muted">
         <div className="flex">
           <Sidebar />

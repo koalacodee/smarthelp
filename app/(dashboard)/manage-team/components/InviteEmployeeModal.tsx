@@ -36,7 +36,9 @@ export default function InviteEmployeeModal() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const [supervisors, setSupervisors] = useState<SupervisorSummary[]>([]);
-  const [selectedSupervisorId, setSelectedSupervisorId] = useState<string | undefined>(undefined);
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState<
+    string | undefined
+  >(undefined);
   const [supervisorSearchTerm, setSupervisorSearchTerm] = useState("");
   const [showSupervisorDropdown, setShowSupervisorDropdown] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
@@ -251,8 +253,9 @@ export default function InviteEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          `Failed to ${invitationType === "direct" ? "invite" : "request invitation for"
-          } employee. Please try again.`
+            `Failed to ${
+              invitationType === "direct" ? "invite" : "request invitation for"
+            } employee. Please try again.`
         );
       }
     } finally {
@@ -277,7 +280,7 @@ export default function InviteEmployeeModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4"
         onClick={handleClose}
         aria-modal="true"
         role="dialog"
@@ -591,10 +594,11 @@ export default function InviteEmployeeModal() {
                                   }
                                   className={`
                                    relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                                   ${isSelected
-                                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                                      : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
-                                    }
+                                   ${
+                                     isSelected
+                                       ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                                       : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
+                                   }
                                  `}
                                 >
                                   <motion.span
@@ -702,10 +706,11 @@ export default function InviteEmployeeModal() {
                           }
                           className={`
                            relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                           ${isSelected
-                              ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
-                              : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
-                            }
+                           ${
+                             isSelected
+                               ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
+                               : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
+                           }
                          `}
                         >
                           <motion.span

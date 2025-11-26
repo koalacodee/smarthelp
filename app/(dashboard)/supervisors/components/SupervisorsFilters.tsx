@@ -30,7 +30,7 @@ export default function SupervisorsFilters({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 mb-6"
+      className="bg-white/90  rounded-xl shadow-lg border border-white/20 p-4 mb-6"
     >
       <div className="flex flex-col sm:flex-row gap-4 items-center">
         {/* Search Bar */}

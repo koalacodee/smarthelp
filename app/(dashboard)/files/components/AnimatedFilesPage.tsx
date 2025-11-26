@@ -310,9 +310,12 @@ export default function AnimatedFilesPage({
         {(userRole === "ADMIN" ||
           userPermissions.includes(
             EmployeePermissions.MANAGE_ATTACHMENT_GROUPS
-          ) || userPermissions.includes(SupervisorPermissions.MANAGE_ATTACHMENT_GROUPS)) && (
-            <NavigationTabs onTabChange={setActiveTab} activeTab={activeTab} />
-          )}
+          ) ||
+          userPermissions.includes(
+            SupervisorPermissions.MANAGE_ATTACHMENT_GROUPS
+          )) && (
+          <NavigationTabs onTabChange={setActiveTab} activeTab={activeTab} />
+        )}
 
         {/* Content Section */}
         <motion.div
@@ -332,7 +335,7 @@ export default function AnimatedFilesPage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8"
+            className="bg-white/90  rounded-3xl shadow-2xl border border-white/30 overflow-hidden p-8"
           >
             {activeTab === "files" && (
               <>
@@ -549,22 +552,24 @@ function NavigationTabs({
         transition={{ duration: 0.5, delay: 0.6 }}
         className="flex justify-center mb-6"
       >
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-1 shadow-md inline-flex">
+        <div className="bg-white/80  rounded-lg p-1 shadow-md inline-flex">
           <button
             onClick={() => onTabChange("files")}
-            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "files"
-              ? "bg-blue-500 text-white shadow-md"
-              : "text-slate-600 hover:text-slate-900"
-              }`}
+            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === "files"
+                ? "bg-blue-500 text-white shadow-md"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
           >
             Individual Files
           </button>
           <button
             onClick={() => onTabChange("groups")}
-            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "groups"
-              ? "bg-blue-500 text-white shadow-md"
-              : "text-slate-600 hover:text-slate-900"
-              }`}
+            className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === "groups"
+                ? "bg-blue-500 text-white shadow-md"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
           >
             TV Content
           </button>

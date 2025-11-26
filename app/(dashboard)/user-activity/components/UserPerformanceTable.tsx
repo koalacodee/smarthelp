@@ -117,7 +117,7 @@ const UserPerformanceTable: React.FC<UserPerformanceTableProps> = ({
 
   return (
     <div className="overflow-x-auto">
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm">
+      <div className="bg-white/70  rounded-2xl border border-slate-200/50 shadow-sm">
         <table className="min-w-full">
           <thead className="bg-gradient-to-r from-slate-50/80 to-slate-100/50">
             <tr>

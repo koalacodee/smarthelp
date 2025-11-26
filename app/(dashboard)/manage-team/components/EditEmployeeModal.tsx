@@ -64,8 +64,8 @@ export default function EditEmployeeModal() {
         permissions: formData.permissions || currentEmployee.permissions,
         subDepartments: formData.subDepartmentIds
           ? subDepartments.filter((subDept) =>
-            formData.subDepartmentIds?.includes(subDept.id)
-          )
+              formData.subDepartmentIds?.includes(subDept.id)
+            )
           : currentEmployee.subDepartments,
         user: {
           ...currentEmployee.user,
@@ -84,7 +84,7 @@ export default function EditEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          "Failed to update employee. Please try again."
+            "Failed to update employee. Please try again."
         );
       }
     } finally {
@@ -118,7 +118,7 @@ export default function EditEmployeeModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4"
         onClick={closeModal}
         aria-modal="true"
         role="dialog"
@@ -263,9 +263,9 @@ export default function EditEmployeeModal() {
                                 formData.subDepartmentIds || [];
                               const newSubDeptIds = isSelected
                                 ? currentSubDeptIds.filter(
-                                  (subDeptId: string) =>
-                                    subDeptId !== subDept.id
-                                )
+                                    (subDeptId: string) =>
+                                      subDeptId !== subDept.id
+                                  )
                                 : [...currentSubDeptIds, subDept.id];
 
                               setFormData({
@@ -274,9 +274,10 @@ export default function EditEmployeeModal() {
                             }}
                             className={`
                               relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                              ${isSelected
-                                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                                : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
+                              ${
+                                isSelected
+                                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                                  : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
                               }
                             `}
                           >
@@ -353,10 +354,13 @@ export default function EditEmployeeModal() {
                     (permission, index) => {
                       const isSelected =
                         formData.permissions?.includes(permission) || false;
-                      const permissionLabel = permission == "MANAGE_ATTACHMENT_GROUPS" ? "Manage TV Content" : permission
-                        .replace(/_/g, " ")
-                        .toLowerCase()
-                        .replace(/\b\w/g, (l) => l.toUpperCase());
+                      const permissionLabel =
+                        permission == "MANAGE_ATTACHMENT_GROUPS"
+                          ? "Manage TV Content"
+                          : permission
+                              .replace(/_/g, " ")
+                              .toLowerCase()
+                              .replace(/\b\w/g, (l) => l.toUpperCase());
                       return (
                         <motion.button
                           key={permission}
@@ -383,10 +387,11 @@ export default function EditEmployeeModal() {
                           }
                           className={`
                           relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                          ${isSelected
+                          ${
+                            isSelected
                               ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
                               : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
-                            }
+                          }
                         `}
                         >
                           <motion.span

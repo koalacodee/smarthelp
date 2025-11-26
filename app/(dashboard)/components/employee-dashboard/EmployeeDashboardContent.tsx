@@ -55,7 +55,7 @@ export default function EmployeeDashboardContent({
           className="relative overflow-hidden rounded-2xl"
         >
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10" />
-          <div className="relative rounded-2xl border border-white/20 bg-white/80 p-6 shadow-xl backdrop-blur-sm">
+          <div className="relative rounded-2xl border border-white/20 bg-white/80 p-6 shadow-xl ">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div className="space-y-1">
                 <motion.h1
@@ -118,7 +118,7 @@ export default function EmployeeDashboardContent({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-xl p-5"
+          className="rounded-2xl border border-white/20 bg-white/90  shadow-xl p-5"
         >
           <motion.h3
             initial={{ opacity: 0, x: -20 }}
@@ -174,7 +174,7 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
-      className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-xl p-5"
+      className="rounded-2xl border border-white/20 bg-white/90  shadow-xl p-5"
     >
       <div className="mb-4 flex items-center justify-between">
         <motion.h3
@@ -200,9 +200,9 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
           {tasks.map((task, index) => {
             const daysUntilDue = task.dueDate
               ? Math.ceil(
-                (new Date(task.dueDate).getTime() - Date.now()) /
-                (1000 * 60 * 60 * 24)
-              )
+                  (new Date(task.dueDate).getTime() - Date.now()) /
+                    (1000 * 60 * 60 * 24)
+                )
               : null;
             const isUrgent = daysUntilDue !== null && daysUntilDue <= 1;
             const priorityColors = {
@@ -241,25 +241,28 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
                     </p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[
-                          task.priority as keyof typeof priorityColors
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          priorityColors[
+                            task.priority as keyof typeof priorityColors
                           ] || "bg-slate-100 text-slate-700"
-                          }`}
+                        }`}
                       >
                         {task.priority}
                       </span>
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[
-                          task.status as keyof typeof statusColors
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          statusColors[
+                            task.status as keyof typeof statusColors
                           ] || "bg-slate-100 text-slate-700"
-                          }`}
+                        }`}
                       >
                         {task.status.replace("_", " ")}
                       </span>
                       {daysUntilDue !== null && (
                         <span
-                          className={`text-xs font-medium ${isUrgent ? "text-red-600" : "text-slate-600"
-                            }`}
+                          className={`text-xs font-medium ${
+                            isUrgent ? "text-red-600" : "text-slate-600"
+                          }`}
                         >
                           Due: {daysUntilDue > 0 ? `${daysUntilDue}d` : "Today"}
                         </span>
@@ -282,7 +285,7 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
-      className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-xl p-5"
+      className="rounded-2xl border border-white/20 bg-white/90  shadow-xl p-5"
     >
       <div className="mb-4 flex items-center justify-between">
         <motion.h3
@@ -308,7 +311,7 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
           {tickets.map((ticket, index) => {
             const hoursAgo = Math.floor(
               (Date.now() - new Date(ticket.createdAt).getTime()) /
-              (1000 * 60 * 60)
+                (1000 * 60 * 60)
             );
             const priorityColors = {
               HIGH: "bg-red-100 text-red-800",
@@ -346,18 +349,20 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
                     </p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[
-                          ticket.priority as keyof typeof priorityColors
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          priorityColors[
+                            ticket.priority as keyof typeof priorityColors
                           ] || "bg-slate-100 text-slate-700"
-                          }`}
+                        }`}
                       >
                         {ticket.priority}
                       </span>
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[
-                          ticket.status as keyof typeof statusColors
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          statusColors[
+                            ticket.status as keyof typeof statusColors
                           ] || "bg-slate-100 text-slate-700"
-                          }`}
+                        }`}
                       >
                         {ticket.status.replace("_", " ")}
                       </span>
@@ -375,4 +380,3 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
     </motion.div>
   );
 }
-
