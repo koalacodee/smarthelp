@@ -1,5 +1,6 @@
 import type { AxiosInstance } from "axios";
 import type { JSend } from "../models/jsend";
+import { FileHubAttachment } from "./shared/filehub";
 
 export type UUID = string;
 
@@ -56,6 +57,7 @@ export type GetPromotionResponse = {
 export type GetAllPromotionsResponse = {
   promotions: PromotionDTO[];
   attachments: { [key: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
 };
 
 export type TogglePromotionActiveResponse = PromotionDTO;

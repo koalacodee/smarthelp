@@ -9,15 +9,18 @@ import PromotionsTable from "./PromotionsTable";
 import PromotionFilters from "./PromotionFilters";
 import AnimatedPromotionsHeader from "./AnimatedPromotionsHeader";
 import AddNewPromotionButton from "./AddNewPromotionButton";
+import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
 
 interface AnimatedPromotionsPageProps {
   promotions: PromotionDTO[];
   attachments: Record<string, string[]>;
+  fileHubAttachments: FileHubAttachment[];
 }
 
 export default function AnimatedPromotionsPage({
   promotions,
   attachments,
+  fileHubAttachments,
 }: AnimatedPromotionsPageProps) {
   const { setPromotions } = usePromotionsStore();
 
@@ -55,6 +58,7 @@ export default function AnimatedPromotionsPage({
             <PromotionsTable
               promotions={promotions}
               attachments={attachments}
+              fileHubAttachments={fileHubAttachments}
             />
           </div>
         </motion.div>

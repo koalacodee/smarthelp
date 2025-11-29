@@ -30,7 +30,6 @@ export default async function Page() {
 
   console.log(delegationsData);
 
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -41,10 +40,12 @@ export default async function Page() {
         initialDelegations={delegationsData.delegations}
         initialSubmissions={delegationsData.submissions}
         initialAttachments={delegationsData.attachments}
-        initialDelegationSubmissionAttachments={delegationsData.delegationSubmissionAttachments}
+        initialDelegationSubmissionAttachments={
+          delegationsData.delegationSubmissionAttachments
+        }
         initialTotal={delegationsData.total}
+        initialFileHubAttachments={delegationsData.fileHubAttachments}
       />
     </div>
   );
 }
-

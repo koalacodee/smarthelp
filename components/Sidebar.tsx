@@ -171,6 +171,16 @@ const tabs: Tab[] = [
     icon: <DocumentDuplicate className={ICON_SIZE} />,
     href: "/files",
     allowed: (r, p) => true, // Allow all users to access their files
+    subLinks: [
+      {
+        label: "Attachments",
+        href: "/my-files/filehub",
+      },
+      {
+        label: "TV Content",
+        href: "/my-files/filehub/groups",
+      },
+    ],
   },
   {
     id: "profile",
@@ -215,7 +225,7 @@ function SidebarContent({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out ${
+      className={`fixed left-0 top-0 h-full w-64 z-40 transform transition-transform duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -347,7 +357,7 @@ export default function Sidebar() {
       {/* Burger Button */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-md hover:bg-gray-50 transition-colors duration-200"
+        className="fixed top-4 left-4 z-10 p-2 rounded-md bg-white shadow-md hover:bg-gray-50 transition-colors duration-200"
         aria-label="Toggle sidebar"
       >
         <Burger className="w-6 h-6" />

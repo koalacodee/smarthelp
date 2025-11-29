@@ -1,34 +1,17 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { TaskDelegationDTO, TaskDelegationSubmissionDTO } from "@/lib/api/v2/services/delegations";
+import { useState, useMemo } from "react";
+import {
+  TaskDelegationDTO,
+  TaskDelegationSubmissionDTO,
+} from "@/lib/api/v2/services/delegations";
 import Eye from "@/icons/Eye";
 import Clock from "@/icons/Clock";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
-import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
-import { FileService } from "@/lib/api";
 import ThreeDotMenu from "../../components/ThreeDotMenu";
 import { TaskDelegationService } from "@/lib/api/v2";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useMyDelegationsStore } from "../store/useMyDelegationsStore";
-
-// Custom PaperClip icon component
-const PaperClipIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-    />
-  </svg>
-);
+import InlineAttachments from "../../components/InlineAttachments";
 
 // Delegation icon component
 const DelegationIcon = ({ className }: { className?: string }) => (
@@ -95,23 +78,10 @@ interface DelegationCardProps {
 export default function DelegationCard({
   delegation,
   submissions,
-  delegationSubmissionAttachments,
 }: DelegationCardProps) {
   const [isSubmissionsExpanded, setIsSubmissionsExpanded] = useState(false);
-  const { getAttachments } = useAttachmentsStore();
-  const delegationAttachmentIds = getAttachments("delegation", delegation.id.toString());
-  const { setMetadata } = useMediaMetadataStore();
-  const { openPreview } = useMediaPreviewStore();
   const { addToast } = useToastStore();
   const { updateDelegation } = useMyDelegationsStore();
-  const [delegationAttachmentsMetadata, setDelegationAttachmentsMetadata] =
-    useState<{
-      [attachmentId: string]: any;
-    }>({});
-  const [submissionAttachmentsMetadata, setSubmissionAttachmentsMetadata] =
-    useState<{
-      [attachmentId: string]: any;
-    }>({});
 
   // Get the latest submission (the one with the biggest submittedAt)
   const latestSubmission = useMemo(() => {
@@ -122,99 +92,6 @@ export default function DelegationCard({
       return currentDate > latestDate ? current : latest;
     });
   }, [submissions]);
-
-  // Load attachment metadata for this delegation
-  useEffect(() => {
-    const loadAttachmentsMetadata = async () => {
-      if (delegationAttachmentIds.length > 0) {
-        const attachmentMetadataPromises = delegationAttachmentIds.map(
-          async (attachmentId) => {
-            try {
-              const metadata = await FileService.getAttachmentMetadata(
-                attachmentId
-              );
-              setMetadata(attachmentId, metadata);
-              return { attachmentId, metadata };
-            } catch (error) {
-              return { attachmentId, metadata: null };
-            }
-          }
-        );
-
-        const results = await Promise.all(attachmentMetadataPromises);
-        const attachmentMap = results.reduce(
-          (acc, { attachmentId, metadata }) => {
-            if (metadata) {
-              acc[attachmentId] = metadata;
-            }
-            return acc;
-          },
-          {} as { [attachmentId: string]: any }
-        );
-
-        setDelegationAttachmentsMetadata(attachmentMap);
-      }
-    };
-
-    loadAttachmentsMetadata();
-  }, [delegation.id, setMetadata, delegationAttachmentIds.length]);
-
-  // Load submission attachment metadata
-  useEffect(() => {
-    const loadSubmissionAttachmentsMetadata = async () => {
-      const allSubmissionAttachments: string[] = [];
-
-      submissions.forEach((submission) => {
-        const submissionId = submission.id.toString();
-        const attachments = delegationSubmissionAttachments[submissionId] || [];
-        allSubmissionAttachments.push(...attachments);
-      });
-
-      if (allSubmissionAttachments.length > 0) {
-        const attachmentMetadataPromises = allSubmissionAttachments.map(
-          async (attachmentId) => {
-            try {
-              const metadata = await FileService.getAttachmentMetadata(
-                attachmentId
-              );
-              setMetadata(attachmentId, metadata);
-              return { attachmentId, metadata };
-            } catch (error) {
-              return { attachmentId, metadata: null };
-            }
-          }
-        );
-
-        const results = await Promise.all(attachmentMetadataPromises);
-        const attachmentMap = results.reduce(
-          (acc, { attachmentId, metadata }) => {
-            if (metadata) {
-              acc[attachmentId] = metadata;
-            }
-            return acc;
-          },
-          {} as { [attachmentId: string]: any }
-        );
-
-        setSubmissionAttachmentsMetadata(attachmentMap);
-      }
-    };
-
-    loadSubmissionAttachmentsMetadata();
-  }, [submissions, delegationSubmissionAttachments, setMetadata]);
-
-  const handleAttachmentClick = (attachmentId: string) => {
-    const attachmentMetadata = delegationAttachmentsMetadata[attachmentId];
-    if (attachmentMetadata) {
-      openPreview({
-        originalName: attachmentMetadata.originalName,
-        tokenOrId: attachmentId,
-        fileType: attachmentMetadata.fileType,
-        sizeInBytes: attachmentMetadata.sizeInBytes,
-        expiryDate: attachmentMetadata.expiryDate,
-      });
-    }
-  };
 
   const handleApprove = async () => {
     if (!latestSubmission) {
@@ -228,10 +105,14 @@ export default function DelegationCard({
         {}
       );
       updateDelegation(delegation.id.toString(), response.delegation);
-      addToast({ message: "Submission approved successfully", type: "success" });
+      addToast({
+        message: "Submission approved successfully",
+        type: "success",
+      });
     } catch (error: any) {
       addToast({
-        message: error?.response?.data?.message || "Failed to approve submission",
+        message:
+          error?.response?.data?.message || "Failed to approve submission",
         type: "error",
       });
     }
@@ -249,10 +130,14 @@ export default function DelegationCard({
         {}
       );
       updateDelegation(delegation.id.toString(), response.delegation);
-      addToast({ message: "Submission rejected successfully", type: "success" });
+      addToast({
+        message: "Submission rejected successfully",
+        type: "success",
+      });
     } catch (error: any) {
       addToast({
-        message: error?.response?.data?.message || "Failed to reject submission",
+        message:
+          error?.response?.data?.message || "Failed to reject submission",
         type: "error",
       });
     }
@@ -265,14 +150,15 @@ export default function DelegationCard({
     }
 
     try {
-      await TaskDelegationService.forwardSubmission(
-        latestSubmission.id,
-        {}
-      );
-      addToast({ message: "Submission forwarded successfully", type: "success" });
+      await TaskDelegationService.forwardSubmission(latestSubmission.id, {});
+      addToast({
+        message: "Submission forwarded successfully",
+        type: "success",
+      });
     } catch (error: any) {
       addToast({
-        message: error?.response?.data?.message || "Failed to forward submission",
+        message:
+          error?.response?.data?.message || "Failed to forward submission",
         type: "error",
       });
     }
@@ -346,31 +232,41 @@ export default function DelegationCard({
               {delegation.status?.replace("_", " ") || "TODO"}
             </span>
             <span
-              className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
-                ? "bg-red-100 text-red-800"
-                : task.priority === "MEDIUM"
+              className={`px-2 py-1 rounded text-xs font-medium ${
+                task.priority === "HIGH"
+                  ? "bg-red-100 text-red-800"
+                  : task.priority === "MEDIUM"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-green-100 text-green-800"
-                }`}
+              }`}
             >
               {task.priority}
             </span>
             {delegation.assignmentType && (
               <span className="px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                {delegation.assignmentType === "INDIVIDUAL" ? "Individual" : "Sub-Department"}
+                {delegation.assignmentType === "INDIVIDUAL"
+                  ? "Individual"
+                  : "Sub-Department"}
               </span>
             )}
           </div>
 
           {/* Assignment Info */}
           <div className="text-xs text-gray-500 mb-3">
-            {delegation.assignmentType === "INDIVIDUAL" && delegation.assignee ? (
+            {delegation.assignmentType === "INDIVIDUAL" &&
+            delegation.assignee ? (
               <p>
-                Assigned to: <span className="font-medium">{delegation.assignee.user?.name || "Employee"}</span>
+                Assigned to:{" "}
+                <span className="font-medium">
+                  {delegation.assignee.user?.name || "Employee"}
+                </span>
               </p>
             ) : delegation.targetSubDepartment ? (
               <p>
-                Assigned to: <span className="font-medium">{delegation.targetSubDepartment.name}</span>
+                Assigned to:{" "}
+                <span className="font-medium">
+                  {delegation.targetSubDepartment.name}
+                </span>
               </p>
             ) : null}
           </div>
@@ -392,33 +288,8 @@ export default function DelegationCard({
             </div>
           )}
 
-          {/* Attachments */}
-          {delegationAttachmentIds.length > 0 && (
-            <div className="border-t border-gray-200 pt-3 mb-3">
-              <div className="space-y-2">
-                {delegationAttachmentIds.map((attachmentId, index) => {
-                  const attachmentMetadata =
-                    delegationAttachmentsMetadata[attachmentId];
-                  const fileName =
-                    attachmentMetadata?.originalName ||
-                    `Attachment ${index + 1}`;
-
-                  return (
-                    <div
-                      key={attachmentId}
-                      className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
-                      onClick={() => handleAttachmentClick(attachmentId)}
-                    >
-                      <PaperClipIcon className="w-3 h-3 text-blue-500" />
-                      <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
-                        {fileName}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* TODO: The new Attachments System */}
+          <InlineAttachments targetId={delegation.taskId.toString()} />
 
           {/* Submissions */}
           {submissions.length > 0 && (
@@ -433,10 +304,6 @@ export default function DelegationCard({
               {isSubmissionsExpanded && (
                 <div className="space-y-2 mt-2">
                   {submissions.map((submission) => {
-                    const submissionId = submission.id.toString();
-                    const submissionAttachments = delegationSubmissionAttachments[submissionId] || [];
-                    const hasAttachments = submissionAttachments.length > 0;
-
                     return (
                       <div
                         key={submission.id.toString()}
@@ -444,7 +311,8 @@ export default function DelegationCard({
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium">
-                            {submission.performerName || submission.performerType}
+                            {submission.performerName ||
+                              submission.performerType}
                           </span>
                           <span
                             className={`px-2 py-0.5 rounded text-xs ${getSubmissionStatusColor(
@@ -455,56 +323,23 @@ export default function DelegationCard({
                           </span>
                         </div>
                         {submission.notes && (
-                          <p className="text-gray-600 mt-1">{submission.notes}</p>
+                          <p className="text-gray-600 mt-1">
+                            {submission.notes}
+                          </p>
                         )}
                         {submission.feedback && (
                           <p className="text-gray-500 mt-1 italic">
                             Feedback: {submission.feedback}
                           </p>
                         )}
-                        {hasAttachments && (
-                          <div className="mt-2 space-y-1">
-                            <div className="flex items-center gap-1 text-gray-500">
-                              <PaperClipIcon className="w-3 h-3" />
-                              <span>Attachments ({submissionAttachments.length})</span>
-                            </div>
-                            <div className="space-y-1 pl-4">
-                              {submissionAttachments.map((attachmentId, index) => {
-                                const attachmentMetadata =
-                                  submissionAttachmentsMetadata[attachmentId];
-                                const fileName =
-                                  attachmentMetadata?.originalName ||
-                                  `Attachment ${index + 1}`;
-
-                                return (
-                                  <div
-                                    key={attachmentId}
-                                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors"
-                                    onClick={() => {
-                                      if (attachmentMetadata) {
-                                        openPreview({
-                                          originalName: attachmentMetadata.originalName,
-                                          tokenOrId: attachmentId,
-                                          fileType: attachmentMetadata.fileType,
-                                          sizeInBytes: attachmentMetadata.sizeInBytes,
-                                          expiryDate: attachmentMetadata.expiryDate,
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <PaperClipIcon className="w-3 h-3 text-blue-500" />
-                                    <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
-                                      {fileName}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
+                        <InlineAttachments
+                          targetId={submission.id.toString()}
+                        />
                         <p className="text-gray-400 mt-1">
                           Submitted:{" "}
-                          {new Date(submission.submittedAt).toLocaleDateString()}
+                          {new Date(
+                            submission.submittedAt
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                     );
@@ -518,4 +353,3 @@ export default function DelegationCard({
     </div>
   );
 }
-

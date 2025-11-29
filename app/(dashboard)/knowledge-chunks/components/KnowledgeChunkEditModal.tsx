@@ -6,11 +6,6 @@ import { useKnowledgeChunksStore } from "../store/useKnowledgeChunksStore";
 import { CreateKnowledgeChunkRequest } from "@/lib/api/sdk/models";
 import XCircle from "@/icons/XCircle";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
 import useFormErrors from "@/hooks/useFormErrors";
 import { motion } from "framer-motion";
 
@@ -22,7 +17,6 @@ export default function KnowledgeChunkEditModal() {
   const { isOpen, mode, chunk, closeModal } = useKnowledgeChunkModalStore();
   const { addChunk, updateChunk, chunks } = useKnowledgeChunksStore();
   const [loading, setLoading] = useState(false);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [departments, setDepartments] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -30,7 +24,6 @@ export default function KnowledgeChunkEditModal() {
     content: "",
     departmentId: "",
   });
-  const { getFormData, selectedAttachmentIds } = useAttachmentStore();
 
   useEffect(() => {
     if (isOpen) {
@@ -84,12 +77,9 @@ export default function KnowledgeChunkEditModal() {
         // Delete old chunk and create new one
         await KnowledgeChunksService.deleteKnowledgeChunk(chunk.id);
         // Get FormData from attachment store
-        const attachmentFormData =
-          attachments.length > 0 ? getFormData() : undefined;
 
         const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData,
-          attachmentFormData
+          formData
         );
         if (response.data.data) {
           // Refresh the entire list instead of trying to update
@@ -118,13 +108,8 @@ export default function KnowledgeChunkEditModal() {
           );
         }
       } else {
-        // Get FormData from attachment store
-        const attachmentFormData =
-          attachments.length > 0 ? getFormData() : undefined;
-
         const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData,
-          attachmentFormData
+          formData
         );
         if (response.data.data) {
           // Refresh the entire list
@@ -358,12 +343,7 @@ export default function KnowledgeChunkEditModal() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-          >
-            <AttachmentInput
-              id="knowledge-chunk-attachment"
-              onAttachmentsChange={setAttachments}
-            />
-          </motion.div>
+          ></motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

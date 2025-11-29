@@ -1,13 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkModalStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
 import { useMyTasksStore } from "../my-tasks/store/useMyTasksStore";
 import { useAdminTasksStore } from "../store/useAdminTasksStore";
 import { TaskStatus } from "@/lib/api/tasks";
@@ -20,11 +17,32 @@ export default function SubmitWorkModal() {
   const { isOpen, task, isSubmitting, closeModal, setNotes, setIsSubmitting } =
     useSubmitWorkModalStore();
 
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
-    useAttachmentStore();
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const { reset } = useAttachments();
 
   const { addToast } = useToastStore();
+
+  const handleClose = () => {
+    closeModal();
+    setUploadKeyV3(null);
+    setIsUploading(false);
+    setIsWaitingToClose(false);
+    setHasStartedUpload(false);
+    setSelectedAttachments([]);
+    setHasFilesToUpload(false);
+    reset();
+  };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   if (!isOpen || !task) return null;
 
@@ -40,16 +58,13 @@ export default function SubmitWorkModal() {
     setIsSubmitting(true);
 
     try {
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
-      await api.TasksService.submitWork(
+      const { fileHubUploadKey } = await api.TasksService.submitWork(
         task.id!,
         {
           notes: task.notes,
-          chooseAttachments: Array.from(selectedAttachmentIds),
+          chooseAttachments: selectedAttachments,
         },
-        formData
+        hasFilesToUpload
       );
       // Optimistically update task status in any relevant store
       try {
@@ -66,8 +81,30 @@ export default function SubmitWorkModal() {
         message: "Task submitted for review successfully!",
         type: "success",
       });
-      moveAllSelectedToExisting();
-      closeModal();
+
+      if (hasFilesToUpload) {
+        if (fileHubUploadKey) {
+          try {
+            setUploadKeyV3(fileHubUploadKey);
+          } catch (uploadErr: any) {
+            addToast({
+              message:
+                uploadErr?.message ||
+                "Failed to upload new attachments. Please try again.",
+              type: "error",
+            });
+          }
+        } else {
+          addToast({
+            message:
+              "Missing upload key for new attachments. Please retry the upload.",
+            type: "error",
+          });
+        }
+        setIsWaitingToClose(true);
+      } else {
+        handleClose();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -141,15 +178,24 @@ export default function SubmitWorkModal() {
             )}
           </div>
 
-          <AttachmentInput
-            id="supervisor-task-attachment"
-            onAttachmentsChange={setAttachments}
+          <AttachmentInputV3
+            uploadKey={uploadKeyV3 ?? undefined}
+            uploadWhenKeyProvided={true}
+            onSelectedAttachmentsChange={(set) =>
+              setSelectedAttachments(Array.from(set))
+            }
+            onUploadStart={() => {
+              setHasStartedUpload(true);
+              setIsUploading(true);
+            }}
+            onUploadEnd={() => setIsUploading(false)}
+            onHasFilesToUpload={(hasFiles) => setHasFilesToUpload(hasFiles)}
           />
 
           <div className="mt-8 flex justify-end gap-4">
             <button
               type="button"
-              onClick={closeModal}
+              onClick={handleClose}
               className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
             >
               Cancel

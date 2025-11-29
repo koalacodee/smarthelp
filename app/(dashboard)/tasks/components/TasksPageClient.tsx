@@ -21,12 +21,15 @@ import { ExportFileService } from "@/lib/api/v2";
 import { env } from "next-runtime-env";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
+import { useAttachments } from "@/hooks/useAttachments";
+import { FileHubAttachment } from "@/lib/api/v2/models/faq";
 
 interface TasksPageClientProps {
   initialTasks: any[];
   initialDepartments: any[];
   initialSubDepartments: any[];
   initialAttachments?: any;
+  initialFileHubAttachments?: FileHubAttachment[];
   initialMetrics?: {
     pendingCount: number;
     completedCount: number;
@@ -43,6 +46,7 @@ export default function TasksPageClient({
   initialDepartments,
   initialSubDepartments,
   initialAttachments,
+  initialFileHubAttachments,
   initialMetrics,
   initialTaskSubmissions,
   initialDelegationSubmissions,
@@ -62,6 +66,8 @@ export default function TasksPageClient({
   const { setTaskAttachments } = useTaskAttachments();
   const { setAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
+  const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
+    useAttachments();
   const {
     setAllTaskSubmissions,
     setAllDelegationSubmissions,
@@ -150,19 +156,32 @@ export default function TasksPageClient({
     if (initialAttachments) {
       setTaskAttachments(initialAttachments);
       setAttachments("task", initialAttachments);
-      // Prefill metadata cache so names/previews show immediately
-      const allIds: string[] = Object.values(initialAttachments)
-        .flat()
-        .filter(Boolean) as string[];
-      if (allIds.length > 0) {
-        Promise.all(
-          allIds.map((id) =>
-            FileService.getAttachmentMetadata(id)
-              .then((m) => setMetadata(id, m))
-              .catch(() => null)
-          )
-        );
-      }
+    }
+
+    if (initialFileHubAttachments && initialFileHubAttachments.length > 0) {
+      const allTargetIds = new Set<string>();
+
+      initialFileHubAttachments?.forEach((attachment) => {
+        allTargetIds.add(attachment.targetId);
+      });
+
+      allTargetIds.forEach((targetId) => {
+        clearExistingAttachmentsForTarget(targetId);
+      });
+      initialFileHubAttachments.forEach((attachment) => {
+        if (!attachment?.targetId) return;
+        addExistingAttachmentToTarget(attachment.targetId, {
+          fileType: attachment.type,
+          originalName: attachment.originalName,
+          size: attachment.size,
+          expirationDate: attachment.expirationDate,
+          id: attachment.id,
+          filename: attachment.filename,
+          isGlobal: attachment.isGlobal,
+          createdAt: attachment.createdAt,
+          signedUrl: attachment.signedUrl,
+        });
+      });
     }
     if (initialTaskSubmissions) {
       setAllTaskSubmissions(initialTaskSubmissions);
@@ -625,7 +644,7 @@ export default function TasksPageClient({
                           transition: { duration: 0.2 },
                         }}
                       >
-                        <TeamTaskCard task={task} userRole={userRole} />
+                        <TeamTaskCard task={task} />
                       </motion.div>
                     ))}
                   </div>

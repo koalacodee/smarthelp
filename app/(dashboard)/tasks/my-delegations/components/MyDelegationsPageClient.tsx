@@ -13,6 +13,8 @@ import {
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FileService } from "@/lib/api";
+import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
+import { useAttachments } from "@/hooks/useAttachments";
 
 interface MyDelegationsPageClientProps {
   initialDelegations: TaskDelegationDTO[];
@@ -20,6 +22,7 @@ interface MyDelegationsPageClientProps {
   initialAttachments: { [delegationId: string]: string[] };
   initialDelegationSubmissionAttachments: { [submissionId: string]: string[] };
   initialTotal: number;
+  initialFileHubAttachments: FileHubAttachment[];
 }
 
 export default function MyDelegationsPageClient({
@@ -28,6 +31,7 @@ export default function MyDelegationsPageClient({
   initialAttachments,
   initialDelegationSubmissionAttachments,
   initialTotal,
+  initialFileHubAttachments,
 }: MyDelegationsPageClientProps) {
   const {
     delegations,
@@ -40,6 +44,41 @@ export default function MyDelegationsPageClient({
   } = useMyDelegationsStore();
   const { setAttachments } = useAttachmentsStore();
   const { setMetadata } = useMediaMetadataStore();
+  const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
+    useAttachments();
+
+  useEffect(() => {
+    if (initialFileHubAttachments) {
+      const allTargetIds = new Set<string>();
+
+      initialFileHubAttachments?.forEach((attachment) => {
+        if (attachment.targetId) {
+          allTargetIds.add(attachment.targetId);
+        }
+      });
+
+      allTargetIds.forEach((targetId) => {
+        clearExistingAttachmentsForTarget(targetId);
+      });
+      initialFileHubAttachments.forEach((attachment) => {
+        if (attachment.targetId) {
+          addExistingAttachmentToTarget(attachment.targetId, {
+            id: attachment.id,
+            fileType: attachment.type,
+            filename: attachment.filename,
+            originalName: attachment.originalName,
+            expirationDate: attachment.expirationDate,
+            createdAt: attachment.createdAt,
+            targetId: attachment.targetId,
+            userId: attachment.userId,
+            isGlobal: attachment.isGlobal,
+            size: attachment.size,
+            signedUrl: attachment.signedUrl,
+          });
+        }
+      });
+    }
+  }, [initialFileHubAttachments]);
 
   useEffect(() => {
     // Initialize with server data only once on mount

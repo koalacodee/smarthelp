@@ -79,6 +79,7 @@ export default function FileHubSubscriber() {
               : undefined,
             createdAt: payload.createdAt,
             signedUrl: payload.signedUrl,
+            userId: payload.userId,
           });
           if (payload.targetId) {
             addExistingAttachmentToTarget(payload.targetId, {
@@ -90,6 +91,8 @@ export default function FileHubSubscriber() {
               isGlobal: payload.isGlobal,
               createdAt: payload.createdAt,
               signedUrl: payload.signedUrl,
+              targetId: payload.targetId,
+              userId: payload.userId,
             });
           }
         }

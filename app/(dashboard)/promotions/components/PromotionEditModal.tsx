@@ -1,25 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import { FileService } from "@/lib/api";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingPromotionStore } from "../store/useCurrentEditingPromotion";
 import { usePromotionsStore } from "../store/usePromotionsStore";
-import { useAttachmentStore } from "@/app/(dashboard)/store/useAttachmentStore";
-import {
-  useAttachmentsStore,
-  usePromotionAttachments,
-} from "@/lib/store/useAttachmentsStore";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
-import {
-  createPromotionService,
-  AudienceType,
-} from "@/lib/api/v2/services/promotion";
-import { createUploadService } from "@/lib/api/v2/services/shared/upload";
+import { PromotionService } from "@/lib/api/v2";
+import { AudienceType } from "@/lib/api/v2/services/promotion";
 import useFormErrors from "@/hooks/useFormErrors";
-import axios from "axios";
-import { PromotionService, UploadService } from "@/lib/api/v2";
+import { useAttachments } from "@/hooks/useAttachments";
 
 export default function PromotionEditModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -32,45 +21,23 @@ export default function PromotionEditModal() {
   const [audience, setAudience] = useState<AudienceType>(AudienceType.ALL);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [attachmentRefreshKey, setAttachmentRefreshKey] = useState(0);
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [deletedAttachments, setDeletedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
   const { addToast } = useToastStore();
   const { promotion, setIsEditing, isEditing } =
     useCurrentEditingPromotionStore();
   const { addPromotion, updatePromotion } = usePromotionsStore();
-  const { getFormData, attachments } = useAttachmentStore();
-  const { addAttachments } = useAttachmentsStore();
-  const { getPromotionAttachments } = usePromotionAttachments();
-  const { setMetadata } = useMediaMetadataStore();
   const {
-    addExistingAttachment,
-    selectedAttachmentIds,
-    moveAllSelectedToExisting,
-  } = useAttachmentStore();
-
-  const {
-    existingsToDelete,
-    clearAttachments,
-    clearExistingsToDelete,
-    setExistingAttachments,
-  } = useAttachmentStore();
-
-  // Create axios instance with auth
-  const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
-  });
-
-  // Add auth interceptor
-  axiosInstance.interceptors.request.use((config) => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth-token="))
-      ?.split("=")[1];
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
+    moveCurrentNewTargetSelectionsToExisting,
+    moveSelectedFormMyAttachmentsToExisting,
+    reset,
+    confirmExistingAttachmentsDeletionForTarget,
+  } = useAttachments();
 
   // Effect to handle promotion changes and load initial data
   useEffect(() => {
@@ -90,40 +57,18 @@ export default function PromotionEditModal() {
     }
   }, [promotion]);
 
-  // Separate effect to handle attachment loading when promotion changes or attachments are updated
-  useEffect(() => {
-    // Clear existing attachments first
-    clearAttachments();
-    clearExistingsToDelete();
-    setExistingAttachments({});
-    if (promotion) {
-      const loadAttachments = async () => {
-        const promises = getPromotionAttachments(promotion.id).map((id) =>
-          FileService.getAttachmentMetadata(id).then((m) => {
-            setMetadata(id, m);
-            addExistingAttachment(id, m);
-            return [id, m];
-          })
-        );
-
-        await Promise.all(promises);
-      };
-      loadAttachments();
-    }
-  }, [promotion?.id, attachmentRefreshKey]); // Include refresh key to reload when attachments are updated
-
-  // Effect to refresh attachments when modal opens
-  useEffect(() => {
-    if (isEditing && promotion) {
-      setAttachmentRefreshKey((prev) => prev + 1);
-    }
-  }, [isEditing, promotion?.id]);
-
   const handleClose = () => {
     setIsEditing(false);
-    // Reset attachment refresh key when closing
-    setAttachmentRefreshKey(0);
+    setIsWaitingToClose(false);
+    setHasStartedUpload(false);
+    reset();
   };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,8 +79,6 @@ export default function PromotionEditModal() {
       return;
     }
 
-    const formData = attachments.length > 0 ? getFormData() : undefined;
-
     if (promotion) {
       // Update existing promotion
       PromotionService.updatePromotion(promotion.id, {
@@ -143,11 +86,19 @@ export default function PromotionEditModal() {
         audience,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        deleteAttachments: Object.keys(existingsToDelete),
-        attach: attachments.length > 0,
-        chooseAttachments: Array.from(selectedAttachmentIds),
+        deleteAttachments: deletedAttachments,
+        attach: hasFilesToUpload,
+        chooseAttachments: selectedAttachments,
       })
         .then(async (response) => {
+          if (promotion.id && selectedAttachments.length > 0) {
+            // For existing promotions, selected "My Attachments" are tracked per-target.
+            // Move them from the per-target selection list into existing attachments.
+            moveSelectedFormMyAttachmentsToExisting(promotion.id);
+          }
+          if (promotion.id && deletedAttachments.length > 0) {
+            confirmExistingAttachmentsDeletionForTarget(promotion.id);
+          }
           addToast({
             message: "Promotion Updated Successfully!",
             type: "success",
@@ -159,36 +110,35 @@ export default function PromotionEditModal() {
             startDate: response.promotion.startDate,
             endDate: response.promotion.endDate,
           });
-          handleClose();
 
-          if (formData && response.uploadKey) {
-            try {
-              const uploadedFilesResponse =
-                await UploadService.uploadFromFormData(
-                  formData,
-                  response.uploadKey
-                );
-
-              if (uploadedFilesResponse) {
-                const { data: uploadedFiles } = uploadedFilesResponse;
-                if (Array.isArray(uploadedFiles)) {
-                  addAttachments(
-                    "promotion",
-                    promotion.id,
-                    uploadedFiles.map((file) => file.id)
-                  );
-                } else {
-                  addAttachments("promotion", promotion.id, [uploadedFiles.id]);
-                }
-                // Trigger attachment refresh to reload the modal
-                setAttachmentRefreshKey((prev) => prev + 1);
+          if (hasFilesToUpload) {
+            const uploadKeyToUse =
+              (response as any).fileHubUploadKey || response.uploadKey;
+            if (uploadKeyToUse) {
+              try {
+                setUploadKeyV3(uploadKeyToUse);
+              } catch (uploadErr: any) {
+                addToast({
+                  message:
+                    uploadErr?.message ||
+                    "Failed to upload new attachments. Please try again.",
+                  type: "error",
+                });
               }
-            } catch (uploadError) {
+            } else {
               addToast({
-                message: "Promotion updated but failed to upload attachments",
-                type: "info",
+                message:
+                  "Missing upload key for new attachments. Please retry the upload.",
+                type: "error",
               });
             }
+          }
+          // If there are pending FileHub uploads from AttachmentInputV3,
+          // keep the modal open until they finish and `onUploadEnd` fires.
+          if (hasFilesToUpload) {
+            setIsWaitingToClose(true);
+          } else {
+            handleClose();
           }
         })
         .catch((error) => {
@@ -208,48 +158,51 @@ export default function PromotionEditModal() {
         audience,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        attach: attachments.length > 0,
-        chooseAttachments: Array.from(selectedAttachmentIds),
+        attach: hasFilesToUpload,
+        chooseAttachments: selectedAttachments,
       })
         .then(async (response) => {
+          const { promotion: created } = response;
           addToast({
             message: "Promotion Created Successfully!",
             type: "success",
           });
           // Add the new promotion to the store
-          addPromotion(response.promotion);
-          handleClose();
+          addPromotion(created);
 
-          if (formData && response.uploadKey) {
-            try {
-              const uploadedFilesResponse =
-                await UploadService.uploadFromFormData(
-                  formData,
-                  response.uploadKey
-                );
+          if (created.id && selectedAttachments.length > 0) {
+            // Move "My Files" selections for this new promotion into existing attachments
+            moveCurrentNewTargetSelectionsToExisting(created.id);
+          }
 
-              if (uploadedFilesResponse) {
-                const { data: uploadedFiles } = uploadedFilesResponse;
-                if (Array.isArray(uploadedFiles)) {
-                  addAttachments(
-                    "promotion",
-                    response.promotion.id,
-                    uploadedFiles.map((file) => file.id)
-                  );
-                } else {
-                  addAttachments("promotion", response.promotion.id, [
-                    uploadedFiles.id,
-                  ]);
-                }
-                // Trigger attachment refresh to reload the modal
-                setAttachmentRefreshKey((prev) => prev + 1);
+          if (hasFilesToUpload) {
+            const uploadKeyToUse =
+              (response as any).fileHubUploadKey || response.uploadKey;
+            if (uploadKeyToUse) {
+              try {
+                setUploadKeyV3(uploadKeyToUse);
+              } catch (uploadErr: any) {
+                addToast({
+                  message:
+                    uploadErr?.message ||
+                    "Failed to upload new attachments. Please try again.",
+                  type: "error",
+                });
               }
-            } catch (uploadError) {
+            } else {
               addToast({
-                message: "Promotion created but failed to upload attachments",
-                type: "info",
+                message:
+                  "Missing upload key for new attachments. Please retry the upload.",
+                type: "error",
               });
             }
+          }
+          // If there are pending FileHub uploads from AttachmentInputV3,
+          // keep the modal open until they finish and `onUploadEnd` fires.
+          if (hasFilesToUpload) {
+            setIsWaitingToClose(true);
+          } else {
+            handleClose();
           }
         })
         .catch((error) => {
@@ -263,12 +216,6 @@ export default function PromotionEditModal() {
           }
         });
     }
-
-    // Clear attachment store state
-    clearAttachments();
-    clearExistingsToDelete();
-    setExistingAttachments({});
-    moveAllSelectedToExisting();
   };
 
   const modalTitle = promotion ? "Edit Promotion" : "Add New Promotion";
@@ -565,11 +512,24 @@ export default function PromotionEditModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.7 }}
               >
-                <AttachmentInput
-                  id="promotion-attachment-input"
-                  attachmentType="promotion"
-                  attachmentId={promotion?.id}
-                  getAttachmentTokens={getPromotionAttachments}
+                <AttachmentInputV3
+                  targetId={promotion?.id}
+                  uploadKey={uploadKeyV3 ?? undefined}
+                  uploadWhenKeyProvided={true}
+                  onSelectedAttachmentsChange={(set) =>
+                    setSelectedAttachments(Array.from(set))
+                  }
+                  onDeletedAttachmentsChange={(set) =>
+                    setDeletedAttachments(Array.from(set))
+                  }
+                  onUploadStart={() => {
+                    setHasStartedUpload(true);
+                    setIsUploading(true);
+                  }}
+                  onUploadEnd={() => setIsUploading(false)}
+                  onHasFilesToUpload={(hasFiles) =>
+                    setHasFilesToUpload(hasFiles)
+                  }
                 />
               </motion.div>
             </motion.div>

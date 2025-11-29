@@ -48,6 +48,8 @@ import {
   TaskDelegationDTO,
   TaskDelegationSubmissionDTO,
 } from "./v2/services/delegations";
+import { JSend } from "./v2/models/jsend";
+import { FileHubAttachment } from "./v2/models/faq";
 
 const api = axios.create({
   baseURL: env("NEXT_PUBLIC_API_URL"),
@@ -300,6 +302,17 @@ export interface ExportTicketsResponse {
   rows: number;
 }
 
+export interface AnswerTicketOutput {
+  answer: {
+    id: string;
+    supportTicketId: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    rating: number | null;
+  };
+}
+
 export const TicketsService = {
   getAllTickets: async (
     status?: TicketStatus,
@@ -329,18 +342,15 @@ export const TicketsService = {
   answerTicket: async (
     ticketId: string,
     dto: AnswerTicketDto,
-    formData?: FormData
+    attach: boolean
   ) => {
     const data = await api
-      .put<{
-        data: { ticket: Ticket; uploadKey?: string };
-      }>(`/support-tickets/${ticketId}/answer`, { ...dto, attach: !!formData })
+      .put<JSend<AnswerTicketOutput>>(`/support-tickets/${ticketId}/answer`, {
+        ...dto,
+        attach,
+      })
       .then((res) => res.data.data);
-
-    if (data.uploadKey && formData) {
-      await FileService.upload(data.uploadKey, formData);
-    }
-    return data.ticket;
+    return data;
   },
 
   reopenTicket: async (id: string) => {
@@ -664,20 +674,24 @@ export interface MyTasksResponse extends TaskAttachmentsResponse {
     completionPercentage: number;
   };
   delegationAttachments: { [delegationId: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
 }
 
 export interface DepartmentLevelTaskData
   extends TaskData<Omit<Task, "targetSubDepartment">> {
   attachments: { [taskId: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
 }
 
 export interface SubDepartmentLevelTaskData
   extends TaskData<Omit<Task, "targetDepartment">> {
   attachments: { [taskId: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
 }
 
 export interface EmployeeLevelTaskData extends TaskData<Datum> {
   attachments: { [taskId: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
 }
 
 export interface UpdateTaskDto {
@@ -717,6 +731,7 @@ export interface TaskSubmissionsResponse {
   taskSubmissions: TaskSubmission[];
   attachments: Record<string, string[]>; // Tasks and Delegation submissions attachments are merged here
   delegationSubmissions: TaskDelegationSubmissionDTO[];
+  fileHubAttachments: FileHubAttachment[];
 }
 
 /**
@@ -733,6 +748,52 @@ export interface ApproveTaskSubmissionRequest {
 export interface RejectTaskSubmissionRequest {
   taskSubmissionId: string;
   feedback?: string;
+}
+
+export interface CreateTaskResponse {
+  task: {
+    id: string;
+    title: string;
+    description: string;
+    dueDate?: string;
+    assignee?: any;
+    assigner?: any;
+    approver?: any;
+    creatorId: string;
+    creator?: any;
+    status: string;
+    assignmentType: string;
+    priority?: "HIGH" | "MEDIUM" | "LOW";
+    targetDepartment?: any;
+    targetSubDepartment?: any;
+    approvalLevel?: number;
+    createdAt: string;
+    updatedAt: string;
+    completedAt?: string | null;
+    reminderInterval?: number;
+    assigneeId?: string;
+    targetDepartmentId?: string;
+    targetSubDepartmentId?: string;
+  };
+}
+
+export interface SubmitTaskForReviewResponse {
+  submission: {
+    id: string;
+    taskId: string | null;
+    delegationSubmissionId?: string;
+    delegationSubmission?: any;
+    performerId?: string;
+    performerType?: string;
+    performerName?: string;
+    performer?: any;
+    notes?: string;
+    feedback?: string;
+    status: string;
+    submittedAt: string;
+    reviewedAt?: string;
+    reviewedBy?: any;
+  };
 }
 
 export const TasksService = {
@@ -796,25 +857,12 @@ export const TasksService = {
       });
     return response.data.data;
   },
-  createTask: async (dto: CreateTaskDto, formData?: FormData) => {
-    const response = await api.post<{
-      data: { task: Datum; uploadKey?: string };
-    }>("/tasks", {
+  createTask: async (dto: CreateTaskDto, attach: boolean) => {
+    const response = await api.post<JSend<CreateTaskResponse>>("/tasks", {
       ...dto,
-      attach: !!formData,
+      attach,
     });
-
-    let uploaded:
-      | UploadMultipleFilesResponse
-      | UploadSingleFileResponse
-      | undefined = undefined;
-
-    if (response.data.data.uploadKey && formData) {
-      uploaded = (
-        await FileService.upload(response.data.data.uploadKey, formData)
-      )?.data;
-    }
-    return { task: response.data.data.task, uploaded };
+    return response.data.data;
   },
   deleteTask: async (id: string) => {
     return api.delete(`/tasks/${id}`);
@@ -822,19 +870,16 @@ export const TasksService = {
   submitWork: async (
     id: string,
     dto: { notes: string; chooseAttachments?: string[] },
-    formData?: FormData
+    attach: boolean = false
   ) => {
-    const response = await api.post<{
-      data: { task: Datum; uploadKey?: string };
-    }>(`tasks/${id}/submit-review`, {
-      ...dto,
-      attach: !!formData,
-    });
-
-    if (response.data.data.uploadKey && formData) {
-      await FileService.upload(response.data.data.uploadKey, formData);
-    }
-    return response.data.data.task;
+    const response = await api.post<JSend<SubmitTaskForReviewResponse>>(
+      `tasks/${id}/submit-review`,
+      {
+        ...dto,
+        attach,
+      }
+    );
+    return response.data.data;
   },
   getTask: async (id: string) => {
     const response = await api.get<{ data: SingleTaskResponse }>(
@@ -862,27 +907,13 @@ export const TasksService = {
       .post<{ data: Datum }>(`/tasks/${taskId}/reject`, { feedback })
       .then((res) => res.data.data);
   },
-  updateTask: async (id: string, dto: UpdateTaskDto, formData?: FormData) => {
-    const response = await api.put<{
-      data: {
-        task: Datum;
-        uploadKey?: string;
-      };
-    }>(`/tasks/${id}`, {
+  updateTask: async (id: string, dto: UpdateTaskDto, attach: boolean) => {
+    const response = await api.put<JSend<CreateTaskResponse>>(`/tasks/${id}`, {
       ...dto,
-      attach: !!formData,
+      attach,
     });
-    let uploaded:
-      | UploadMultipleFilesResponse
-      | UploadSingleFileResponse
-      | undefined = undefined;
 
-    if (response.data.data.uploadKey && formData) {
-      uploaded = (
-        await FileService.upload(response.data.data.uploadKey, formData)
-      )?.data;
-    }
-    return { task: response.data.data.task, uploaded };
+    return response.data.data;
   },
   getTaskSubmissions: async (taskId: string) => {
     const response = await api.get<{ data: TaskSubmissionsResponse }>(
@@ -975,19 +1006,32 @@ export interface MultiplePromotionsResponse
   promotions: any[]; // Replace 'any[]' with proper Promotion[] type if available
 }
 
-export const PromotionService = {
-  createPromotion: async (dto: CreatePromotionDto, formData?: FormData) => {
-    const response = await api.post<{
-      data: { promotion: any; uploadKey?: string };
-    }>("/promotions", {
-      ...dto,
-      attach: !!formData,
-    });
+export interface CreatePromotionResponse {
+  promotion: {
+    id: string;
+    title: string;
+    audience: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    startDate: string;
+    endDate: string;
+    createdByAdmin: string | null;
+    createdBySupervisor: string | null;
+  };
+}
 
-    if (response.data.data.uploadKey && formData) {
-      await FileService.upload(response.data.data.uploadKey, formData);
-    }
-    return response.data.data.promotion;
+export const PromotionService = {
+  createPromotion: async (dto: CreatePromotionDto, attach: boolean = false) => {
+    const response = await api.post<JSend<CreatePromotionResponse>>(
+      "/promotions",
+      {
+        ...dto,
+        attach,
+      }
+    );
+
+    return response.data.data;
   },
   getPromotion: async (id: string) => {
     const response = await api.get<{ data: SinglePromotionResponse }>(

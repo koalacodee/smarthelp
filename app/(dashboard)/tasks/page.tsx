@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Metadata } from "next";
-import {
-  DepartmentsService,
-  TasksService,
-  TaskSubmission,
-} from "@/lib/api";
+import { DepartmentsService, TasksService, TaskSubmission } from "@/lib/api";
 import AddTaskButton from "./components/AddTaskButton";
 import AddTaskModal from "./components/AddTaskModal";
 import TaskPresetsModal from "./components/TaskPresetsModal";
@@ -13,6 +9,7 @@ import CreateTaskFromPresetModal from "./components/CreateTaskFromPresetModal";
 import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
 import { env } from "next-runtime-env";
+import { FileHubAttachment } from "@/lib/api/v2/models/faq";
 
 // Add the button back to the JSX
 export const metadata: Metadata = {
@@ -39,6 +36,7 @@ export default async function Page() {
   let departments: any[] = [];
   let subDepartments: any[] = [];
   let attachments: any = {};
+  let fileHubAttachments: FileHubAttachment[] = [];
   let metrics: any = null;
   let taskSubmissions: Record<string, TaskSubmission[]> = {};
   let delegationSubmissions: Record<string, any[]> = {};
@@ -47,11 +45,16 @@ export default async function Page() {
   if (userRole === "ADMIN") {
     const [_, fetchedDepartments] = await Promise.all([
       TasksService.getDepartmentLevel().then(async (data) => {
+        console.log("data", data);
+
         await Promise.all(
           data.data.map(async (task) => {
             const submissions = await TasksService.getTaskSubmissions(task.id);
+            console.log("submissions", submissions);
+
             taskSubmissions[task.id] = submissions.taskSubmissions;
-            delegationSubmissions[task.id] = submissions.delegationSubmissions || [];
+            delegationSubmissions[task.id] =
+              submissions.delegationSubmissions || [];
 
             // Store submission attachments (for both task submissions and delegation submissions)
             Object.entries(submissions.attachments).forEach(
@@ -59,10 +62,14 @@ export default async function Page() {
                 submissionAttachments[submissionId] = attachmentIds;
               }
             );
+            fileHubAttachments = fileHubAttachments.concat(
+              submissions.fileHubAttachments
+            );
           })
         );
         tasks = data.data;
         attachments = data.attachments;
+        fileHubAttachments = data.fileHubAttachments.concat(fileHubAttachments);
         metrics = data.metrics;
       }),
       DepartmentsService.getAllDepartments(),
@@ -79,13 +86,17 @@ export default async function Page() {
           allTasks.map(async (task) => {
             const submissions = await TasksService.getTaskSubmissions(task.id);
             taskSubmissions[task.id] = submissions.taskSubmissions;
-            delegationSubmissions[task.id] = submissions.delegationSubmissions || [];
+            delegationSubmissions[task.id] =
+              submissions.delegationSubmissions || [];
 
             // Store submission attachments (for both task submissions and delegation submissions)
             Object.entries(submissions.attachments).forEach(
               ([submissionId, attachmentIds]) => {
                 submissionAttachments[submissionId] = attachmentIds;
               }
+            );
+            fileHubAttachments = fileHubAttachments.concat(
+              submissions.fileHubAttachments
             );
           })
         );
@@ -94,6 +105,10 @@ export default async function Page() {
           ...(subTasks.attachments || {}),
           ...(empTasks.attachments || {}),
         };
+        fileHubAttachments = fileHubAttachments.concat(
+          subTasks.fileHubAttachments,
+          empTasks.fileHubAttachments
+        );
         // Combine metrics from both sub-department and employee level tasks
         metrics = {
           pendingCount:
@@ -107,12 +122,12 @@ export default async function Page() {
               (empTasks.metrics?.completedCount || 0)) /
               Math.max(
                 (subTasks.metrics?.pendingCount || 0) +
-                (empTasks.metrics?.pendingCount || 0) +
-                (subTasks.metrics?.completedCount || 0) +
-                (empTasks.metrics?.completedCount || 0),
+                  (empTasks.metrics?.pendingCount || 0) +
+                  (subTasks.metrics?.completedCount || 0) +
+                  (empTasks.metrics?.completedCount || 0),
                 1
               )) *
-            100
+              100
           ),
         };
       }),
@@ -136,6 +151,7 @@ export default async function Page() {
           initialDelegationSubmissions={delegationSubmissions}
           initialSubmissionAttachments={submissionAttachments}
           userRole={userRole}
+          initialFileHubAttachments={fileHubAttachments}
         />
 
         <AddTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />

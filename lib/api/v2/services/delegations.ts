@@ -1,11 +1,10 @@
 import type { AxiosInstance } from "axios";
 
-import type {
-  JSend,
-} from "../models/jsend";
+import type { JSend } from "../models/jsend";
 import { EmployeeResponse, UUID } from "./employee";
 import { TaskDTO } from "../models/task";
 import { Department } from "../../departments";
+import { FileHubAttachment } from "./shared/filehub";
 
 /* =========================
    Request/Response Contracts
@@ -40,6 +39,7 @@ export interface TaskDelegationDTO {
 
 export interface SubmitTaskDelegationForReviewRequest {
   notes?: string;
+  chooseAttachments?: string[];
 }
 
 export interface SubmitTaskDelegationForReviewResponse {
@@ -109,6 +109,7 @@ interface GetMyDelegationsResult {
   submissions: { [delegationId: string]: TaskDelegationSubmissionDTO[] };
   attachments: { [delegationId: string]: string[] };
   delegationSubmissionAttachments: { [submissionId: string]: string[] };
+  fileHubAttachments: FileHubAttachment[];
   total: number;
 }
 
@@ -117,9 +118,12 @@ interface GetMyDelegationsResult {
    ========================= */
 
 export class TaskDelegationService {
-  private static instances = new WeakMap<AxiosInstance, TaskDelegationService>();
+  private static instances = new WeakMap<
+    AxiosInstance,
+    TaskDelegationService
+  >();
 
-  private constructor(private readonly http: AxiosInstance) { }
+  private constructor(private readonly http: AxiosInstance) {}
 
   static getInstance(http: AxiosInstance): TaskDelegationService {
     let inst = TaskDelegationService.instances.get(http);
@@ -144,9 +148,7 @@ export class TaskDelegationService {
    * POST /task-delegations
    * Delegate a task to an employee or sub-department
    */
-  async delegateTask(
-    body: DelegateTaskRequest
-  ): Promise<DelegateTaskResponse> {
+  async delegateTask(body: DelegateTaskRequest): Promise<DelegateTaskResponse> {
     const { data } = await this.http.post<JSend<DelegateTaskResponse>>(
       "/task-delegations",
       body
@@ -161,22 +163,14 @@ export class TaskDelegationService {
   async submitForReview(
     delegationId: UUID,
     body: SubmitTaskDelegationForReviewRequest = {},
-    formData?: FormData
-  ): Promise<SubmitTaskDelegationForReviewResponse> {
-    const { data } = await this.http.post<JSend<SubmitTaskDelegationForReviewResponse>>(
-      `/task-delegations/${delegationId}/submit`,
-      {
-        ...body,
-        attach: !!formData,
-      }
-    );
-
-    // Upload files if uploadKey is provided
-    if (data.data.uploadKey && formData) {
-      // Import FileService dynamically to avoid circular dependencies
-      const apiIndex = await import("@/lib/api");
-      await apiIndex.FileService.upload(data.data.uploadKey, formData);
-    }
+    attach: boolean = false
+  ) {
+    const { data } = await this.http.post<
+      JSend<SubmitTaskDelegationForReviewResponse>
+    >(`/task-delegations/${delegationId}/submit`, {
+      ...body,
+      attach,
+    });
 
     return data.data;
   }
@@ -219,10 +213,9 @@ export class TaskDelegationService {
     submissionId: UUID,
     body: ForwardTaskDelegationSubmissionRequest = {}
   ): Promise<ForwardTaskDelegationSubmissionResponse> {
-    const { data } = await this.http.post<JSend<ForwardTaskDelegationSubmissionResponse>>(
-      `/task-delegations/submissions/${submissionId}/forward`,
-      body
-    );
+    const { data } = await this.http.post<
+      JSend<ForwardTaskDelegationSubmissionResponse>
+    >(`/task-delegations/submissions/${submissionId}/forward`, body);
     return data.data;
   }
 

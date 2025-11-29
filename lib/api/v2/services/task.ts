@@ -44,8 +44,8 @@ import type {
   CreateTaskFromPresetRequest,
   CreateTaskFromPresetResponse,
 } from "../models/task";
-import type { JSend } from "../models/jsend";
 import { ExportTicketsResponse } from "../..";
+import { JSend } from "../models/jsend";
 
 /* =========================
    Request/Response Contracts
@@ -58,7 +58,7 @@ import { ExportTicketsResponse } from "../..";
 export class TaskService {
   private static instances = new WeakMap<AxiosInstance, TaskService>();
 
-  private constructor(private readonly http: AxiosInstance) { }
+  private constructor(private readonly http: AxiosInstance) {}
 
   static getInstance(http: AxiosInstance): TaskService {
     let inst = TaskService.instances.get(http);
@@ -303,9 +303,7 @@ export class TaskService {
   }
 
   // POST /tasks/from-preset
-  async createTaskFromPreset(
-    body: CreateTaskFromPresetRequest
-  ): Promise<CreateTaskFromPresetResponse> {
+  async createTaskFromPreset(body: CreateTaskFromPresetRequest) {
     const { data } = await this.http.post<JSend<CreateTaskFromPresetResponse>>(
       "/tasks/from-preset",
       body
@@ -314,9 +312,14 @@ export class TaskService {
   }
 
   async exportTickets(startDate?: string, endDate?: string) {
-    return await this.http.post<{
-      data: ExportTicketsResponse;
-    }>("/tasks/export", { start: startDate ?? undefined, end: endDate ?? undefined }).then((res) => res.data.data);
+    return await this.http
+      .post<{
+        data: ExportTicketsResponse;
+      }>("/tasks/export", {
+        start: startDate ?? undefined,
+        end: endDate ?? undefined,
+      })
+      .then((res) => res.data.data);
   }
 }
 

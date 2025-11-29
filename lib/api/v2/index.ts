@@ -20,6 +20,8 @@ import { createPasswordResetService } from "./services/password-reset";
 import { createEmployeeDashboardService } from "./services/employee-dash";
 import { createExportFileService } from "./export-file";
 import { createTaskDelegationService } from "./services/delegations";
+import { createFileHubService } from "./services/shared/filehub";
+import { createAttachmentGroupService as createFileHubAttachmentGroupService } from "./services/filehub-attachment-groups";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -39,3 +41,6 @@ export const PasswordResetService = createPasswordResetService(api);
 export const EmployeeDashboardService = createEmployeeDashboardService(api);
 export const ExportFileService = createExportFileService(api);
 export const TaskDelegationService = createTaskDelegationService(api);
+export const FileHubService = createFileHubService(api);
+export const FileHubAttachmentGroupService =
+  createFileHubAttachmentGroupService(api);

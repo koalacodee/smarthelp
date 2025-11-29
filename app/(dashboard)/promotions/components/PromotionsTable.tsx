@@ -5,19 +5,20 @@ import { usePromotionsStore } from "../store/usePromotionsStore";
 import { useCurrentEditingPromotionStore } from "../store/useCurrentEditingPromotion";
 import { PromotionDTO } from "@/lib/api/v2/services/promotion";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import { createPromotionService } from "@/lib/api/v2/services/promotion";
 import RefreshButton from "@/components/ui/RefreshButton";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
-import { usePromotionAttachments } from "@/lib/store/useAttachmentsStore";
-import axios from "axios";
 import { PromotionService } from "@/lib/api/v2";
+import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
+import { useAttachments } from "@/hooks/useAttachments";
 
 export default function PromotionsTable({
   promotions,
   attachments,
+  fileHubAttachments,
 }: {
   promotions: PromotionDTO[];
   attachments: Record<string, string[]>;
+  fileHubAttachments: FileHubAttachment[];
 }) {
   const {
     filteredPromotions,
@@ -27,24 +28,57 @@ export default function PromotionsTable({
   } = usePromotionsStore();
   const { setPromotion, setIsEditing } = useCurrentEditingPromotionStore();
   const { addToast } = useToastStore();
-  const { setPromotionAttachments, getPromotionAttachments } =
-    usePromotionAttachments();
+  const { clearExistingAttachmentsForTarget, addExistingAttachmentToTarget } =
+    useAttachments();
 
+  const setData = (props: {
+    promotions: PromotionDTO[];
+    attachments: Record<string, string[]>;
+    fileHubAttachments: FileHubAttachment[];
+  }) => {
+    setPromotions(props.promotions);
+    if (props.fileHubAttachments && props.fileHubAttachments.length > 0) {
+      const allTargetIds = new Set<string>();
+
+      props.fileHubAttachments?.forEach((attachment) => {
+        if (attachment.targetId) {
+          allTargetIds.add(attachment.targetId);
+        }
+      });
+
+      allTargetIds.forEach((targetId) => {
+        clearExistingAttachmentsForTarget(targetId);
+      });
+
+      fileHubAttachments?.forEach((attachment) => {
+        if (attachment.targetId) {
+          addExistingAttachmentToTarget(attachment.targetId, {
+            fileType: attachment.type,
+            originalName: attachment.originalName,
+            size: attachment.size,
+            expirationDate: attachment.expirationDate,
+            id: attachment.id,
+            filename: attachment.filename,
+            isGlobal: attachment.isGlobal,
+            createdAt: attachment.createdAt,
+            signedUrl: attachment.signedUrl,
+          });
+        }
+      });
+    }
+  };
   useEffect(() => {
-    setPromotions(promotions);
-    setPromotionAttachments(attachments);
-  }, [promotions, attachments]);
-
-  // Create axios instance with auth
-  const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
-  });
+    setData({ fileHubAttachments, attachments, promotions });
+  }, [promotions, attachments, fileHubAttachments]);
 
   async function loadPromotions() {
     try {
       const res = await PromotionService.getAllPromotions();
-      setPromotions(res.promotions);
-      setPromotionAttachments(res.attachments);
+      setData({
+        promotions: res.promotions,
+        fileHubAttachments: res.fileHubAttachments,
+        attachments: res.attachments,
+      });
     } catch (error) {
       addToast({
         message: "Failed to load promotions",
@@ -389,36 +423,6 @@ export default function PromotionsTable({
                         </svg>
                         <span className="text-sm font-medium text-slate-600">
                           {formatDate(promotion.endDate)}
-                        </span>
-                      </motion.div>
-                    </td>
-
-                    {/* Attachments */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{
-                          duration: 0.2,
-                          delay: 1.1 + index * 0.05,
-                        }}
-                        className="flex items-center justify-center gap-1"
-                      >
-                        <svg
-                          className="w-4 h-4 text-slate-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium text-slate-600">
-                          {getPromotionAttachments(promotion.id)?.length || 0}
                         </span>
                       </motion.div>
                     </td>

@@ -31,8 +31,10 @@ export default function FaqEditModal() {
   const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
   const {
     moveCurrentNewTargetSelectionsToExisting,
+    moveSelectedFormMyAttachmentsToExisting,
     reset,
     confirmExistingAttachmentsDeletionForTarget,
   } = useAttachments();
@@ -117,14 +119,15 @@ export default function FaqEditModal() {
   const handleClose = () => {
     setIsEditing(false);
     setIsWaitingToClose(false);
+    setHasStartedUpload(false);
     reset();
   };
 
   useEffect(() => {
-    if (!isUploading && isWaitingToClose) {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
       handleClose();
     }
-  }, [isUploading, isWaitingToClose]);
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +154,9 @@ export default function FaqEditModal() {
           const { question: updated } = response;
 
           if (updated.id && selectedAttachments.length > 0) {
-            moveCurrentNewTargetSelectionsToExisting(updated.id);
+            // For existing FAQs, selected "My Attachments" are tracked per-target.
+            // Move them from the per-target selection list into existing attachments.
+            moveSelectedFormMyAttachmentsToExisting(updated.id);
           }
           if (updated.id && deletedAttachments.length > 0) {
             confirmExistingAttachmentsDeletionForTarget(updated.id);
@@ -562,7 +567,10 @@ export default function FaqEditModal() {
                   onDeletedAttachmentsChange={(set) =>
                     setDeletedAttachments(Array.from(set))
                   }
-                  onUploadStart={() => setIsUploading(true)}
+                  onUploadStart={() => {
+                    setHasStartedUpload(true);
+                    setIsUploading(true);
+                  }}
                   onUploadEnd={() => setIsUploading(false)}
                   onHasFilesToUpload={(hasFiles) =>
                     setHasFilesToUpload(hasFiles)

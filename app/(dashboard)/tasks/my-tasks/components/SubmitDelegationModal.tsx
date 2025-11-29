@@ -1,14 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSubmitDelegationModalStore } from "@/app/(dashboard)/store/useSubmitDelegationModalStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { TaskDelegationService } from "@/lib/api/v2";
 import useFormErrors from "@/hooks/useFormErrors";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
 
 export default function SubmitDelegationModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -24,9 +21,31 @@ export default function SubmitDelegationModal() {
     setIsSubmitting,
   } = useSubmitDelegationModalStore();
 
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const { getFormData, moveAllSelectedToExisting } = useAttachmentStore();
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const { reset } = useAttachments();
   const { addToast } = useToastStore();
+
+  const handleClose = () => {
+    closeModal();
+    setUploadKeyV3(null);
+    setIsUploading(false);
+    setIsWaitingToClose(false);
+    setHasStartedUpload(false);
+    setSelectedAttachments([]);
+    setHasFilesToUpload(false);
+    reset();
+  };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   if (!isOpen || !delegation) return null;
 
@@ -42,23 +61,46 @@ export default function SubmitDelegationModal() {
     setIsSubmitting(true);
 
     try {
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
-      await TaskDelegationService.submitForReview(
+      const response = await TaskDelegationService.submitForReview(
         delegation.id,
         {
           notes: notes,
+          chooseAttachments:
+            selectedAttachments.length > 0 ? selectedAttachments : undefined,
         },
-        formData
+        hasFilesToUpload
       );
+
+      const fileHubUploadKey = response.fileHubUploadKey;
 
       addToast({
         message: "Delegation submitted for review successfully!",
         type: "success",
       });
-      moveAllSelectedToExisting();
-      closeModal();
+
+      if (hasFilesToUpload) {
+        if (fileHubUploadKey) {
+          try {
+            setUploadKeyV3(fileHubUploadKey);
+          } catch (uploadErr: any) {
+            addToast({
+              message:
+                uploadErr?.message ||
+                "Failed to upload new attachments. Please try again.",
+              type: "error",
+            });
+          }
+        } else {
+          addToast({
+            message:
+              "Missing upload key for new attachments. Please retry the upload.",
+            type: "error",
+          });
+        }
+        setIsWaitingToClose(true);
+      } else {
+        handleClose();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -147,9 +189,18 @@ export default function SubmitDelegationModal() {
             )}
           </div>
 
-          <AttachmentInput
-            id="delegation-attachment"
-            onAttachmentsChange={setAttachments}
+          <AttachmentInputV3
+            uploadKey={uploadKeyV3 ?? undefined}
+            uploadWhenKeyProvided={true}
+            onSelectedAttachmentsChange={(ids) =>
+              setSelectedAttachments(Array.from(ids))
+            }
+            onUploadStart={() => {
+              setHasStartedUpload(true);
+              setIsUploading(true);
+            }}
+            onUploadEnd={() => setIsUploading(false)}
+            onHasFilesToUpload={setHasFilesToUpload}
           />
 
           <div className="mt-8 flex justify-end gap-4">

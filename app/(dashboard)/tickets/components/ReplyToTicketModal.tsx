@@ -5,16 +5,14 @@ import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket"
 import api, { TicketStatus } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useTicketStore } from "../store/useTicketStore";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
 import useFormErrors from "@/hooks/useFormErrors";
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { UploadService } from "@/lib/api/v2";
 import { GetAttachmentMetadataResponse } from "@/lib/api/v2/services/shared/upload";
 import { useMediaPreviewStore } from "../../store/useMediaPreviewStore";
+import AttachmentInput from "../../files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
+import ExistingAttachmentsViewer from "../../files/components/ExistingAttachmentsViewer";
 
 const isExpired = (expirationDate?: Date) => {
   if (!expirationDate) return false;
@@ -33,19 +31,40 @@ export default function ReplyToTicketModal() {
   const { addToast } = useToastStore();
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
-  const {
-    getFormData,
-    selectedAttachmentIds,
-    moveAllSelectedToExisting,
-    clearAttachments,
-  } = useAttachmentStore();
+  const [savedAnswerId, setSavedAnswerId] = useState<string | null>(null);
+  const [fileHubUploadKey, setFileHubUploadKey] = useState<string | null>(null);
+  const [selectedAttachments, setSelectedAttachments] = useState<Set<string>>(
+    new Set()
+  );
+  const [attach, setAttach] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
   const { attachments: ticketsAttachments } = useAttachmentsStore();
 
   const [ticketAttachments, setTicketAttachments] = useState<
     TicketAttachment[]
   >([]);
 
+  const handleClose = () => {
+    setTicket(null);
+    setIsWaitingToClose(false);
+    setHasStartedUpload(false);
+    setFileHubUploadKey(null);
+    setSavedAnswerId(null);
+    setSelectedAttachments(new Set());
+    setAttach(false);
+    reset();
+  };
+
   const { openPreview } = useMediaPreviewStore();
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   const handlePreviewExistingAttachment = (attachment: TicketAttachment) => {
     openPreview({
@@ -95,25 +114,34 @@ export default function ReplyToTicketModal() {
     }
 
     try {
-      // Get FormData from attachment store
-      const formData = getFormData();
-
-      await api.TicketsService.answerTicket(
-        ticket.id,
-        {
-          content: answer,
-          chooseAttachments: Array.from(selectedAttachmentIds),
-        },
-        formData
-      );
-      setTicket(null);
+      const { fileHubUploadKey, answer: savedAnswer } =
+        await api.TicketsService.answerTicket(
+          ticket.id,
+          {
+            content: answer,
+            chooseAttachments: Array.from(selectedAttachments),
+          },
+          attach
+        );
+      setSavedAnswerId(savedAnswer.id);
+      setFileHubUploadKey(fileHubUploadKey ?? null);
+      if (selectedAttachments.size > 0) {
+        moveCurrentNewTargetSelectionsToExisting(savedAnswer.id);
+      }
       addToast({
         message: "Ticket has been replied successfully.",
         type: "success",
       });
+
+      // Mark ticket as answered immediately after a successful reply,
+      // regardless of whether there are pending FileHub uploads.
       updateStatus(ticket.id, TicketStatus.ANSWERED);
-      moveAllSelectedToExisting();
-      clearAttachments();
+
+      if (attach) {
+        setIsWaitingToClose(true);
+      } else {
+        handleClose();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -277,73 +305,10 @@ export default function ReplyToTicketModal() {
                   {ticket.description}
                 </p>
               </motion.div>
-              {ticketAttachments.length > 0 && (
-                <motion.div
-                  className="mt-3"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.75 }}
-                >
-                  <h4 className="text-sm font-medium text-slate-700 mb-2">
-                    Existing Attachments
-                  </h4>
-                  <motion.div
-                    className="space-y-2"
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                      hidden: {},
-                      visible: {
-                        transition: {
-                          staggerChildren: 0.07,
-                        },
-                      },
-                    }}
-                  >
-                    {ticketAttachments.map((attachment, idx) => (
-                      <motion.div
-                        key={`existing-${attachment.id}`}
-                        className={`flex items-center justify-between p-3 rounded-md border cursor-pointer hover:shadow-md transition-all ${
-                          attachment.expiryDate &&
-                          isExpired(new Date(attachment.expiryDate))
-                            ? "bg-red-50 border-red-200 hover:bg-red-100"
-                            : "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                        }`}
-                        onClick={() =>
-                          handlePreviewExistingAttachment(attachment)
-                        }
-                        initial={{ opacity: 0, x: 15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.01 * idx }}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-900 truncate">
-                            {attachment.originalName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {formatFileSize(attachment.sizeInBytes)} •{" "}
-                            {attachment.expiryDate ? (
-                              <>
-                                {" • Expires: "}
-                                {new Date(
-                                  attachment.expiryDate
-                                ).toLocaleString()}
-                                {isExpired(new Date(attachment.expiryDate)) && (
-                                  <span className="text-red-600 font-medium ml-1">
-                                    (EXPIRED)
-                                  </span>
-                                )}
-                              </>
-                            ) : (
-                              " • No expiration"
-                            )}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </motion.div>
-              )}
+              <ExistingAttachmentsViewer
+                targetId={ticket.id}
+                title="Attachments Uploaded by Customer"
+              />
             </motion.div>
             {isTicketClosedOrAnswered ? (
               <motion.div
@@ -434,7 +399,17 @@ export default function ReplyToTicketModal() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 1.1 }}
                   >
-                    <AttachmentInput id="admin-reply-attachment" />
+                    <AttachmentInput
+                      uploadKey={fileHubUploadKey ?? undefined}
+                      uploadWhenKeyProvided={true}
+                      onSelectedAttachmentsChange={setSelectedAttachments}
+                      onHasFilesToUpload={setAttach}
+                      onUploadStart={() => {
+                        setHasStartedUpload(true);
+                        setIsUploading(true);
+                      }}
+                      onUploadEnd={() => setIsUploading(false)}
+                    />
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}

@@ -30,7 +30,7 @@ export default function AddTaskButton() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50" ref={dropupRef}>
+    <div className="fixed bottom-6 right-6 z-10" ref={dropupRef}>
       {isDropupOpen && (
         <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-lg border border-border overflow-hidden w-64">
           <button

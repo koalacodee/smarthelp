@@ -1,20 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import api, { UpdateTaskDto, FileService } from "@/lib/api";
+import api, { UpdateTaskDto } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useCurrentEditingTaskStore } from "../store/useCurrentEditingTaskStore";
 import { Department } from "@/lib/api/departments";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { TicketAssignee } from "@/lib/api";
 import { useTaskStore } from "@/lib/store";
 import useFormErrors from "@/hooks/useFormErrors";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
 
 type EditTaskModalProps = {
   role: "admin" | "supervisor";
@@ -69,22 +64,28 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [reminderDays, setReminderDays] = useState<number>(0);
   const [reminderHours, setReminderHours] = useState<number>(0);
   const [reminderMinutes, setReminderMinutes] = useState<number>(0);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
     TicketAssignee[]
   >([]);
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [deletedAttachments, setDeletedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
 
   const { addToast } = useToastStore();
   const { task, setIsEditing, isEditing } = useCurrentEditingTaskStore();
   const { updateTask } = useTaskStore();
-  const { getFormData, selectedAttachmentIds, moveAllSelectedToExisting } =
-    useAttachmentStore();
-  const { getAttachments, removeAttachments } = useAttachmentsStore();
-  const { setMetadata, clearMetadata } = useMediaMetadataStore();
-  const { addAttachments } = useAttachmentsStore();
-  const { addExistingAttachment } = useAttachmentStore();
+  const {
+    moveCurrentNewTargetSelectionsToExisting,
+    moveSelectedFormMyAttachmentsToExisting,
+    reset,
+    confirmExistingAttachmentsDeletionForTarget,
+  } = useAttachments();
 
   useEffect(() => {
     Promise.all([
@@ -93,24 +94,12 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     ]);
   }, []);
 
-  const {
-    existingsToDelete,
-    clearAttachments,
-    clearExistingsToDelete,
-    setExistingAttachments,
-  } = useAttachmentStore();
-
   const subDepartmentsForCategory = useMemo(() => {
     if (!departmentId) return [];
     return subDepartments.filter((sd) => sd.parent?.id === departmentId);
   }, [departmentId, subDepartments]);
 
   useEffect(() => {
-    // Clear attachment store state
-    clearAttachments();
-    clearExistingsToDelete();
-    setExistingAttachments({});
-
     if (task) {
       const init = async () => {
         setTitle(task.title || "");
@@ -130,16 +119,6 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
           setTargetSubDepartmentId(task.targetSubDepartment?.id || "");
           setAssigneeId(task.assignee?.id || "");
         }
-
-        const promises = getAttachments("task", task.id).map((id) =>
-          FileService.getAttachmentMetadata(id).then((m) => {
-            setMetadata(id, m);
-            addExistingAttachment(id, m);
-            return [id, m];
-          })
-        );
-
-        await Promise.all(promises);
       };
       init();
     } else {
@@ -154,19 +133,8 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       setDepartmentId("");
       setTargetSubDepartmentId("");
       setAssigneeId("");
-      setAttachments([]);
     }
-  }, [
-    task,
-    departments,
-    role,
-    clearAttachments,
-    clearExistingsToDelete,
-    setExistingAttachments,
-    getAttachments,
-    setMetadata,
-    addExistingAttachment,
-  ]);
+  }, [task, departments, role]);
 
   useEffect(() => {
     // When department changes, reset sub-department if it's no longer valid (only for admin role)
@@ -190,7 +158,21 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
 
   const handleClose = () => {
     setIsEditing(false);
+    setIsWaitingToClose(false);
+    setIsUploading(false);
+    setHasStartedUpload(false);
+    setUploadKeyV3(null);
+    setSelectedAttachments([]);
+    setDeletedAttachments([]);
+    setHasFilesToUpload(false);
+    reset();
   };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,7 +209,8 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         reminderInterval: reminderMs,
-        chooseAttachments: Array.from(selectedAttachmentIds),
+        chooseAttachments: selectedAttachments,
+        deleteAttachments: deletedAttachments,
       };
 
       if (role === "admin") {
@@ -237,72 +220,51 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         updateTaskDto.assigneeId = assigneeId || undefined;
       }
 
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
-      // Add deleteAttachments to updateTaskDto if there are existing attachments to delete
-      if (Object.keys(existingsToDelete).length > 0) {
-        updateTaskDto.deleteAttachments = Object.keys(existingsToDelete);
-      }
-
-      const updatedTask = await api.TasksService.updateTask(
+      const updatedResp = await api.TasksService.updateTask(
         task.id,
         updateTaskDto,
-        formData
+        hasFilesToUpload
       );
 
-      updateTask(task.id, updatedTask.task);
+      const { task: updated, fileHubUploadKey } = updatedResp;
 
-      // Store newly uploaded attachments (if any) from the update response
-      const uploaded = updatedTask?.uploaded;
-      if (uploaded) {
-        if (Array.isArray(uploaded)) {
-          addAttachments(
-            "task",
-            task.id,
-            uploaded.map((f: any) => f.id)
-          );
-          uploaded.forEach((f: any) =>
-            setMetadata(f.id, {
-              fileType: f.fileType,
-              originalName: f.originalName,
-              sizeInBytes: f.sizeInBytes,
-              expiryDate: (f.expirationDate ?? null) as any,
-              contentType: f.contentType,
-            })
-          );
-        } else if (uploaded.id) {
-          addAttachments("task", task.id, [uploaded.id]);
-          setMetadata(uploaded.id, {
-            fileType: uploaded.fileType,
-            originalName: uploaded.originalName,
-            sizeInBytes: uploaded.sizeInBytes,
-            expiryDate: (uploaded.expirationDate ?? null) as any,
-            contentType: uploaded.contentType,
-          });
-        }
+      if (updated.id && selectedAttachments.length > 0) {
+        moveSelectedFormMyAttachmentsToExisting(updated.id);
+      }
+      if (updated.id && deletedAttachments.length > 0) {
+        confirmExistingAttachmentsDeletionForTarget(updated.id);
       }
 
-      // Reflect deleted attachments in stores
-      if (
-        updateTaskDto.deleteAttachments &&
-        updateTaskDto.deleteAttachments.length > 0
-      ) {
-        removeAttachments("task", task.id, updateTaskDto.deleteAttachments);
-        updateTaskDto.deleteAttachments.forEach((id) => clearMetadata(id));
-      }
+      updateTask(task.id, updated as any);
 
       addToast({
         message: "Task updated successfully!",
         type: "success",
       });
 
-      // Clear attachment store state
-      clearAttachments();
-      clearExistingsToDelete();
-      setExistingAttachments({});
-      moveAllSelectedToExisting();
-      handleClose();
+      if (hasFilesToUpload) {
+        if (fileHubUploadKey) {
+          try {
+            setUploadKeyV3(fileHubUploadKey);
+          } catch (uploadErr: any) {
+            addToast({
+              message:
+                (uploadErr as any)?.message ||
+                "Failed to upload new attachments. Please try again.",
+              type: "error",
+            });
+          }
+        } else {
+          addToast({
+            message:
+              "Missing upload key for new attachments. Please retry the upload.",
+            type: "error",
+          });
+        }
+        setIsWaitingToClose(true);
+      } else {
+        handleClose();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -594,12 +556,22 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
               </p>
             </div>
 
-            <AttachmentInput
-              id="task-attachment-input"
-              onAttachmentsChange={setAttachments}
-              attachmentType="task"
-              attachmentId={task?.id}
-              getAttachmentTokens={getAttachments}
+            <AttachmentInputV3
+              targetId={task?.id}
+              uploadKey={uploadKeyV3 ?? undefined}
+              uploadWhenKeyProvided={true}
+              onSelectedAttachmentsChange={(set) =>
+                setSelectedAttachments(Array.from(set))
+              }
+              onDeletedAttachmentsChange={(set) =>
+                setDeletedAttachments(Array.from(set))
+              }
+              onUploadStart={() => {
+                setHasStartedUpload(true);
+                setIsUploading(true);
+              }}
+              onUploadEnd={() => setIsUploading(false)}
+              onHasFilesToUpload={(hasFiles) => setHasFilesToUpload(hasFiles)}
             />
           </div>
           <div className="mt-8 flex justify-end gap-4">

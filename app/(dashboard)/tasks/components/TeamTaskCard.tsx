@@ -1,42 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Task } from "@/lib/api/tasks";
-import Eye from "@/icons/Eye";
 import Clock from "@/icons/Clock";
-import Pencil from "@/icons/Pencil";
-import Trash from "@/icons/Trash";
 import { useTaskDetailsStore } from "../store/useTaskDetailsStore";
 import { useCurrentEditingTaskStore } from "../store/useCurrentEditingTaskStore";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
-import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
-import { useTasksStore } from "../../store/useTasksStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import { FileService } from "@/lib/api";
 import TaskRejectionModal from "./TaskRejectionModal";
 import api from "@/lib/api";
 import { useConfirmationModalStore } from "../../store/useConfirmationStore";
 import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
 import ThreeDotMenu from "./ThreeDotMenu";
 import { useTaskStore } from "@/lib/store";
-
-// Custom PaperClip icon component
-const PaperClipIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-    />
-  </svg>
-);
+import InlineAttachments from "./InlineAttachments";
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
@@ -81,10 +57,9 @@ const getSubmissionStatusColor = (status: string) => {
 
 interface TeamTaskCardProps {
   task: Task;
-  userRole?: string;
 }
 
-export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
+export default function TeamTaskCard({ task }: TeamTaskCardProps) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isSubmissionsExpanded, setIsSubmissionsExpanded] = useState(false);
   const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(
@@ -92,10 +67,6 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
   );
   const { openDetails } = useTaskDetailsStore();
   const { setTask, setIsEditing } = useCurrentEditingTaskStore();
-  const { getAttachments } = useAttachmentsStore();
-  const taskAttachmentIds = getAttachments("task", task.id);
-  const { setMetadata } = useMediaMetadataStore();
-  const { openPreview } = useMediaPreviewStore();
   const { updateTask, deleteTask } = useTaskStore();
   const { openModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
@@ -104,111 +75,6 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
     getDelegationSubmissions,
     getSubmissionAttachments,
   } = useTaskSubmissionsStore();
-  const [taskAttachmentsMetadata, setTaskAttachmentsMetadata] = useState<{
-    [attachmentId: string]: any;
-  }>({});
-  const [submissionAttachmentsMetadata, setSubmissionAttachmentsMetadata] =
-    useState<{
-      [attachmentId: string]: any;
-    }>({});
-
-  // Load attachment metadata for this task
-  useEffect(() => {
-    const loadAttachmentsMetadata = async () => {
-      if (taskAttachmentIds.length > 0) {
-        const attachmentMetadataPromises = taskAttachmentIds.map(
-          async (attachmentId) => {
-            try {
-              const metadata = await FileService.getAttachmentMetadata(
-                attachmentId
-              );
-              setMetadata(attachmentId, metadata);
-              return { attachmentId, metadata };
-            } catch (error) {
-              return { attachmentId, metadata: null };
-            }
-          }
-        );
-
-        const results = await Promise.all(attachmentMetadataPromises);
-        const attachmentMap = results.reduce(
-          (acc, { attachmentId, metadata }) => {
-            if (metadata) {
-              acc[attachmentId] = metadata;
-            }
-            return acc;
-          },
-          {} as { [attachmentId: string]: any }
-        );
-
-        setTaskAttachmentsMetadata(attachmentMap);
-      }
-    };
-
-    loadAttachmentsMetadata();
-  }, [task.id, setMetadata, taskAttachmentIds.length]);
-
-  // Load submission attachment metadata (for both task and delegation submissions)
-  useEffect(() => {
-    const loadSubmissionAttachmentsMetadata = async () => {
-      const taskSubmissions = getTaskSubmissions(task.id);
-      const delegationSubmissions = getDelegationSubmissions(task.id);
-      const allSubmissionAttachments: string[] = [];
-
-      // Load attachments for task submissions
-      taskSubmissions.forEach((submission) => {
-        const submissionAttachments = getSubmissionAttachments(submission.id);
-        allSubmissionAttachments.push(...submissionAttachments);
-      });
-
-      // Load attachments for delegation submissions
-      delegationSubmissions.forEach((submission) => {
-        const submissionAttachments = getSubmissionAttachments(
-          submission.id.toString()
-        );
-        allSubmissionAttachments.push(...submissionAttachments);
-      });
-
-      if (allSubmissionAttachments.length > 0) {
-        const attachmentMetadataPromises = allSubmissionAttachments.map(
-          async (attachmentId) => {
-            try {
-              const metadata = await FileService.getAttachmentMetadata(
-                attachmentId
-              );
-              setMetadata(attachmentId, metadata);
-              return { attachmentId, metadata };
-            } catch (error) {
-              return { attachmentId, metadata: null };
-            }
-          }
-        );
-
-        const results = await Promise.all(attachmentMetadataPromises);
-        const attachmentMap = results.reduce(
-          (acc, { attachmentId, metadata }) => {
-            if (metadata) {
-              acc[attachmentId] = metadata;
-            }
-            return acc;
-          },
-          {} as { [attachmentId: string]: any }
-        );
-
-        setSubmissionAttachmentsMetadata(attachmentMap);
-      }
-    };
-
-    loadSubmissionAttachmentsMetadata();
-  }, [
-    task.id,
-    getTaskSubmissions,
-    getDelegationSubmissions,
-    getSubmissionAttachments,
-    setMetadata,
-    getTaskSubmissions(task.id).length,
-    getDelegationSubmissions(task.id).length,
-  ]);
 
   const handleApprove = async () => {
     try {
@@ -239,7 +105,6 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
 
   const handlePreviewClick = () => {
     if (task.title && task.description && task.createdAt) {
-      const taskAttachments = getAttachments("task", task.id);
       openDetails({
         id: task.id,
         title: task.title,
@@ -253,28 +118,11 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
         createdAt: task.createdAt,
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
-        attachments: taskAttachments,
         reminderInterval: task.reminderInterval,
       });
     }
   };
 
-  const handleAttachmentClick = (attachmentId: string) => {
-    const attachmentMetadata =
-      taskAttachmentsMetadata[attachmentId] ||
-      submissionAttachmentsMetadata[attachmentId];
-    if (attachmentMetadata) {
-      openPreview({
-        originalName: attachmentMetadata.originalName,
-        tokenOrId: attachmentId,
-        fileType: attachmentMetadata.fileType,
-        sizeInBytes: attachmentMetadata.sizeInBytes,
-        expiryDate: attachmentMetadata.expiryDate,
-      });
-    }
-  };
-
-  const taskAttachments = taskAttachmentIds;
   const taskSubmissions = getTaskSubmissions(task.id);
   const delegationSubmissions = getDelegationSubmissions(task.id);
   const allSubmissionsCount =
@@ -411,63 +259,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
             </span>
           </div>
 
-          {/* Attachments */}
-          {taskAttachments.length > 0 && (
-            <div className="border-t border-gray-200 pt-3 mb-4">
-              <div className="space-y-2">
-                {taskAttachments.map((attachmentId, index) => {
-                  const attachmentMetadata =
-                    taskAttachmentsMetadata[attachmentId];
-                  const fileName =
-                    attachmentMetadata?.originalName ||
-                    `Attachment ${index + 1}`;
-                  const uploadDate =
-                    attachmentMetadata?.uploadDate || new Date();
-
-                  return (
-                    <div
-                      key={attachmentId}
-                      className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
-                      onClick={() => handleAttachmentClick(attachmentId)}
-                    >
-                      <PaperClipIcon className="w-3 h-3 text-blue-500" />
-                      <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
-                        {fileName}
-                      </span>
-                      <Clock className="w-3 h-3 text-gray-400" />
-                      <span className="text-gray-400">
-                        {new Date(uploadDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                      <button
-                        className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAttachmentClick(attachmentId);
-                        }}
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <InlineAttachments targetId={task.id} />
 
           {/* Task Submissions and Delegation Submissions */}
           {allSubmissionsCount > 0 && (
@@ -502,12 +294,8 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                 <div className="mt-2 space-y-2">
                   {/* Render Task Submissions */}
                   {taskSubmissions.map((submission) => {
-                    const submissionAttachments = getSubmissionAttachments(
-                      submission.id
-                    );
                     const isExpanded = expandedSubmissions.has(submission.id);
-                    const hasAttachments = submissionAttachments.length > 0;
-                    const hasContent = submission.notes || hasAttachments;
+                    const hasContent = Boolean(submission.notes);
 
                     return (
                       <div
@@ -604,79 +392,7 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                               </p>
                             )}
 
-                            {hasAttachments && (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1 text-xs text-gray-400">
-                                  <PaperClipIcon className="w-3 h-3" />
-                                  <span>
-                                    Attachments ({submissionAttachments.length})
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {submissionAttachments.map(
-                                    (attachmentId, index) => {
-                                      const attachmentMetadata =
-                                        submissionAttachmentsMetadata[
-                                          attachmentId
-                                        ];
-                                      const fileName =
-                                        attachmentMetadata?.originalName ||
-                                        `Attachment ${index + 1}`;
-                                      const uploadDate =
-                                        attachmentMetadata?.uploadDate ||
-                                        new Date();
-
-                                      return (
-                                        <div
-                                          key={attachmentId}
-                                          className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
-                                          onClick={() =>
-                                            handleAttachmentClick(attachmentId)
-                                          }
-                                        >
-                                          <PaperClipIcon className="w-3 h-3 text-blue-500" />
-                                          <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
-                                            {fileName}
-                                          </span>
-                                          <Clock className="w-3 h-3 text-gray-400" />
-                                          <span className="text-gray-400">
-                                            {new Date(
-                                              uploadDate
-                                            ).toLocaleDateString("en-US", {
-                                              month: "short",
-                                              day: "numeric",
-                                            })}
-                                          </span>
-                                          <button
-                                            className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleAttachmentClick(
-                                                attachmentId
-                                              );
-                                            }}
-                                          >
-                                            <svg
-                                              className="w-3 h-3"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                                              />
-                                            </svg>
-                                          </button>
-                                        </div>
-                                      );
-                                    }
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                            <InlineAttachments targetId={submission.id} />
                           </div>
                         )}
                       </div>
@@ -779,77 +495,9 @@ export default function TeamTaskCard({ task, userRole }: TeamTaskCardProps) {
                             )}
 
                             {hasAttachments && (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1 text-xs text-gray-400">
-                                  <PaperClipIcon className="w-3 h-3" />
-                                  <span>
-                                    Attachments ({submissionAttachments.length})
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {submissionAttachments.map(
-                                    (attachmentId, index) => {
-                                      const attachmentMetadata =
-                                        submissionAttachmentsMetadata[
-                                          attachmentId
-                                        ];
-                                      const fileName =
-                                        attachmentMetadata?.originalName ||
-                                        `Attachment ${index + 1}`;
-                                      const uploadDate =
-                                        attachmentMetadata?.uploadDate ||
-                                        new Date();
-
-                                      return (
-                                        <div
-                                          key={attachmentId}
-                                          className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
-                                          onClick={() =>
-                                            handleAttachmentClick(attachmentId)
-                                          }
-                                        >
-                                          <PaperClipIcon className="w-3 h-3 text-blue-500" />
-                                          <span className="truncate text-blue-500 hover:text-blue-600 transition-colors">
-                                            {fileName}
-                                          </span>
-                                          <Clock className="w-3 h-3 text-gray-400" />
-                                          <span className="text-gray-400">
-                                            {new Date(
-                                              uploadDate
-                                            ).toLocaleDateString("en-US", {
-                                              month: "short",
-                                              day: "numeric",
-                                            })}
-                                          </span>
-                                          <button
-                                            className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleAttachmentClick(
-                                                attachmentId
-                                              );
-                                            }}
-                                          >
-                                            <svg
-                                              className="w-3 h-3"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                                              />
-                                            </svg>
-                                          </button>
-                                        </div>
-                                      );
-                                    }
-                                  )}
-                                </div>
-                              </div>
+                              <InlineAttachments
+                                targetId={submission.id as string}
+                              />
                             )}
                           </div>
                         )}

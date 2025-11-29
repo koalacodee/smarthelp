@@ -2,12 +2,9 @@
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
 import { AudienceType } from "@/lib/api/types";
-import { useState } from "react";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
+import { useState, useEffect } from "react";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
 import useFormErrors from "@/hooks/useFormErrors";
 
 export default function CreatePromotionForm() {
@@ -21,47 +18,97 @@ export default function CreatePromotionForm() {
   const [audience, setAudience] = useState<AudienceType>(AudienceType.ALL);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const {
-    getFormData,
-    clearAttachments,
-    clearExistingsToDelete,
-    setExistingAttachments,
-  } = useAttachmentStore();
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClear, setIsWaitingToClear] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
   const addToast = useToastStore((state) => state.addToast);
+
+  const handleSelectedAttachmentsChange = (attachmentIds: Set<string>) => {
+    setSelectedAttachments(Array.from(attachmentIds));
+  };
+
+  const clearForm = () => {
+    setTitle("");
+    setAudience(AudienceType.ALL);
+    setStartDate("");
+    setEndDate("");
+    setSelectedAttachments([]);
+    setHasFilesToUpload(false);
+    setIsWaitingToClear(false);
+    setHasStartedUpload(false);
+    setUploadKeyV3(null);
+    reset();
+  };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClear) {
+      clearForm();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClear]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
 
     try {
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
-      await api.PromotionService.createPromotion(
+      const response = await api.PromotionService.createPromotion(
         {
           title,
           audience,
           startDate: startDate || undefined,
           endDate: endDate || undefined,
-        },
-        formData
+          chooseAttachments:
+            selectedAttachments.length > 0 ? selectedAttachments : undefined,
+        } as any,
+        hasFilesToUpload
       );
+
+      const { promotion, fileHubUploadKey, uploadKey } = response as any;
+
+      if (promotion?.id && selectedAttachments.length > 0) {
+        // Move "My Files" selections for this new promotion into existing attachments
+        moveCurrentNewTargetSelectionsToExisting(promotion.id);
+      }
 
       addToast({
         message: "Promotion Created Successfully",
         type: "success",
       });
 
-      // Clear form and attachment store after successful creation
-      setTitle("");
-      setAudience(AudienceType.ALL);
-      setStartDate("");
-      setEndDate("");
-      setAttachments([]);
-      clearAttachments();
-      clearExistingsToDelete();
-      setExistingAttachments({});
+      if (hasFilesToUpload) {
+        const uploadKeyToUse = fileHubUploadKey || uploadKey;
+        if (uploadKeyToUse) {
+          try {
+            setUploadKeyV3(uploadKeyToUse);
+            // Wait for uploads to complete before clearing the form
+            setIsWaitingToClear(true);
+          } catch (uploadErr: any) {
+            addToast({
+              message:
+                uploadErr?.message ||
+                "Failed to upload new attachments. Please try again.",
+              type: "error",
+            });
+            // Clear form even if upload key setting fails
+            clearForm();
+          }
+        } else {
+          addToast({
+            message:
+              "Missing upload key for new attachments. Please retry the upload.",
+            type: "error",
+          });
+          // Clear form even if upload key is missing
+          clearForm();
+        }
+      } else {
+        // No files to upload, clear form immediately
+        clearForm();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -178,11 +225,16 @@ export default function CreatePromotionForm() {
           )}
         </div>
         <div>
-          <AttachmentInput
-            id="promo-attachment"
-            accept="image/*,video/*"
-            onAttachmentsChange={setAttachments}
-            label="Promotion Attachments"
+          <AttachmentInputV3
+            uploadKey={uploadKeyV3 ?? undefined}
+            uploadWhenKeyProvided={true}
+            onSelectedAttachmentsChange={handleSelectedAttachmentsChange}
+            onHasFilesToUpload={setHasFilesToUpload}
+            onUploadStart={() => {
+              setHasStartedUpload(true);
+              setIsUploading(true);
+            }}
+            onUploadEnd={() => setIsUploading(false)}
           />
         </div>
       </div>

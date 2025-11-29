@@ -18,15 +18,10 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import Plus from "@/icons/Plus";
 import CheckCircle from "@/icons/CheckCircle";
 import { useTaskModalStore } from "../store/useTaskModalStore";
-import AttachmentInput from "@/components/ui/AttachmentInput";
-import {
-  Attachment,
-  useAttachmentStore,
-} from "@/app/(dashboard)/store/useAttachmentStore";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { useTaskStore } from "@/lib/store";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import useFormErrors from "@/hooks/useFormErrors";
+import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
+import { useAttachments } from "@/hooks/useAttachments";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -93,17 +88,14 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     "targetSubDepartmentId",
   ]);
   const { addToast } = useToastStore();
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const {
-    getFormData,
-    clearAttachments,
-    clearExistingsToDelete,
-    setExistingAttachments,
-    selectedAttachmentIds,
-    moveAllSelectedToExisting,
-  } = useAttachmentStore();
-  const { getAttachments, addAttachments, removeAttachments } =
-    useAttachmentsStore();
+  const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWaitingToClose, setIsWaitingToClose] = useState(false);
+  const [hasStartedUpload, setHasStartedUpload] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+  const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const { moveCurrentNewTargetSelectionsToExisting, reset: resetAttachments } =
+    useAttachments();
   const {
     register,
     handleSubmit,
@@ -126,7 +118,6 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
   const { isOpen, setOpen, subDepartments, departments } = useTaskModalStore();
 
   const { addTask } = useTaskStore();
-  const { setMetadata } = useMediaMetadataStore();
   const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
     TicketAssignee[]
   >([]);
@@ -144,15 +135,25 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
   }, [selectedSubDepartmentId]);
 
   const handleClose = () => {
-    // Clear attachment store state
-    clearAttachments();
-    clearExistingsToDelete();
-    setExistingAttachments({});
+    // Reset attachment UI state
+    setUploadKeyV3(null);
+    setIsWaitingToClose(false);
+    setIsUploading(false);
+    setHasStartedUpload(false);
+    setSelectedAttachments([]);
+    setHasFilesToUpload(false);
+    resetAttachments();
 
     // Reset form and close modal
     reset();
     setOpen(false);
   };
+
+  useEffect(() => {
+    if (hasStartedUpload && !isUploading && isWaitingToClose) {
+      handleClose();
+    }
+  }, [hasStartedUpload, isUploading, isWaitingToClose]);
 
   const onSubmit = async (data: AdminTaskFormData | SupervisorTaskFormData) => {
     clearErrors();
@@ -177,7 +178,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           dueDate: adminData.dueDate || undefined,
           reminderInterval: reminderMs,
           savePreset: adminData.saveAsPreset,
-          chooseAttachments: Array.from(selectedAttachmentIds),
+          chooseAttachments: selectedAttachments,
         };
       } else {
         const supervisorData = data as SupervisorTaskFormData;
@@ -195,48 +196,20 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           dueDate: supervisorData.dueDate || undefined,
           reminderInterval: reminderMs,
           savePreset: supervisorData.saveAsPreset,
-          chooseAttachments: Array.from(selectedAttachmentIds),
+          chooseAttachments: selectedAttachments,
         };
       }
 
-      // Get FormData from attachment store
-      const formData = attachments.length > 0 ? getFormData() : undefined;
-
       const createdResp = await api.TasksService.createTask(
         createTaskDto,
-        formData
+        hasFilesToUpload
       );
-      const createdTask = createdResp?.task ?? createdResp;
-      addTask(createdTask);
+      const { task: createdTask, fileHubUploadKey } = createdResp;
+      addTask(createdTask as any);
 
-      // Store newly uploaded attachments from API response (no refetch)
-      const uploaded = createdResp?.uploaded;
-      if (uploaded) {
-        if (Array.isArray(uploaded)) {
-          addAttachments(
-            "task",
-            createdTask.id,
-            uploaded.map((f: any) => f.id)
-          );
-          uploaded.forEach((f: any) =>
-            setMetadata(f.id, {
-              fileType: f.fileType,
-              originalName: f.originalName,
-              sizeInBytes: f.sizeInBytes,
-              expiryDate: (f.expirationDate ?? null) as any,
-              contentType: f.contentType,
-            })
-          );
-        } else if (uploaded.id) {
-          addAttachments("task", createdTask.id, [uploaded.id]);
-          setMetadata(uploaded.id, {
-            fileType: uploaded.fileType,
-            originalName: uploaded.originalName,
-            sizeInBytes: uploaded.sizeInBytes,
-            expiryDate: (uploaded.expirationDate ?? null) as any,
-            contentType: uploaded.contentType,
-          });
-        }
+      if (createdTask.id) {
+        // Move "My Files" selections for this new task into existing attachments
+        moveCurrentNewTargetSelectionsToExisting(createdTask.id);
       }
 
       addToast({
@@ -244,13 +217,29 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
         type: "success",
       });
 
-      // Clear attachment store state
-      clearAttachments();
-      clearExistingsToDelete();
-      setExistingAttachments({});
-      moveAllSelectedToExisting();
-      reset();
-      setOpen(false);
+      if (hasFilesToUpload) {
+        if (fileHubUploadKey) {
+          try {
+            setUploadKeyV3(fileHubUploadKey);
+          } catch (uploadErr: any) {
+            addToast({
+              message:
+                uploadErr?.message ||
+                "Failed to upload new attachments. Please try again.",
+              type: "error",
+            });
+          }
+        } else {
+          addToast({
+            message:
+              "Missing upload key for new attachments. Please retry the upload.",
+            type: "error",
+          });
+        }
+        setIsWaitingToClose(true);
+      } else {
+        handleClose();
+      }
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
@@ -556,11 +545,18 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     )}
                   </div>
 
-                  <AttachmentInput
-                    id="task-attachment"
-                    onAttachmentsChange={setAttachments}
-                    attachmentType="task"
-                    getAttachmentTokens={getAttachments}
+                  <AttachmentInputV3
+                    uploadKey={uploadKeyV3 ?? undefined}
+                    uploadWhenKeyProvided={true}
+                    onSelectedAttachmentsChange={(ids) =>
+                      setSelectedAttachments(Array.from(ids))
+                    }
+                    onUploadStart={() => {
+                      setHasStartedUpload(true);
+                      setIsUploading(true);
+                    }}
+                    onUploadEnd={() => setIsUploading(false)}
+                    onHasFilesToUpload={setHasFilesToUpload}
                   />
 
                   {/* Save as Preset Checkbox & Description */}

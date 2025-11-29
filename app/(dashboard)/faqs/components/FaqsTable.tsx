@@ -3,11 +3,10 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FAQActions from "./FAQActions";
 import { GroupedFAQs, useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { FAQService } from "@/lib/api/v2";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { useFAQAttachments } from "@/lib/store/useAttachmentsStore";
-import { useFileHubAttachmentsStore } from "../store/useFileHubAttachmentsStore";
 import { FileHubAttachment } from "@/lib/api/v2/models/faq";
 import { useAttachments } from "@/hooks/useAttachments";
 
@@ -22,43 +21,34 @@ export default function FaqsTable({
 }) {
   const { filteredFaqs, setFAQs } = useGroupedFAQsStore();
   const { setFAQAttachments } = useFAQAttachments();
-  const { addExistingAttachmentToTarget } = useAttachments();
-  const prevQuestionsRef = useRef<string>("");
-  const prevAttachmentsRef = useRef<string>("");
-  const prevFileHubAttachmentsRef = useRef<string>("");
+  const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
+    useAttachments();
 
   useEffect(() => {
-    // Use JSON.stringify to compare data and prevent unnecessary updates
-    const questionsKey = JSON.stringify(questions);
-    const attachmentsKey = JSON.stringify(attachments);
-    const fileHubAttachmentsKey = JSON.stringify(fileHubAttachments || {});
+    setFAQs(questions);
+    setFAQAttachments(attachments);
+    const allTargetIds = new Set<string>();
 
-    // Only update if data actually changed
-    if (
-      questionsKey !== prevQuestionsRef.current ||
-      attachmentsKey !== prevAttachmentsRef.current ||
-      fileHubAttachmentsKey !== prevFileHubAttachmentsRef.current
-    ) {
-      setFAQs(questions);
-      setFAQAttachments(attachments);
-      fileHubAttachments?.forEach((attachment) => {
-        addExistingAttachmentToTarget(attachment.targetId, {
-          fileType: attachment.type,
-          originalName: attachment.originalName,
-          size: attachment.size,
-          expirationDate: attachment.expirationDate,
-          id: attachment.id,
-          filename: attachment.filename,
-          isGlobal: attachment.isGlobal,
-          createdAt: attachment.createdAt,
-          signedUrl: attachment.signedUrl,
-        });
+    fileHubAttachments?.forEach((attachment) => {
+      allTargetIds.add(attachment.targetId);
+    });
+
+    allTargetIds.forEach((targetId) => {
+      clearExistingAttachmentsForTarget(targetId);
+    });
+    fileHubAttachments?.forEach((attachment) => {
+      addExistingAttachmentToTarget(attachment.targetId, {
+        fileType: attachment.type,
+        originalName: attachment.originalName,
+        size: attachment.size,
+        expirationDate: attachment.expirationDate,
+        id: attachment.id,
+        filename: attachment.filename,
+        isGlobal: attachment.isGlobal,
+        createdAt: attachment.createdAt,
+        signedUrl: attachment.signedUrl,
       });
-      prevQuestionsRef.current = questionsKey;
-      prevAttachmentsRef.current = attachmentsKey;
-      prevFileHubAttachmentsRef.current = fileHubAttachmentsKey;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
   }, [questions, attachments, fileHubAttachments]);
 
   async function loadFAQs() {

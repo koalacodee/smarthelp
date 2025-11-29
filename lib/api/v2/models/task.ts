@@ -365,5 +365,4 @@ export interface CreateTaskFromPresetRequest {
 
 export interface CreateTaskFromPresetResponse {
   task: TaskDTO;
-  uploadKey?: string;
 }

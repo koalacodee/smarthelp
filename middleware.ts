@@ -87,17 +87,24 @@ const excludedPages = [
   "/server/me",
 ];
 
-const extractSessionCookie = async (response: NextResponse, accessToken: string, apiUrl: string) => {
-  const session = await getIronSession<{ user?: UserResponse }>(response.cookies, {
-    password: env("NEXT_PUBLIC_AUTH_SECRET")!,
-    cookieName: "user_session",
-    cookieOptions: {
-      maxAge: undefined, // Session cookie expires on browser close
-      httpOnly: true,
-      secure: env("NODE_ENV") === "production",
-      sameSite: "lax",
-    },
-  });
+const extractSessionCookie = async (
+  response: NextResponse,
+  accessToken: string,
+  apiUrl: string
+) => {
+  const session = await getIronSession<{ user?: UserResponse }>(
+    response.cookies,
+    {
+      password: env("NEXT_PUBLIC_AUTH_SECRET")!,
+      cookieName: "user_session",
+      cookieOptions: {
+        maxAge: undefined, // Session cookie expires on browser close
+        httpOnly: true,
+        secure: env("NODE_ENV") === "production",
+        sameSite: "lax",
+      },
+    }
+  );
 
   let user = session.user ?? null;
 
@@ -105,7 +112,7 @@ const extractSessionCookie = async (response: NextResponse, accessToken: string,
     const response = await fetch(`${apiUrl}/auth/me`, {
       method: "GET",
       headers: {
-        "Authorization": accessToken ? `Bearer ${accessToken}` : "",
+        Authorization: accessToken ? `Bearer ${accessToken}` : "",
         "Content-Type": "application/json",
       },
       credentials: "include",
@@ -115,7 +122,9 @@ const extractSessionCookie = async (response: NextResponse, accessToken: string,
       throw new Error(`Failed to get current user: ${response.statusText}`);
     }
 
-    const data = await response.json().then((data) => data.data as UserResponse);
+    const data = await response
+      .json()
+      .then((data) => data.data as UserResponse);
 
     if (response) {
       user = data;
@@ -125,7 +134,7 @@ const extractSessionCookie = async (response: NextResponse, accessToken: string,
   }
 
   return user;
-}
+};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -137,9 +146,12 @@ export async function middleware(request: NextRequest) {
 
   // Skip auth check for excluded pages or attachment pages
   const isAttachmentPage = pathname.startsWith("/a");
+  const isFileHubAttachmentGroupRoute =
+    pathname.startsWith("/f/a/g") ||
+    pathname.startsWith("/server/filehub-attachment-group");
   const isExcludedPage = excludedPages.includes(pathname);
 
-  if (!isExcludedPage && !isAttachmentPage) {
+  if (!isExcludedPage && !isAttachmentPage && !isFileHubAttachmentGroupRoute) {
     const url = `${env("NEXT_PUBLIC_API_URL")}/auth/refresh`;
     const cookie = request.headers.get("cookie");
 
@@ -174,9 +186,15 @@ export async function middleware(request: NextRequest) {
           sameSite: "lax",
         });
 
-        const user = await extractSessionCookie(response, accessToken, env("NEXT_PUBLIC_API_URL") || "")
+        const user = await extractSessionCookie(
+          response,
+          accessToken,
+          env("NEXT_PUBLIC_API_URL") || ""
+        );
         console.log("user", user);
-        const allowed = pathname ? findMatchingRoute(pathname, pageAccess) : undefined;
+        const allowed = pathname
+          ? findMatchingRoute(pathname, pageAccess)
+          : undefined;
         console.log(allowed);
         let notAllowed = false;
 
@@ -185,7 +203,7 @@ export async function middleware(request: NextRequest) {
         }
 
         if (notAllowed) {
-          return NextResponse.redirect(new URL("/access-denied", request.url))
+          return NextResponse.redirect(new URL("/access-denied", request.url));
         }
       }
 

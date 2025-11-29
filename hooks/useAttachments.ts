@@ -4,7 +4,7 @@ import { env } from "next-runtime-env";
 import { useAttachmentStore } from "./store/useAttachmentStore";
 import { TusService } from "@/lib/api/v2/services/shared/tus";
 import { useCallback, useState } from "react";
-import { UploadService } from "@/lib/api/v2";
+import { FileHubService, UploadService } from "@/lib/api/v2";
 // collision-resistant 10-digit ID for client-side use only
 
 const random10DigitId = (() => {
@@ -31,8 +31,10 @@ export const useAttachments = (targetId?: string) => {
     addAttachmentToUploadForTarget,
     updateAttachmentToUploadForTarget,
     deleteAttachmentFromExistingAttachments,
+    restoreAttachmentFromExistingAttachments,
     removeAttachmentToUploadForTarget,
     clearAttachmentsToUploadForTarget,
+    setExistingAttachmentsForTarget,
     selectFormMyAttachmentForTarget,
     deselectFormMyAttachmentForTarget,
     addExistingAttachmentToTarget,
@@ -41,9 +43,11 @@ export const useAttachments = (targetId?: string) => {
     deselectCurrentNewTargetAttachment,
     clearCurrentNewTargetSelections,
     moveCurrentNewTargetSelectionsToExisting,
+    moveSelectedFormMyAttachmentsToExisting,
     removeCurrentNewTargetUpload,
     clearCurrentNewTargetUploads,
     confirmExistingAttachmentsDeletionForTarget,
+    clearExistingAttachmentsForTarget,
   } = useAttachmentStore();
   const targetUploads = targetId
     ? attachmentsToUpload[targetId] || []
@@ -53,12 +57,14 @@ export const useAttachments = (targetId?: string) => {
     Record<string, number>
   >({});
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingMyAttachments, setIsLoadingMyAttachments] = useState(false);
 
   const handleUploadAttachment = (
     file: File,
     isGlobal: boolean,
     expirationDate: Date | null
   ) => {
+    setIsLoadingMyAttachments(true);
     let id = random10DigitId();
     targetId
       ? addAttachmentToUploadForTarget(targetId, {
@@ -81,6 +87,7 @@ export const useAttachments = (targetId?: string) => {
           id,
           status: "queued",
         });
+    setIsLoadingMyAttachments(false);
     return id;
   };
 
@@ -143,8 +150,17 @@ export const useAttachments = (targetId?: string) => {
           tusUpload.start();
         });
       }
+      // Once all pending uploads for this target have successfully completed,
+      // clear them from the "pending uploads" collection so they don't linger
+      // in the UI as completed-but-still-pending items.
+      if (targetId) {
+        clearAttachmentsToUploadForTarget(targetId);
+      } else {
+        clearCurrentNewTargetUploads();
+      }
     } finally {
       setIsUploading(false);
+      setIsLoadingMyAttachments(false);
     }
   };
 
@@ -153,18 +169,20 @@ export const useAttachments = (targetId?: string) => {
   };
 
   const fetchMyAttachments = useCallback(async () => {
-    const response = await UploadService.getMyAttachments();
+    const response = await FileHubService.getMyAttachments();
     setMyAttachments(
-      response.attachments.map((attachment) => ({
+      response.map((attachment) => ({
         originalName: attachment.originalName,
         filename: attachment.originalName,
-        fileType: attachment.fileType,
+        fileType: attachment.type,
         size: attachment.size,
         isGlobal: attachment.isGlobal,
         expirationDate: attachment.expirationDate ?? undefined,
         createdAt: attachment.createdAt,
         signedUrl: attachment.signedUrl,
         id: attachment.id,
+        targetId,
+        userId: attachment.userId,
       }))
     );
   }, [setMyAttachments]);
@@ -180,6 +198,11 @@ export const useAttachments = (targetId?: string) => {
     getUploadProgress,
     fetchMyAttachments,
     deleteAttachmentFromExistingAttachments,
+    restoreAttachmentFromExistingAttachments: (attachmentId: string) => {
+      if (targetId) {
+        restoreAttachmentFromExistingAttachments(targetId, attachmentId);
+      }
+    },
     confirmExistingAttachmentsDeletionForTarget,
     removeAttachmentToUpload: (attachmentId: string) => {
       targetId
@@ -231,8 +254,12 @@ export const useAttachments = (targetId?: string) => {
       : currentNewTargetUploads.filter((att) => att.status === "failed"),
     reset,
     moveCurrentNewTargetSelectionsToExisting,
+    moveSelectedFormMyAttachmentsToExisting,
     isUploading,
     addMyAttachment,
     addExistingAttachmentToTarget,
+    isLoadingMyAttachments,
+    setExistingAttachmentsForTarget,
+    clearExistingAttachmentsForTarget,
   };
 };

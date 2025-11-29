@@ -7,6 +7,13 @@ import {
   useRef,
   useState,
 } from "react";
+import Eye from "@/icons/Eye";
+import Pencil from "@/icons/Pencil";
+import Plus from "@/icons/Plus";
+import X from "@/icons/X";
+import RefreshCw from "@/icons/RefreshCw";
+import DocumentDuplicate from "@/icons/DocumentDuplicate";
+import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
 
 type AttachmentInputV3Props = {
   targetId?: string;
@@ -69,6 +76,7 @@ export default function AttachmentInputV3({
     selectFormMyAttachmentForTarget,
     deselectFormMyAttachment,
     deleteAttachmentFromExistingAttachments,
+    restoreAttachmentFromExistingAttachments,
     removeAttachmentToUpload,
     getUploadProgress,
     isUploading,
@@ -91,6 +99,13 @@ export default function AttachmentInputV3({
   const [myAttachmentsSelection, setMyAttachmentsSelection] = useState<
     Set<string>
   >(new Set());
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    signedUrl?: string;
+    originalName: string;
+  } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const { openPreview } = useMediaPreviewStore();
 
   // Refs to track previous values and prevent infinite loops
   const prevSelectedIdsRef = useRef<string>("");
@@ -135,6 +150,28 @@ export default function AttachmentInputV3({
     setDiscardOnMetadataClose(true);
     setIsMetadataDialogOpen(true);
     e.target.value = "";
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+    if (event.dataTransfer.files?.length) {
+      const file = event.dataTransfer.files[0];
+      const id = handleUploadAttachment(file, false, null);
+      setCurrentAttachmentToUplodId(id);
+      setDiscardOnMetadataClose(true);
+      setIsMetadataDialogOpen(true);
+    }
+  };
+
+  const handleDrag = (
+    event: React.DragEvent<HTMLDivElement>,
+    over: boolean
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(over);
   };
 
   const openMetadataDialog = (attachmentId: string) => {
@@ -209,18 +246,42 @@ export default function AttachmentInputV3({
   };
 
   useEffect(() => {
+    // Ensure we only auto-upload once per uploadKey to avoid infinite loops
+    // when parent components re-render and re-create callback props.
+    const lastProcessedKeyRef = (AttachmentInputV3 as any)
+      ._lastProcessedKeyRef as React.RefObject<string | null> | undefined;
+
+    // Lazily initialize static ref on the component function
+    if (!lastProcessedKeyRef) {
+      (AttachmentInputV3 as any)._lastProcessedKeyRef = { current: null };
+    }
+
+    const ref = (AttachmentInputV3 as any)
+      ._lastProcessedKeyRef as React.RefObject<string | null>;
+
+    const shouldUpload =
+      uploadWhenKeyProvided &&
+      !!uploadKey &&
+      ref.current !== uploadKey &&
+      !isUploading;
+
+    if (!shouldUpload) return;
+
+    ref.current = uploadKey!;
+
     const upload = async () => {
-      if (isUploading) return;
       onUploadStart?.();
-      if (uploadWhenKeyProvided && uploadKey) {
-        await uploadAttachments(uploadKey);
-        onUploadEnd?.();
+      try {
+        await uploadAttachments(uploadKey!);
         // After successful upload, convert any "new target" selections into existing attachments.
         if (targetId) {
           moveCurrentNewTargetSelectionsToExisting(targetId);
         }
+      } finally {
+        onUploadEnd?.();
       }
     };
+
     upload();
   }, [
     uploadWhenKeyProvided,
@@ -228,6 +289,9 @@ export default function AttachmentInputV3({
     uploadAttachments,
     moveCurrentNewTargetSelectionsToExisting,
     targetId,
+    isUploading,
+    onUploadStart,
+    onUploadEnd,
   ]);
 
   const onChooseFromMyFilesClick = async () => {
@@ -270,6 +334,104 @@ export default function AttachmentInputV3({
     setIsChooseFromMyFilesDialogOpen(false);
   };
 
+  const handlePreview = (attachment: {
+    id: string;
+    name: string;
+    signedUrl?: string;
+    objectUrl?: string;
+    size: number;
+    expirationDate?: string | Date | null;
+    fileType?: string;
+  }) => {
+    if (attachment.signedUrl) {
+      openPreview({
+        originalName: attachment.name,
+        tokenOrId: attachment.signedUrl,
+        fileType: attachment.fileType,
+        sizeInBytes: attachment.size,
+        expiryDate:
+          attachment.expirationDate instanceof Date
+            ? attachment.expirationDate.toISOString()
+            : attachment.expirationDate || undefined,
+      });
+    } else if (attachment.objectUrl) {
+      // For pending uploads, use objectUrl (blob URL)
+      const fileType =
+        attachment.fileType || getFileTypeFromName(attachment.name);
+      openPreview({
+        originalName: attachment.name,
+        tokenOrId: attachment.objectUrl,
+        fileType: fileType,
+        sizeInBytes: attachment.size,
+        expiryDate:
+          attachment.expirationDate instanceof Date
+            ? attachment.expirationDate.toISOString()
+            : attachment.expirationDate || undefined,
+      });
+    } else {
+      setPreviewAttachment({
+        signedUrl: undefined,
+        originalName: attachment.name,
+      });
+      setPreviewDialogOpen(true);
+    }
+  };
+
+  const getFileTypeFromName = (filename: string): string => {
+    const extension = filename.split(".").pop()?.toLowerCase();
+    if (!extension) return "unknown";
+
+    if (
+      ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(extension)
+    ) {
+      return "image";
+    } else if (
+      ["mp4", "webm", "ogg", "avi", "mov", "wmv", "flv"].includes(extension)
+    ) {
+      return "video";
+    } else if (
+      ["mp3", "wav", "ogg", "aac", "flac", "m4a"].includes(extension)
+    ) {
+      return "audio";
+    } else if (["pdf"].includes(extension)) {
+      return "pdf";
+    }
+    return extension;
+  };
+
+  const getFileTypeFromMimeType = (mimeType: string): string => {
+    if (mimeType.startsWith("image/")) return "image";
+    if (mimeType.startsWith("video/")) return "video";
+    if (mimeType.startsWith("audio/")) return "audio";
+    if (mimeType === "application/pdf") return "pdf";
+    return "unknown";
+  };
+
+  const getStatusStyle = (status?: string, progress?: number) => {
+    if (status === "completed" || status === "uploaded") {
+      return {
+        badge: "bg-green-600 text-white",
+        highlight: "from-green-100/70 via-transparent",
+      };
+    }
+    if (status === "error") {
+      return {
+        badge: "bg-red-600 text-white",
+        highlight: "from-red-100/70 via-transparent",
+      };
+    }
+    if (status === "uploading" || progress !== undefined) {
+      return {
+        badge: "bg-blue-600 text-white",
+        highlight: "from-blue-100/70 via-transparent",
+      };
+    }
+    return {
+      badge: "bg-slate-900/80 text-white",
+      highlight: "from-slate-100/70 via-transparent",
+    };
+  };
+
   const renderAttachmentRow = (
     attachment: {
       id: string;
@@ -277,171 +439,436 @@ export default function AttachmentInputV3({
       size: number;
       expirationDate?: string | Date | null;
       isGlobal: boolean;
+      signedUrl?: string;
+      status?: string;
+      progress?: number;
     },
     actions: ReactNode,
-    description: string
-  ) => (
-    <li
-      key={attachment.id}
-      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
-    >
-      <div className="flex flex-col">
-        <span className="font-medium text-slate-900">{attachment.name}</span>
-        <span className="text-slate-500">{description}</span>
-        <span className="text-xs text-slate-500">
-          {formatBytes(attachment.size)} ·{" "}
-          {formatDateDisplay(attachment.expirationDate)} ·
-          {attachment.isGlobal ? " Global" : " Target-only"}
-        </span>
+    showProgress?: boolean
+  ) => {
+    const statusStyle = getStatusStyle(attachment.status, attachment.progress);
+    const progressValue = attachment.progress ?? 0;
+    const statusLabel =
+      attachment.status === "completed" || attachment.status === "uploaded"
+        ? "Uploaded"
+        : attachment.status === "uploading" || attachment.progress !== undefined
+        ? `${Math.round(progressValue)}%`
+        : "Queued";
+
+    return (
+      <div
+        key={attachment.id}
+        className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 shadow-sm transition hover:shadow-md"
+      >
+        <div
+          className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r ${statusStyle.highlight}`}
+          style={{
+            width: `${Math.min(Math.max(progressValue, 8), 100)}%`,
+          }}
+        />
+        {showProgress && (
+          <div className="absolute left-4 top-3 z-20">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow ${statusStyle.badge}`}
+            >
+              {(attachment.status === "uploading" ||
+                attachment.progress !== undefined) && (
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+              )}
+              {statusLabel}
+            </span>
+          </div>
+        )}
+        <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+            <DocumentDuplicate className="h-6 w-6" />
+          </div>
+          <div className="flex-1 space-y-1 text-sm">
+            <p className="truncate text-base font-semibold text-slate-900">
+              {attachment.name}
+            </p>
+            <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
+              <span>{formatBytes(attachment.size)}</span>
+              <span className="hidden sm:inline">•</span>
+              <span>
+                {formatDateDisplay(attachment.expirationDate) ||
+                  "No expiration"}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+              {attachment.expirationDate && (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                  Expires {formatDateDisplay(attachment.expirationDate)}
+                </span>
+              )}
+              {attachment.isGlobal && (
+                <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
+                  Global
+                </span>
+              )}
+            </div>
+          </div>
+          {showProgress && (
+            <div className="w-full sm:w-40">
+              <div className="h-2 rounded-full bg-slate-100">
+                <div
+                  className={`h-full rounded-full ${
+                    attachment.status === "error"
+                      ? "bg-red-500"
+                      : attachment.status === "completed" ||
+                        attachment.status === "uploaded"
+                      ? "bg-green-500"
+                      : "bg-blue-500"
+                  } transition-all`}
+                  style={{
+                    width: `${Math.min(
+                      attachment.status === "queued" ? 5 : progressValue,
+                      100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="mt-1 text-right text-xs font-semibold text-slate-500">
+                {attachment.status === "completed" ||
+                attachment.status === "uploaded"
+                  ? "100%"
+                  : `${Math.round(progressValue)}%`}
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">{actions}</div>
+        </div>
       </div>
-      <div className="flex items-center gap-2">{actions}</div>
-    </li>
-  );
+    );
+  };
+
+  const totalFilesCount =
+    pendingUploads.length + selectedFromMine.length + existing.length;
+  const totalSize = useMemo(() => {
+    let size = 0;
+    pendingUploads.forEach((att) => (size += att.size));
+    selectedFromMine.forEach((att) => (size += att.size));
+    existing.forEach((att) => (size += att.size));
+    return size;
+  }, [pendingUploads, selectedFromMine, existing]);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Attachment Input
-          </h2>
-          <p className="text-sm text-slate-500">
-            Upload new files, reuse attachments you already own, and keep the
-            parent informed about every change.
-          </p>
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-semibold text-slate-800">
+          Attachments
+        </label>
+        <p className="text-xs text-slate-500 mt-1">
+          Drag and drop files here or click to browse. Max size per file: 100MB
+        </p>
+      </div>
+
+      <div
+        onDrop={handleDrop}
+        onDragOver={(event) => handleDrag(event, true)}
+        onDragLeave={(event) => handleDrag(event, false)}
+        className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
+          isDragOver
+            ? "border-blue-500 bg-blue-50/70"
+            : "border-slate-300 bg-slate-50/40"
+        }`}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 7.5 12 3m0 0L7.5 7.5M12 3v13.5"
+              />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-slate-800">
+              Drop files here
+            </p>
+            <p className="text-xs text-slate-500">
+              or click to browse files from your computer
+            </p>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+
+        <div className="mt-4 flex items-center gap-3">
           <label
             htmlFor={inputId}
-            className="cursor-pointer rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
-            title="File input – select a file to upload and configure metadata."
+            className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700"
           >
-            Upload New File
+            <Plus className="h-4 w-4" />
+            Select files
           </label>
           <input
             id={inputId}
             type="file"
-            className="sr-only"
+            className="hidden"
             onChange={onFileChange}
           />
           <button
             type="button"
             onClick={onChooseFromMyFilesClick}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
           >
-            Choose From My Attachments
+            <Plus className="h-4 w-4" />
+            My Files
           </button>
-        </div>
-      </header>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Pending Uploads
-          </h3>
-          <p className="text-xs text-slate-500">
-            These files wait for metadata confirmation and background uploads.
-          </p>
-          <ul className="mt-3 flex flex-col gap-3">
-            {pendingUploads.length ? (
-              pendingUploads.map((attachment) =>
-                renderAttachmentRow(
-                  {
-                    id: attachment.id,
-                    name: attachment.filename,
-                    size: attachment.size,
-                    expirationDate: attachment.expirationDate ?? null,
-                    isGlobal: attachment.isGlobal,
-                  },
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => openMetadataDialog(attachment.id)}
-                      className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-700 transition hover:border-slate-300"
-                    >
-                      Edit Metadata
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachmentToUpload(attachment.id)}
-                      className="rounded-full border border-rose-200 px-3 py-1 text-xs text-rose-600 transition hover:bg-rose-50"
-                    >
-                      Remove
-                    </button>
-                    <span className="text-xs text-slate-500">
-                      {attachment.status === "completed"
-                        ? "Uploaded"
-                        : `${Math.round(getUploadProgress(attachment.id))}%`}
-                    </span>
-                  </>,
-                  "File input → pending upload tracking."
-                )
-              )
-            ) : (
-              <li className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                File input → waiting for an upload.
-              </li>
-            )}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Selected From My Attachments
-          </h3>
-          <p className="text-xs text-slate-500">
-            My attachments dialog → chosen items ready to link to this target.
-          </p>
-          <ul className="mt-3 flex flex-col gap-3">
-            {selectedFromMine.length ? (
-              selectedFromMine.map((attachment) =>
-                renderAttachmentRow(
-                  {
-                    id: attachment.id,
-                    name: attachment.originalName ?? attachment.filename,
-                    size: attachment.size,
-                    expirationDate: attachment.expirationDate ?? null,
-                    isGlobal: attachment.isGlobal,
-                  },
-                  <button
-                    type="button"
-                    onClick={() => deselectFormMyAttachment(attachment.id)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-700 transition hover:border-slate-300"
-                  >
-                    Remove Selection
-                  </button>,
-                  "My attachments dialog → confirmed selection."
-                )
-              )
-            ) : (
-              <li className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                My attachments dialog → no selections yet.
-              </li>
-            )}
-          </ul>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Existing Attachments
-          </h3>
-          <p className="text-xs text-slate-500">
-            Existing cards → represent files already attached; mark for deletion
-            if needed.
-          </p>
-          <ul className="mt-3 flex flex-col gap-3">
-            {existing.length && targetId ? (
-              existing.map((attachment) =>
-                renderAttachmentRow(
-                  {
-                    id: attachment.id,
-                    name: attachment.originalName ?? attachment.filename,
-                    size: attachment.size,
-                    expirationDate: attachment.expirationDate ?? null,
-                    isGlobal: attachment.isGlobal,
-                  },
+      {totalFilesCount > 0 && (
+        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/70 px-4 py-3 text-sm text-slate-600 shadow-sm">
+          <div>
+            <span className="font-semibold text-slate-800">
+              {totalFilesCount}
+            </span>{" "}
+            file{totalFilesCount === 1 ? "" : "s"} selected
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs uppercase tracking-wide text-slate-400">
+              Total size
+            </span>
+            <span className="font-semibold text-slate-700">
+              {formatBytes(totalSize)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {pendingUploads.length > 0 && (
+          <div className="space-y-4">
+            {pendingUploads.map((attachment) => {
+              const fileType = attachment.file?.type
+                ? getFileTypeFromMimeType(attachment.file.type)
+                : getFileTypeFromName(attachment.filename);
+              const progress = getUploadProgress(attachment.id);
+              const status =
+                attachment.status === "completed" || progress >= 100
+                  ? "uploaded"
+                  : attachment.status === "failed"
+                  ? "error"
+                  : progress > 0 || attachment.status === "uploading"
+                  ? "uploading"
+                  : "queued";
+              const statusStyle = getStatusStyle(status, progress);
+
+              return (
+                <div
+                  key={attachment.id}
+                  className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 shadow-sm transition hover:shadow-md"
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r ${statusStyle.highlight}`}
+                    style={{
+                      width:
+                        status === "queued"
+                          ? "8%"
+                          : `${Math.min(Math.max(progress, 8), 100)}%`,
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeAttachmentToUpload(attachment.id)}
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
+                    aria-label="Remove file"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+                      <DocumentDuplicate className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-1 text-sm">
+                      <p className="truncate text-base font-semibold text-slate-900">
+                        {attachment.filename}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 text-xs items-center text-slate-500">
+                        <span>{formatBytes(attachment.size)}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>{attachment.file?.type || "Unknown type"}</span>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow ${statusStyle.badge}`}
+                        >
+                          {status === "uploading" && (
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                          )}
+                          {status === "uploaded"
+                            ? "Uploaded"
+                            : status === "uploading"
+                            ? `${Math.round(progress)}%`
+                            : "Queued"}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+                        {attachment.expirationDate && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                            Expires{" "}
+                            {formatDateDisplay(attachment.expirationDate)}
+                          </span>
+                        )}
+                        {attachment.isGlobal && (
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
+                            Global
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handlePreview({
+                            id: attachment.id,
+                            name: attachment.filename,
+                            objectUrl: attachment.objectUrl,
+                            size: attachment.size,
+                            expirationDate: attachment.expirationDate ?? null,
+                            fileType: fileType,
+                          })
+                        }
+                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                        title="Preview"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openMetadataDialog(attachment.id)}
+                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                        title="Edit Metadata"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="w-full sm:w-40">
+                      <div className="h-2 rounded-full bg-slate-100">
+                        <div
+                          className={`h-full rounded-full ${
+                            status === "error"
+                              ? "bg-red-500"
+                              : status === "uploaded"
+                              ? "bg-green-500"
+                              : "bg-blue-500"
+                          } transition-all`}
+                          style={{
+                            width: `${Math.min(
+                              status === "queued" ? 5 : progress,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="mt-1 text-right text-xs font-semibold text-slate-500">
+                        {status === "uploaded"
+                          ? "100%"
+                          : `${Math.round(progress)}%`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {selectedFromMine.length > 0 && (
+          <div className="space-y-4">
+            {selectedFromMine.map((attachment) => {
+              const statusStyle = getStatusStyle("uploaded");
+              return (
+                <div
+                  key={attachment.id}
+                  className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 shadow-sm transition hover:shadow-md"
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r ${statusStyle.highlight}`}
+                    style={{ width: "100%" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => deselectFormMyAttachment(attachment.id)}
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
+                    aria-label="Remove file"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+                      <DocumentDuplicate className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-1 text-sm">
+                      <p className="truncate text-base font-semibold text-slate-900">
+                        {attachment.originalName ?? attachment.filename}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
+                        <span>{formatBytes(attachment.size)}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>{attachment.fileType || "Unknown type"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+                        {attachment.expirationDate && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                            Expires{" "}
+                            {formatDateDisplay(attachment.expirationDate)}
+                          </span>
+                        )}
+                        {attachment.isGlobal && (
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
+                            Global
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handlePreview({
+                            id: attachment.id,
+                            name:
+                              attachment.originalName ?? attachment.filename,
+                            signedUrl: attachment.signedUrl,
+                            size: attachment.size,
+                            expirationDate: attachment.expirationDate ?? null,
+                          })
+                        }
+                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                        title="Preview"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {existing.length > 0 && targetId && (
+          <div className="space-y-4">
+            {existing.map((attachment) => {
+              const statusStyle = getStatusStyle("uploaded");
+              return (
+                <div
+                  key={attachment.id}
+                  className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 shadow-sm transition hover:shadow-md"
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r ${statusStyle.highlight}`}
+                    style={{ width: "100%" }}
+                  />
                   <button
                     type="button"
                     onClick={() =>
@@ -450,53 +877,131 @@ export default function AttachmentInputV3({
                         attachment.id
                       )
                     }
-                    className="rounded-full border border-rose-200 px-3 py-1 text-xs text-rose-600 transition hover:bg-rose-50"
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
+                    aria-label="Remove file"
                   >
-                    Mark Delete
-                  </button>,
-                  "Existing attachment card → currently linked to target."
-                )
-              )
-            ) : (
-              <li className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                Existing attachment card → nothing attached yet.
-              </li>
-            )}
-          </ul>
-        </div>
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+                      <DocumentDuplicate className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-1 text-sm">
+                      <p className="truncate text-base font-semibold text-slate-900">
+                        {attachment.originalName ?? attachment.filename}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
+                        <span>{formatBytes(attachment.size)}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>{attachment.fileType || "Unknown type"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+                        {attachment.expirationDate && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                            Expires{" "}
+                            {formatDateDisplay(attachment.expirationDate)}
+                          </span>
+                        )}
+                        {attachment.isGlobal && (
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
+                            Global
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handlePreview({
+                            id: attachment.id,
+                            name:
+                              attachment.originalName ?? attachment.filename,
+                            signedUrl: attachment.signedUrl,
+                            size: attachment.size,
+                            expirationDate: attachment.expirationDate ?? null,
+                          })
+                        }
+                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                        title="Preview"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Marked For Deletion
-          </h3>
-          <p className="text-xs text-slate-500">
-            Deletion tracker → informs the parent via callback about removed
-            files.
-          </p>
-          <ul className="mt-3 flex flex-col gap-3">
-            {attachmentsToDelete.length ? (
-              attachmentsToDelete.map((attachment) =>
-                renderAttachmentRow(
-                  {
-                    id: attachment.id,
-                    name: attachment.originalName ?? attachment.filename,
-                    size: attachment.size,
-                    expirationDate: attachment.expirationDate ?? null,
-                    isGlobal: attachment.isGlobal,
-                  },
-                  <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
-                    Pending Removal
-                  </span>,
-                  "Deletion tracker → will remove on save."
-                )
-              )
-            ) : (
-              <li className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                Deletion tracker → no files flagged.
-              </li>
-            )}
-          </ul>
-        </div>
+        {attachmentsToDelete.length > 0 && (
+          <div className="space-y-4">
+            {attachmentsToDelete.map((attachment) => {
+              const statusStyle = getStatusStyle("error");
+              return (
+                <div
+                  key={attachment.id}
+                  className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 shadow-sm transition hover:shadow-md"
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r ${statusStyle.highlight}`}
+                    style={{ width: "100%" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      restoreAttachmentFromExistingAttachments(attachment.id)
+                    }
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-green-600 shadow hover:text-green-700"
+                    aria-label="Restore file"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                  <div className="relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-700">
+                      <DocumentDuplicate className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-1 text-sm">
+                      <p className="truncate text-base font-semibold text-slate-900">
+                        {attachment.originalName ?? attachment.filename}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 text-xs items-center text-slate-500">
+                        <span>{formatBytes(attachment.size)}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>{attachment.fileType || "Unknown type"}</span>
+                        <span
+                          className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow ${statusStyle.badge}`}
+                        >
+                          Marked for Deletion
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+                        {attachment.expirationDate && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                            Expires{" "}
+                            {formatDateDisplay(attachment.expirationDate)}
+                          </span>
+                        )}
+                        {attachment.isGlobal && (
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
+                            Global
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {totalFilesCount === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 p-6 text-center text-sm text-slate-400">
+            No files selected yet.
+          </div>
+        )}
       </div>
 
       {isMetadataDialogOpen && metadataAttachment ? (
@@ -508,12 +1013,8 @@ export default function AttachmentInputV3({
           >
             <div className="mb-4">
               <h4 className="text-base font-semibold text-slate-900">
-                Metadata dialog → finalize before upload
+                Edit Metadata
               </h4>
-              <p className="text-sm text-slate-500">
-                Set expiration and visibility so uploads carry accurate
-                metadata.
-              </p>
             </div>
             <div className="space-y-4">
               <div>
@@ -536,10 +1037,6 @@ export default function AttachmentInputV3({
                 <div>
                   <p className="text-sm font-medium text-slate-900">
                     Global flag
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Global flag toggle → makes the attachment visible beyond
-                    this target.
                   </p>
                 </div>
                 <button
@@ -576,12 +1073,51 @@ export default function AttachmentInputV3({
                 onClick={onMetadataConfirm}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Confirm Metadata
+                Confirm
               </button>
             </div>
           </div>
         </div>
       ) : null}
+
+      {previewDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-8">
+          <div
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="mb-4">
+              <h4 className="text-base font-semibold text-slate-900">
+                Preview Unavailable
+              </h4>
+            </div>
+            <div className="mb-6">
+              <p className="text-sm text-slate-600">
+                Preview is not available for this attachment. The file may not
+                have a signed URL or may not be accessible at this time.
+              </p>
+              {previewAttachment && (
+                <p className="text-sm text-slate-500 mt-2">
+                  File: {previewAttachment.originalName}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setPreviewDialogOpen(false);
+                  setPreviewAttachment(null);
+                }}
+                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isChooseFromMyFilesDialogOpen ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4 py-8">
@@ -592,12 +1128,8 @@ export default function AttachmentInputV3({
           >
             <div className="mb-4">
               <h4 className="text-base font-semibold text-slate-900">
-                My attachments dialog → select reusable files
+                My Attachments
               </h4>
-              <p className="text-sm text-slate-500">
-                Toggle the checkboxes below to decide which personal attachments
-                should link to this target.
-              </p>
             </div>
             <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-2">
               {myAttachments.length ? (
@@ -627,7 +1159,7 @@ export default function AttachmentInputV3({
                 ))
               ) : (
                 <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                  You have no personal attachments yet.
+                  No attachments available
                 </p>
               )}
             </div>
@@ -644,12 +1176,12 @@ export default function AttachmentInputV3({
                 onClick={onChooseFromMyFilesConfirm}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Add Selected Files
+                Add Selected
               </button>
             </div>
           </div>
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

@@ -10,6 +10,8 @@ export interface Attachment {
   createdAt: string;
   signedUrl?: string;
   id: string;
+  targetId?: string;
+  userId?: string;
 }
 
 export interface AttachmentToUpload {
@@ -352,6 +354,9 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     toDelete.forEach((att) => {
       get().removeExistingAttachmentFromTarget(targetId, att.id);
     });
+    // After a successful save, committed deletions should no longer be
+    // tracked as "marked for deletion" for this target.
+    get().clearAttachmentsToDelete(targetId);
   },
   // #endregion Attachments to Delete
 
