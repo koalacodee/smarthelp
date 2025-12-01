@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api, { UserResponse } from "@/lib/api";
-import { ProfileService, ProfilePictureService } from "@/lib/api/v2";
+import {
+  ProfileService,
+  ProfilePictureService,
+  FileHubProfilePictureService,
+} from "@/lib/api/v2";
 import ImageCropModal from "@/app/(dashboard)/supervisors/components/ImageCropModal";
 import { useImageCropStore } from "@/app/(dashboard)/supervisors/store/useImageCropStore";
 import useFormErrors from "@/hooks/useFormErrors";
@@ -51,11 +55,16 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
   // Initialize profile picture URL from user data
   useEffect(() => {
-    if (user && user.profilePicture) {
-      setProfilePictureUrl(
-        `${api.client.defaults.baseURL}/profile/pictures/${user.profilePicture}`
-      );
-    }
+    const fetchProfilePic = async () => {
+      if (user && user.profilePicture) {
+        const profilePictureUrl =
+          await FileHubProfilePictureService.getMyProfilePicture().then(
+            (data) => data.signedUrl
+          );
+        setProfilePictureUrl(profilePictureUrl);
+      }
+    };
+    fetchProfilePic();
   }, [user]);
 
   // Update profile picture URL when cropped image changes
@@ -89,17 +98,39 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
     setUploadingPicture(true);
     try {
-      // Generate upload key
-      const { uploadKey } = await ProfilePictureService.generateUploadKey();
+      const file = croppedImageFile || profilePicture!;
 
-      // Upload the file
-      const result = await ProfilePictureService.upload({
-        uploadKey,
-        file: croppedImageFile || profilePicture!,
+      // Extract file extension from the file name
+      const fileExtension = file.name.split(".").pop()?.toLowerCase() as
+        | "avif"
+        | "webp"
+        | "png"
+        | "jpeg"
+        | "jpg";
+
+      // Validate file extension
+      if (!["avif", "webp", "png", "jpeg", "jpg"].includes(fileExtension)) {
+        addToast({
+          message: "Invalid file type. Please upload an image file.",
+          type: "error",
+        });
+        return;
+      }
+
+      // Request a signed PUT URL from the backend
+      const { signedUrl } =
+        await FileHubProfilePictureService.generateUploadUrl({
+          fileExtension,
+        });
+
+      // Upload the file directly to the signed URL using PUT
+      await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
       });
-
-      // Update the profile picture URL using the url from the response
-      setProfilePictureUrl(result.url);
 
       // Clear the cropped image
       setProfilePicture(null);
@@ -410,7 +441,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               )}
             </motion.div>
 
-            {/* <motion.div
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 1.0 }}
@@ -482,7 +513,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                   </motion.button>
                 )}
               </AnimatePresence>
-            </motion.div> */}
+            </motion.div>
           </div>
         </motion.div>
 

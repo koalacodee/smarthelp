@@ -78,6 +78,74 @@ export class FileHubService {
 }
 
 /* =========================
+   Request/Response Contracts
+   ========================= */
+
+export interface GenerateProfilePictureUploadUrlRequest {
+  fileExtension: "avif" | "webp" | "png" | "jpeg" | "jpg";
+}
+
+export interface GenerateProfilePictureUploadUrlResponse {
+  signedUrl: string;
+  expirationDate: string;
+}
+
+export interface GetMyProfilePictureResponse {
+  signedUrl: string;
+  expirationDate: string;
+}
+
+/* =========================
+   Service Singleton
+   ========================= */
+
+export class FileHubProfilePictureService {
+  private static instances = new WeakMap<
+    AxiosInstance,
+    FileHubProfilePictureService
+  >();
+
+  private constructor(private readonly http: AxiosInstance) {}
+
+  static getInstance(http: AxiosInstance): FileHubProfilePictureService {
+    let inst = FileHubProfilePictureService.instances.get(http);
+    if (!inst) {
+      inst = new FileHubProfilePictureService(http);
+      FileHubProfilePictureService.instances.set(http, inst);
+    }
+    return inst;
+  }
+
+  // POST /filehub/profile-pictures/upload-url
+  async generateUploadUrl(
+    body: GenerateProfilePictureUploadUrlRequest
+  ): Promise<GenerateProfilePictureUploadUrlResponse> {
+    const { data } = await this.http.post<
+      JSend<GenerateProfilePictureUploadUrlResponse>
+    >("/filehub/profile-pictures/upload-url", body);
+    return data.data;
+  }
+
+  // GET /filehub/profile-pictures/my-picture
+  async getMyProfilePicture(): Promise<GetMyProfilePictureResponse> {
+    const { data } = await this.http.get<JSend<GetMyProfilePictureResponse>>(
+      "/filehub/profile-pictures/my-picture"
+    );
+    return data.data;
+  }
+}
+
+/* =========================
+   Factory
+   ========================= */
+
+export function createFilHubProfilePictureService(
+  http: AxiosInstance
+): FileHubProfilePictureService {
+  return FileHubProfilePictureService.getInstance(http);
+}
+
+/* =========================
    Factory
    ========================= */
 

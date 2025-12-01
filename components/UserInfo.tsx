@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import api, { UserResponse } from "@/lib/api";
+import { FileHubProfilePictureService } from "@/lib/api/v2";
 
 interface UserInfoProps {
   className?: string;
@@ -36,11 +37,16 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
   }, []);
 
   useEffect(() => {
-    if (user && user.profilePicture) {
-      setProfilePic(
-        `${api.client.defaults.baseURL}/profile/pictures/${user.profilePicture}`
-      );
-    }
+    const fetchProfilePic = async () => {
+      if (user && user.profilePicture) {
+        const profilePictureUrl =
+          await FileHubProfilePictureService.getMyProfilePicture().then(
+            (data) => data.signedUrl
+          );
+        setProfilePic(profilePictureUrl);
+      }
+    };
+    fetchProfilePic();
   }, [user]);
 
   if (!user) {
