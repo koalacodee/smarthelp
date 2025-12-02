@@ -93,10 +93,6 @@ const tabs: Tab[] = [
         label: "My Tasks",
         href: "/tasks/my-tasks",
       },
-      {
-        label: "My Delegations",
-        href: "/tasks/my-delegations",
-      },
     ],
   },
   // {
