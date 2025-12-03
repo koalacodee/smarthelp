@@ -404,7 +404,10 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   <select
                     id="task-subdepartment"
                     value={targetSubDepartmentId}
-                    onChange={(e) => setTargetSubDepartmentId(e.target.value)}
+                    onChange={(e) => {
+                      setAssigneeId("");
+                      setTargetSubDepartmentId(e.target.value);
+                    }}
                     className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                     required
                   >
