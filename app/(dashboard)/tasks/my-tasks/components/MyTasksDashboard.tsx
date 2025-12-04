@@ -1,13 +1,13 @@
 export default function MyTasksDashboard({
   total,
-  completedCount,
-  pendingCount,
-  completionPercentage,
+  completedTasks,
+  pendingTasks,
+  taskCompletionPercentage,
 }: {
   total: number;
-  completedCount: number;
-  pendingCount: number;
-  completionPercentage: number;
+  completedTasks: number;
+  pendingTasks: number;
+  taskCompletionPercentage: number;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
@@ -16,13 +16,13 @@ export default function MyTasksDashboard({
         className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 relative`}
         style={{
           background: `conic-gradient(
-      #3b82f6 0deg ${completionPercentage * 3.6}deg, 
-      #e2e8f0 ${completionPercentage * 3.6}deg 360deg
+      #3b82f6 0deg ${taskCompletionPercentage * 3.6}deg, 
+      #e2e8f0 ${taskCompletionPercentage * 3.6}deg 360deg
     )`,
         }}
       >
         <span className="text-lg font-bold bg-white rounded-full w-16 h-16 flex items-center justify-center">
-          {completionPercentage}%
+          {taskCompletionPercentage}%
         </span>
       </div>
 
@@ -37,13 +37,13 @@ export default function MyTasksDashboard({
           <span>
             <span className="mr-1.5">✅</span> Completed
           </span>
-          <span className="text-[#48bb78]">{completedCount}</span>
+          <span className="text-[#48bb78]">{completedTasks}</span>
         </li>
         <li className="flex justify-between py-2.5 text-sm">
           <span>
             <span className="mr-1.5">🟡</span> In Progress
           </span>
-          <span className="text-[#f59e0b]">{pendingCount}</span>
+          <span className="text-[#f59e0b]">{pendingTasks}</span>
         </li>
       </ul>
     </div>

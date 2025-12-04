@@ -11,8 +11,8 @@ interface MyTasksFilters {
 
 interface MyTasksStore {
   // Data
-  tasks: MyTasksResponse["data"];
-  filteredTasks: MyTasksResponse["data"];
+  tasks: MyTasksResponse["tasks"];
+  filteredTasks: MyTasksResponse["tasks"];
   filters: MyTasksFilters;
   total: number;
   metrics: MyTasksResponse["metrics"];
@@ -25,7 +25,7 @@ interface MyTasksStore {
   setTasks: (data: MyTasksResponse) => void;
   updateTask: (
     taskId: string,
-    updates: Partial<MyTasksResponse["data"][0]>
+    updates: Partial<MyTasksResponse["tasks"][0]>
   ) => void;
 
   // Filter actions
@@ -38,9 +38,9 @@ interface MyTasksStore {
   setError: (error: string | null) => void;
 
   // Utility actions
-  getTaskById: (id: string) => MyTasksResponse["data"][0] | undefined;
-  getTasksByStatus: (status: string) => MyTasksResponse["data"];
-  getTasksByPriority: (priority: string) => MyTasksResponse["data"];
+  getTaskById: (id: string) => MyTasksResponse["tasks"][0] | undefined;
+  getTasksByStatus: (status: string) => MyTasksResponse["tasks"];
+  getTasksByPriority: (priority: string) => MyTasksResponse["tasks"];
 }
 
 export const useMyTasksStore = create<MyTasksStore>()(
@@ -57,9 +57,9 @@ export const useMyTasksStore = create<MyTasksStore>()(
       },
       total: 0,
       metrics: {
-        completedCount: 0,
-        pendingCount: 0,
-        completionPercentage: 0,
+        completedTasks: 0,
+        pendingTasks: 0,
+        taskCompletionPercentage: 0,
       },
       isLoading: false,
       error: null,
@@ -67,7 +67,7 @@ export const useMyTasksStore = create<MyTasksStore>()(
       // Data actions
       setTasks: (data) => {
         set((state) => {
-          const nextTasks = data.data;
+          const nextTasks = data.tasks;
           // Keep filters as-is; recompute filteredTasks accordingly
           const nextState = {
             tasks: nextTasks,
@@ -161,7 +161,11 @@ export const useMyTasksStore = create<MyTasksStore>()(
             tasks: nextTasks,
             filteredTasks: filtered,
             total,
-            metrics: { completedCount, pendingCount, completionPercentage },
+            metrics: {
+              completedTasks: completedCount,
+              pendingTasks: pendingCount,
+              taskCompletionPercentage: completionPercentage,
+            },
           } as Partial<MyTasksStore> as MyTasksStore;
         }),
 

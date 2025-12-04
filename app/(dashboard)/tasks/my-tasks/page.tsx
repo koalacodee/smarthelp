@@ -8,6 +8,8 @@ import TasksPageWrapper from "./components/TasksPageWrapper";
 export default async function Page() {
   const response = await TasksService.getMyTasks();
 
+  console.log(response);
+
   // Fetch user to check role
   const cookieStore = await cookies();
   const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/server/me`, {

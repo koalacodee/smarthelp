@@ -335,8 +335,6 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
               {delegations.map((delegation) => {
                 const task = delegation.task!;
                 const delegationId = String(delegation.id);
-                const delegationAttachments =
-                  data.delegationAttachments?.[delegationId] || [];
 
                 return (
                   <div

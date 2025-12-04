@@ -663,17 +663,15 @@ export interface MultipleTasksResponse extends TaskAttachmentsResponse {
   tasks: Task[];
 }
 
-export interface MyTasksResponse extends TaskAttachmentsResponse {
-  data: Task[];
+export interface MyTasksResponse {
+  tasks: Task[];
   delegations: TaskDelegationDTO[];
   total: number;
-  canSubmitWork: boolean[];
   metrics: {
-    pendingCount: number;
-    completedCount: number;
-    completionPercentage: number;
+    pendingTasks: number;
+    completedTasks: number;
+    taskCompletionPercentage: number;
   };
-  delegationAttachments: { [delegationId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
 }
 
