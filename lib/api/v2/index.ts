@@ -25,6 +25,9 @@ import {
   createFilHubProfilePictureService,
 } from "./services/shared/filehub";
 import { createAttachmentGroupService as createFileHubAttachmentGroupService } from "./services/filehub-attachment-groups";
+import { createAttachmentGroupMemberSDK } from "./services/membership";
+import { createAttachmentGroupMemberManagementService } from "./services/membership-management";
+import { env } from "next-runtime-env";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -49,3 +52,12 @@ export const FileHubAttachmentGroupService =
   createFileHubAttachmentGroupService(api);
 export const FileHubProfilePictureService =
   createFilHubProfilePictureService(api);
+export const MembershipService = createAttachmentGroupMemberSDK({
+  apiBaseUrl: api.defaults.baseURL!,
+  wsBaseUrl: env("NEXT_PUBLIC_BASE_SOCKET_IO_URL"),
+});
+export const MemberManagementService =
+  createAttachmentGroupMemberManagementService(
+    api,
+    env("NEXT_PUBLIC_BASE_SOCKET_IO_URL")!
+  );

@@ -9,6 +9,8 @@ import { useAttachments } from "@/hooks/useAttachments";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import FileHubAttachmentGroupModal from "./components/FileHubAttachmentGroupModal";
 import FileHubShareModal from "./components/FileHubShareModal";
+import MemberManagementPanel from "./components/MemberManagementPanel";
+import { useAttachmentGroupsStore } from "./store/useAttachmentGroupsStore";
 
 export default function GroupsPage() {
   const [attachmentGroups, setAttachmentGroups] = useState<
@@ -27,6 +29,8 @@ export default function GroupsPage() {
   const [sharingGroupId, setSharingGroupId] = useState<string | null>(null);
   const { fetchMyAttachments, myAttachments } = useAttachments();
   const { addToast } = useToastStore();
+  const { setAttachmentGroups: setStoreAttachmentGroups } =
+    useAttachmentGroupsStore();
 
   useEffect(() => {
     loadAttachmentGroups();
@@ -39,6 +43,8 @@ export default function GroupsPage() {
       const { attachmentGroups } =
         await FileHubAttachmentGroupService.getMyAttachmentGroups();
       setAttachmentGroups(attachmentGroups);
+      // Update the store for use in MemberManagementPanel
+      setStoreAttachmentGroups(attachmentGroups);
       setError(null);
     } catch (err: any) {
       setError(err?.message || "Failed to load TV content");
@@ -114,13 +120,18 @@ export default function GroupsPage() {
         </button>
       </div>
 
-      <AttachmentGroupsGrid
-        attachmentGroups={attachmentGroups}
-        onGroupDeleted={loadAttachmentGroups}
-        onView={handleViewAttachmentGroup}
-        onEdit={handleEditAttachmentGroup}
-        onShare={handleShareAttachmentGroup}
-      />
+      <div className="space-y-6">
+        <AttachmentGroupsGrid
+          attachmentGroups={attachmentGroups}
+          onGroupDeleted={loadAttachmentGroups}
+          onView={handleViewAttachmentGroup}
+          onEdit={handleEditAttachmentGroup}
+          onShare={handleShareAttachmentGroup}
+        />
+
+        {/* Member Management Panel */}
+        <MemberManagementPanel />
+      </div>
 
       {/* Attachment Group Modal */}
       <FileHubAttachmentGroupModal
