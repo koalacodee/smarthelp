@@ -1,4 +1,5 @@
-import { Ticket, TicketStatus } from "@/lib/api";
+import { SupportTicket, TicketStatus } from "@/lib/api";
+// import { SupportTicket } from "@/lib/api/types";
 import { create } from "zustand";
 
 interface TicketFilters {
@@ -8,16 +9,16 @@ interface TicketFilters {
 }
 
 interface TicketStore {
-  tickets: Ticket[];
-  filteredTickets: Ticket[];
+  tickets: SupportTicket[];
+  filteredTickets: SupportTicket[];
   filters: TicketFilters;
-  hoveredTicket: Ticket | null;
+  hoveredTicket: SupportTicket | null;
   loading: boolean;
   error: string | null;
 
-  setTickets: (tickets: Ticket[]) => void;
-  addTicket: (ticket: Ticket) => void;
-  updateTicket: (id: string, updated: Partial<Ticket>) => void;
+  setTickets: (tickets: SupportTicket[]) => void;
+  addTicket: (ticket: SupportTicket) => void;
+  updateTicket: (id: string, updated: Partial<SupportTicket>) => void;
   removeTicket: (id: string) => void;
   updateStatus: (id: string, status: TicketStatus) => void;
   setHoveredTicket: (id: string | null) => void;
@@ -117,8 +118,12 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
           ticket.guestEmail
             ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
-          ticket.guestName?.toLowerCase().includes(filters.search.toLowerCase()) ||
-          ticket.guestPhone?.toLowerCase().includes(filters.search.toLowerCase())
+          ticket.guestName
+            ?.toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          ticket.guestPhone
+            ?.toLowerCase()
+            .includes(filters.search.toLowerCase())
       );
     }
 

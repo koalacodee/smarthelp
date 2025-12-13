@@ -1,5 +1,5 @@
 "use client";
-import { Ticket, TicketStatus } from "@/lib/api";
+import { SupportTicket, Ticket, TicketStatus } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketActionsDropdown from "./TicketActionsDropdown";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
@@ -67,13 +67,13 @@ const getPriorityBadge = (priority?: string) => {
 };
 
 interface TicketsListProps {
-  tickets: Ticket[];
+  tickets: SupportTicket[];
 }
 
 export default function TicketsList({ tickets }: TicketsListProps) {
   const { setTicket } = useCurrentEditingTicketStore();
 
-  const handleTicketClick = (ticket: Ticket) => {
+  const handleTicketClick = (ticket: SupportTicket) => {
     setTicket(ticket);
   };
 

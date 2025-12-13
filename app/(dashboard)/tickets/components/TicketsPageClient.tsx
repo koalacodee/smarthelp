@@ -9,6 +9,7 @@ import {
   TicketsService,
   UserResponse,
   TicketStatus,
+  SupportTicket,
 } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
@@ -20,10 +21,12 @@ import { env } from "next-runtime-env";
 import { useToastStore } from "../../store/useToastStore";
 import api from "@/lib/api";
 import { Department } from "@/lib/api/departments";
+import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
+import { useAttachments } from "@/hooks/useAttachments";
 
 interface TicketsPageClientProps {
-  initialTickets: Ticket[];
-  initialAttachments: { [ticketId: string]: string[] };
+  initialTickets: SupportTicket[];
+  initialAttachments: FileHubAttachment[];
   initialMetrics: TicketMetrics;
   departments: Department[];
 }
@@ -35,7 +38,6 @@ export default function TicketsPageClient({
   departments,
 }: TicketsPageClientProps) {
   const { tickets, setTickets } = useTicketStore();
-  const { setAttachments } = useAttachmentsStore();
   const [metrics, setMetrics] = useState<TicketMetrics>(initialMetrics);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -50,6 +52,8 @@ export default function TicketsPageClient({
   const latestDepartmentRef = useRef("");
   const didMountSearchRef = useRef(false);
   const { addToast } = useToastStore();
+  const { clearExistingAttachmentsForTarget, addExistingAttachmentToTarget } =
+    useAttachments();
 
   // Fetch user to check admin status
   useEffect(() => {
@@ -61,8 +65,31 @@ export default function TicketsPageClient({
   // Initialize with server data
   useEffect(() => {
     setTickets(initialTickets);
-    setAttachments("ticket", initialAttachments);
-  }, [initialTickets, initialAttachments, setTickets, setAttachments]);
+    const allTargetIds = new Set<string>();
+
+    initialAttachments?.forEach((attachment) => {
+      if (!attachment.targetId) return;
+      allTargetIds.add(attachment.targetId);
+    });
+
+    allTargetIds.forEach((targetId) => {
+      clearExistingAttachmentsForTarget(targetId);
+    });
+    initialAttachments?.forEach((attachment) => {
+      if (!attachment.targetId) return;
+      addExistingAttachmentToTarget(attachment.targetId, {
+        fileType: attachment.type,
+        originalName: attachment.originalName,
+        size: attachment.size,
+        expirationDate: attachment.expirationDate,
+        id: attachment.id,
+        filename: attachment.filename,
+        isGlobal: attachment.isGlobal,
+        createdAt: attachment.createdAt,
+        signedUrl: attachment.signedUrl,
+      });
+    });
+  }, [initialTickets, setTickets]);
 
   const fetchTickets = useCallback(
     async (
@@ -79,7 +106,6 @@ export default function TicketsPageClient({
         );
 
         setTickets(response.tickets);
-        setAttachments("ticket", response.attachments ?? {});
         setMetrics({
           totalTickets: response.metrics.totalTickets,
           pendingTickets: response.metrics.pendingTickets,
@@ -96,7 +122,7 @@ export default function TicketsPageClient({
         setIsFetchingTickets(false);
       }
     },
-    [addToast, setAttachments, setTickets]
+    [addToast, setTickets]
   );
 
   useEffect(() => {

@@ -6,22 +6,9 @@ import api, { TicketStatus } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useTicketStore } from "../store/useTicketStore";
 import useFormErrors from "@/hooks/useFormErrors";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { UploadService } from "@/lib/api/v2";
-import { GetAttachmentMetadataResponse } from "@/lib/api/v2/services/shared/upload";
-import { useMediaPreviewStore } from "../../store/useMediaPreviewStore";
 import AttachmentInput from "../../files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import ExistingAttachmentsViewer from "../../files/components/ExistingAttachmentsViewer";
-
-const isExpired = (expirationDate?: Date) => {
-  if (!expirationDate) return false;
-  return new Date() > expirationDate;
-};
-
-interface TicketAttachment extends GetAttachmentMetadataResponse {
-  id: string;
-}
 
 export default function ReplyToTicketModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -31,7 +18,6 @@ export default function ReplyToTicketModal() {
   const { addToast } = useToastStore();
   const { updateStatus } = useTicketStore();
   const [answer, setAnswer] = useState("");
-  const [savedAnswerId, setSavedAnswerId] = useState<string | null>(null);
   const [fileHubUploadKey, setFileHubUploadKey] = useState<string | null>(null);
   const [selectedAttachments, setSelectedAttachments] = useState<Set<string>>(
     new Set()
@@ -41,67 +27,22 @@ export default function ReplyToTicketModal() {
   const [hasStartedUpload, setHasStartedUpload] = useState(false);
   const [isWaitingToClose, setIsWaitingToClose] = useState(false);
   const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
-  const { attachments: ticketsAttachments } = useAttachmentsStore();
-
-  const [ticketAttachments, setTicketAttachments] = useState<
-    TicketAttachment[]
-  >([]);
 
   const handleClose = () => {
     setTicket(null);
     setIsWaitingToClose(false);
     setHasStartedUpload(false);
     setFileHubUploadKey(null);
-    setSavedAnswerId(null);
     setSelectedAttachments(new Set());
     setAttach(false);
     reset();
   };
-
-  const { openPreview } = useMediaPreviewStore();
 
   useEffect(() => {
     if (hasStartedUpload && !isUploading && isWaitingToClose) {
       handleClose();
     }
   }, [hasStartedUpload, isUploading, isWaitingToClose]);
-
-  const handlePreviewExistingAttachment = (attachment: TicketAttachment) => {
-    openPreview({
-      originalName: attachment.originalName,
-      tokenOrId: attachment.id,
-      fileType: attachment.fileType,
-      sizeInBytes: attachment.sizeInBytes,
-      expiryDate: attachment.expiryDate || "",
-    });
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  useEffect(() => {
-    (async () => {
-      if (!ticket?.id) return;
-      const attachments = ticketsAttachments.ticket[ticket.id] ?? [];
-      const promises = attachments.map(async (attachment) => {
-        const data = await UploadService.getAttachmentMetadata({
-          tokenOrId: attachment,
-        });
-
-        return {
-          id: attachment,
-          ...data,
-        };
-      });
-      const results = await Promise.all(promises);
-      setTicketAttachments(results);
-    })();
-  }, [ticketsAttachments, ticket?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
@@ -123,7 +64,6 @@ export default function ReplyToTicketModal() {
           },
           attach
         );
-      setSavedAnswerId(savedAnswer.id);
       setFileHubUploadKey(fileHubUploadKey ?? null);
       if (selectedAttachments.size > 0) {
         moveCurrentNewTargetSelectionsToExisting(savedAnswer.id);
@@ -331,7 +271,7 @@ export default function ReplyToTicketModal() {
                     transition={{ duration: 0.3, delay: 1 }}
                     className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200 whitespace-pre-wrap"
                   >
-                    {ticket.answer || "No reply provided."}
+                    {ticket.answer?.content || "No reply provided."}
                   </motion.div>
                 </motion.div>
                 <motion.div
@@ -380,7 +320,7 @@ export default function ReplyToTicketModal() {
                       rows={5}
                       className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
                       placeholder="Write your reply..."
-                      defaultValue={ticket.answer || ""}
+                      defaultValue={ticket.answer?.content || ""}
                       onChange={(e) => setAnswer(e.target.value)}
                     />
                     {errors.answer && (

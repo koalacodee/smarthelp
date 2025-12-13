@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { Ticket } from "@/lib/api";
+import { SupportTicket } from "@/lib/api";
 
 interface CurrentEditingTicketState {
-  ticket: Ticket | null;
+  ticket: SupportTicket | null;
   isEditing: boolean;
-  setTicket: (ticket: Ticket | null) => void;
+  setTicket: (ticket: SupportTicket | null) => void;
   setIsEditing: (isEditing: boolean) => void;
 }
 

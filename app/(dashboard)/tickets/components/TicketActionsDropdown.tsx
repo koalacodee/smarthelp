@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
-import api, { Ticket, TicketStatus, UserResponse } from "@/lib/api";
+import api, { SupportTicket, TicketStatus, UserResponse } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useToastStore } from "../../store/useToastStore";
 
 interface TicketActionsDropdownProps {
-  ticket: Ticket;
+  ticket: SupportTicket;
 }
 
 export default function TicketActionsDropdown({
@@ -62,7 +62,7 @@ export default function TicketActionsDropdown({
     setIsOpen(false);
   };
 
-  const handleViewDetails = (ticket: Ticket) => {
+  const handleViewDetails = (ticket: SupportTicket) => {
     setTicket(ticket);
     setIsOpen(false);
   };
@@ -70,7 +70,8 @@ export default function TicketActionsDropdown({
   const handleDeleteTicket = (id: string) => {
     openModal({
       title: "Delete Ticket",
-      message: "Are you sure you want to delete this ticket? This action cannot be undone.",
+      message:
+        "Are you sure you want to delete this ticket? This action cannot be undone.",
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: async () => {

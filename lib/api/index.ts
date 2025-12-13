@@ -276,9 +276,39 @@ export interface TicketAttachmentsResponse {
   attachments: { [ticketId: string]: string[] };
 }
 
-export interface SupportTicketsResponse extends TicketAttachmentsResponse {
-  tickets: Ticket[];
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  description: string;
+  departmentId: string;
+  department: {
+    id: string;
+    name: string;
+    visibility: "PUBLIC" | "PRIVATE";
+    questions: [];
+    parentId: string;
+    knowledgeChunks: [];
+    subDepartments: [];
+  };
+  answer: {
+    id: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  status: TicketStatus;
+  createdAt: string;
+  updatedAt: string;
+  code: string;
+  guestName: string;
+  guestPhone: string;
+  guestEmail: string;
+}
+
+export interface SupportTicketsResponse {
+  tickets: SupportTicket[];
   metrics: TicketMetrics;
+  attachments: FileHubAttachment[];
 }
 
 export interface TrackTicketResponse extends TicketAttachmentsResponse {
@@ -319,15 +349,20 @@ export const TicketsService = {
     departmentId?: string,
     search?: string
   ) => {
-    const response = await api.get<{
-      data: SupportTicketsResponse;
-    }>("/support-tickets", {
-      params: {
-        status,
-        departmentId,
-        search,
-      },
-    });
+    const response = await api
+      .get<JSend<SupportTicketsResponse>>("/support-tickets", {
+        params: {
+          status,
+          departmentId,
+          search,
+        },
+      })
+      .catch((error) => {
+        console.log(error);
+        throw error;
+      });
+
+    console.log(response);
 
     return response.data.data;
   },

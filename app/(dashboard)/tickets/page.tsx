@@ -14,6 +14,8 @@ export default async function Page() {
     DepartmentsService.getAllDepartments(),
   ]);
 
+  console.log(response);
+
   // Calculate metrics
   const totalTickets = response.metrics.totalTickets;
   const pendingTickets = response.metrics.pendingTickets;
