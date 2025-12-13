@@ -6,6 +6,7 @@ export enum DepartmentVisibility {
 export interface CreateDepartmentInputDto {
   name: string;
   visibility: DepartmentVisibility;
+  knowledgeChunkContent?: string;
 }
 
 export interface CreateSubDepartmentDto {

@@ -63,6 +63,7 @@ export interface SendNotificationDto {
 
 export interface CreateDepartmentInputDto {
   name: string;
+  knowledgeChunkContent?: string;
 }
 
 export interface DeleteDepartmentInputDto {

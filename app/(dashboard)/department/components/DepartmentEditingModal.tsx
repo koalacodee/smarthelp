@@ -23,6 +23,7 @@ export default function DepartmentEditingModal() {
   const { addToast } = useToastStore();
   const [name, setName] = useState("");
   const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
+  const [knowledge, setKnowledge] = useState<undefined | string>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const addDepartment = useDepartmentsStore((state) => state.addDepartment);
   const updateDepartment = useDepartmentsStore(
@@ -33,9 +34,11 @@ export default function DepartmentEditingModal() {
     if (department) {
       setName(department.name);
       setVisibility(department.visibility);
+      setKnowledge(undefined);
     } else {
       setName("");
       setVisibility("PUBLIC");
+      setKnowledge(undefined);
     }
   }, [department]);
 
@@ -48,6 +51,8 @@ export default function DepartmentEditingModal() {
       const dto: CreateDepartmentInputDto = {
         name,
         visibility: DepartmentVisibility[visibility],
+        knowledgeChunkContent:
+          mode === "add" && knowledge ? knowledge : undefined,
       };
 
       if (mode === "add") {
@@ -184,6 +189,19 @@ export default function DepartmentEditingModal() {
                   </p>
                 )}
               </div>
+              {mode === "add" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Knowledge (Optional)
+                  </label>
+                  <textarea
+                    value={knowledge}
+                    onChange={(e) => setKnowledge(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 min-h-[100px]"
+                    placeholder="Enter initial knowledge for this department..."
+                  />
+                </div>
+              )}
             </div>
             <div className="mt-6 flex justify-end gap-3">
               <button

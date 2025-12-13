@@ -15,7 +15,6 @@ export default function KnowledgeChunkEditModal() {
     "departmentId",
   ]);
   const { isOpen, mode, chunk, closeModal } = useKnowledgeChunkModalStore();
-  const { addChunk, updateChunk, chunks } = useKnowledgeChunksStore();
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState<
     Array<{ id: string; name: string }>
