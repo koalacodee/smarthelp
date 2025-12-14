@@ -9,14 +9,12 @@ import CheckCircle from "@/icons/CheckCircle";
 import ClipboardList from "@/icons/ClipboardList";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import Eye from "@/icons/Eye";
-import MagnifyingGlassCircle from "@/icons/MagnifyingGlassCircle";
 import Megaphone from "@/icons/Megaphone";
 import Ticket from "@/icons/Ticket";
 import SidebarItem from "./Sidebar/SidebarItem";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
 import Team from "@/icons/Team";
 import Supervisors from "@/icons/Supervisors";
-import BookOpen from "@/icons/BookOpen";
 import Burger from "@/icons/Burger";
 import User from "@/icons/User";
 import UserInfo from "./UserInfo";
@@ -95,27 +93,7 @@ const tabs: Tab[] = [
       },
     ],
   },
-  // {
-  //   id: "vehicles",
-  //   label: "Vehicles",
-  //   icon: <Car className={ICON_SIZE} />,
-  //   href: "/vehicles",
-  //   allowed: (r) => r === "ADMIN",
-  //   subLinks: [
-  //     {
-  //       label: "Fleet Management",
-  //       href: "/vehicles",
-  //     },
-  //     {
-  //       label: "Licensing",
-  //       href: "/vehicles/licensing",
-  //     },
-  //     {
-  //       label: "Drivers & Tracking",
-  //       href: "/vehicles/drivers",
-  //     },
-  //   ],
-  // },
+
   {
     id: "manageTeam",
     label: "Manage Team",
@@ -123,14 +101,6 @@ const tabs: Tab[] = [
     href: "/manage-team",
     allowed: (r) => r !== "EMPLOYEE",
   },
-
-  // {
-  //   id: "staffRequests",
-  //   label: "Staff Requests",
-  //   icon: <UserPlus className={ICON_SIZE} />,
-  //   href: "/staff-requests",
-  //   allowed: (r) => r !== "EMPLOYEE",
-  // },
   {
     id: "promotions",
     label: "Promotions",
@@ -153,13 +123,6 @@ const tabs: Tab[] = [
     href: "/user-activity",
     allowed: (r, p) =>
       r === "ADMIN" || p.includes(SupervisorPermissions.VIEW_USER_ACTIVITY),
-  },
-  {
-    id: "knowledgeChunks",
-    label: "Knowledge Chunks",
-    icon: <BookOpen className={ICON_SIZE} />,
-    href: "/knowledge-chunks",
-    allowed: (r) => r === "ADMIN",
   },
   {
     id: "files",
