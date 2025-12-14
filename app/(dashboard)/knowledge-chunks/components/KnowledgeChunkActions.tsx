@@ -24,19 +24,15 @@ export default function KnowledgeChunkActions({
     try {
       await KnowledgeChunksService.deleteKnowledgeChunk(chunkId);
       removeChunk(departmentId, chunkId);
-      useToastStore
-        .getState()
-        .addToast({
-          message: "Knowledge chunk deleted successfully",
-          type: "success",
-        });
+      useToastStore.getState().addToast({
+        message: "Knowledge chunk deleted successfully",
+        type: "success",
+      });
     } catch (error) {
-      useToastStore
-        .getState()
-        .addToast({
-          message: "Failed to delete knowledge chunk",
-          type: "error",
-        });
+      useToastStore.getState().addToast({
+        message: "Failed to delete knowledge chunk",
+        type: "error",
+      });
     }
   };
 

@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import AddDepartmentButton from "./AddDepartmentButton";
-import DepartmentActions from "./DepartmentActions";
 import DepartmentEditingModal from "./DepartmentEditingModal";
 import CreateSubDepartmentModal from "@/app/(dashboard)/sub-departments/components/CreateSubDepartmentModal";
 import SubDepartmentActions from "@/app/(dashboard)/sub-departments/components/SubDepartmentActions";
@@ -13,17 +12,23 @@ import { Department as APIDepartment } from "@/lib/api/departments";
 import api from "@/lib/api";
 import { useSubDepartmentsStore } from "@/app/(dashboard)/store/useSubDepartmentsStore";
 import RefreshButton from "@/components/ui/RefreshButton";
+import DepartmentAccordion from "./DepartmentAccordion";
+import KnowledgeChunkEditModal from "@/app/(dashboard)/knowledge-chunks/components/KnowledgeChunkEditModal";
+import { KnowledgeChunk } from "@/lib/api/v2/services/knowledge-chunks";
+import { useKnowledgeChunkStore } from "../store/useKnowledgeChunkStore";
 
 interface CombinedDepartmentsPageProps {
   departments?: APIDepartment[];
   subDepartments?: APIDepartment[];
   userRole: string;
+  knowledgeChunks: Record<string, KnowledgeChunk[]>;
 }
 
 export default function CombinedDepartmentsPage({
   departments,
   subDepartments,
   userRole,
+  knowledgeChunks: initialKnowledgeChunks,
 }: CombinedDepartmentsPageProps) {
   const {
     subDepartments: storeSubDepartments,
@@ -34,6 +39,11 @@ export default function CombinedDepartmentsPage({
     setError,
   } = useSubDepartmentsStore();
   const [localDepartments] = useState<APIDepartment[]>(departments || []);
+  const { knowledgeChunks, setKnowledgeChunks } = useKnowledgeChunkStore();
+
+  useEffect(() => {
+    setKnowledgeChunks(initialKnowledgeChunks);
+  }, [initialKnowledgeChunks]);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,15 +109,15 @@ export default function CombinedDepartmentsPage({
         </motion.div>
 
         <div className="grid grid-cols-1 gap-8">
-          {/* Departments table */}
+          {/* Departments Accordion List */}
           {userRole === "ADMIN" && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white/90  rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              className="space-y-4"
             >
-              <div className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg" />
                   <div>
@@ -115,7 +125,7 @@ export default function CombinedDepartmentsPage({
                       Departments
                     </h2>
                     <p className="text-xs text-slate-600">
-                      Manage your main categories
+                      Manage your main categories & knowledge chunks
                     </p>
                   </div>
                 </div>
@@ -125,44 +135,21 @@ export default function CombinedDepartmentsPage({
                   }}
                 />
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {localDepartments.length === 0 ? (
-                      <tr>
-                        <td className="px-6 py-12 text-center text-slate-500">
-                          No departments found
-                        </td>
-                      </tr>
-                    ) : (
-                      localDepartments.map((department) => (
-                        <tr
-                          key={department.id}
-                          className="group hover:bg-slate-50 transition-all duration-200"
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                              <div>
-                                <p className="text-sm font-medium text-slate-900">
-                                  {department.name}
-                                </p>
-                                <p className="text-xs text-slate-500">
-                                  {department.visibility}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <div className="opacity-100">
-                              <DepartmentActions department={department} />
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+
+              <div className="space-y-3">
+                {localDepartments.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500 bg-white/50 rounded-2xl border border-white/20">
+                    No departments found
+                  </div>
+                ) : (
+                  localDepartments.map((department) => (
+                    <DepartmentAccordion
+                      key={department.id}
+                      department={department}
+                      knowledgeChunks={knowledgeChunks[department.id] || []}
+                    />
+                  ))
+                )}
               </div>
             </motion.div>
           )}
@@ -257,6 +244,7 @@ export default function CombinedDepartmentsPage({
         {userRole === "ADMIN" && <DepartmentEditingModal />}
         <EditSubDepartmentModal />
         <CreateSubDepartmentModal />
+        <KnowledgeChunkEditModal />
       </div>
       {userRole !== "EMPLOYEE" && <AddDepartmentButton userRole={userRole} />}
     </motion.div>

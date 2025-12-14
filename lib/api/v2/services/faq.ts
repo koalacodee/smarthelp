@@ -1,13 +1,10 @@
 import type { AxiosInstance } from "axios";
 import type {
-  AttachmentMap,
   UUID,
-  QuestionDTO,
   ViewFaqsRequest,
   ViewFaqsResponse,
   GetSharedDepartmentFaqsRequest,
   GetSharedDepartmentFaqsResponse,
-  InteractionType,
   RecordInteractionRequest,
   RecordInteractionResponse,
   GetGroupedByDepartmentResponse,

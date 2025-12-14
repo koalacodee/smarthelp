@@ -28,6 +28,7 @@ import { createAttachmentGroupService as createFileHubAttachmentGroupService } f
 import { createAttachmentGroupMemberSDK } from "./services/membership";
 import { createAttachmentGroupMemberManagementService } from "./services/membership-management";
 import { env } from "next-runtime-env";
+import { createKnowledgeChunkService } from "./services/knowledge-chunks";
 
 export const FAQService = createFAQService(api);
 export const UploadService = createUploadService(api);
@@ -61,3 +62,4 @@ export const MemberManagementService =
     api,
     env("NEXT_PUBLIC_BASE_SOCKET_IO_URL")!
   );
+export const KnowledgeChunkService = createKnowledgeChunkService(api);

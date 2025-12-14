@@ -14,7 +14,8 @@ export default function KnowledgeChunkEditModal() {
     "content",
     "departmentId",
   ]);
-  const { isOpen, mode, chunk, closeModal } = useKnowledgeChunkModalStore();
+  const { isOpen, mode, chunk, closeModal, preSelectedDepartmentId } =
+    useKnowledgeChunkModalStore();
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState<
     Array<{ id: string; name: string }>
@@ -30,10 +31,13 @@ export default function KnowledgeChunkEditModal() {
       if (mode === "edit" && chunk?.id) {
         loadChunk();
       } else {
-        setFormData({ content: "", departmentId: "" });
+        setFormData({
+          content: "",
+          departmentId: preSelectedDepartmentId || "",
+        });
       }
     }
-  }, [isOpen, mode, chunk?.id]);
+  }, [isOpen, mode, chunk?.id, preSelectedDepartmentId]);
 
   async function loadDepartments() {
     try {
