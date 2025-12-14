@@ -1,20 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useKnowledgeChunkModalStore } from "../store/useKnowledgeChunkModalStore";
-import { DepartmentsService, KnowledgeChunksService } from "@/lib/api";
+import { DepartmentsService } from "@/lib/api";
 import { CreateKnowledgeChunkRequest } from "@/lib/api/sdk/models";
 import XCircle from "@/icons/XCircle";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import useFormErrors from "@/hooks/useFormErrors";
 import { motion } from "framer-motion";
+import { KnowledgeChunkService } from "@/lib/api/v2";
+import { useKnowledgeChunkStore } from "../../department/store/useKnowledgeChunkStore";
 
 export default function KnowledgeChunkEditModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "content",
     "departmentId",
   ]);
-  const { isOpen, mode, chunk, closeModal, preSelectedDepartmentId } =
-    useKnowledgeChunkModalStore();
+  const {
+    isOpen,
+    mode,
+    chunk,
+    departmentId,
+    closeModal,
+    preSelectedDepartmentId,
+  } = useKnowledgeChunkModalStore();
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState<
     Array<{ id: string; name: string }>
@@ -23,12 +31,16 @@ export default function KnowledgeChunkEditModal() {
     content: "",
     departmentId: "",
   });
+  const { addKnowledgeChunk, updateKnowledgeChunk } = useKnowledgeChunkStore();
 
   useEffect(() => {
     if (isOpen) {
       loadDepartments();
       if (mode === "edit" && chunk?.id) {
-        loadChunk();
+        setFormData({
+          departmentId: departmentId || "",
+          content: chunk.content || "",
+        });
       } else {
         setFormData({
           content: "",
@@ -47,28 +59,6 @@ export default function KnowledgeChunkEditModal() {
     }
   }
 
-  async function loadChunk() {
-    if (!chunk?.id) return;
-
-    setLoading(true);
-    try {
-      const response = await KnowledgeChunksService.getAllKnowledgeChunks();
-      const chunks = response.knowledgeChunks || [];
-      const existingChunk = chunks.find((c) => c.id === chunk.id);
-
-      if (existingChunk) {
-        setFormData({
-          content: existingChunk.content || "",
-          departmentId: existingChunk.department?.id || "",
-        });
-      }
-    } catch (error) {
-      // Error loading chunk
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
@@ -76,17 +66,18 @@ export default function KnowledgeChunkEditModal() {
 
     try {
       if (mode === "edit" && chunk?.id) {
-        // Delete old chunk and create new one
-        await KnowledgeChunksService.deleteKnowledgeChunk(chunk.id);
-        // Get FormData from attachment store
-
-        const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData
-        );
+        const res = await KnowledgeChunkService.updateKnowledgeChunk({
+          id: chunk.id,
+          content: formData.content,
+          departmentId: formData.departmentId,
+        });
+        updateKnowledgeChunk(formData.departmentId, res.knowledgeChunk);
       } else {
-        const response = await KnowledgeChunksService.createKnowledgeChunk(
-          formData
-        );
+        const response = await KnowledgeChunkService.createKnowledgeChunk({
+          content: formData.content,
+          departmentId: formData.departmentId,
+        });
+        addKnowledgeChunk(formData.departmentId, response.knowledgeChunk);
       }
       useToastStore.getState().addToast({
         message: "Knowledge chunk saved successfully",

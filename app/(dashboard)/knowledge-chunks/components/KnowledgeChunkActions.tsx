@@ -51,7 +51,7 @@ export default function KnowledgeChunkActions({
     <div className="flex items-center space-x-2">
       <button
         type="button"
-        onClick={() => openEditModal(chunkId)}
+        onClick={() => openEditModal(departmentId, chunkId)}
         className="text-primary hover:text-primary/80 transition-colors"
         title="Edit knowledge chunk"
       >

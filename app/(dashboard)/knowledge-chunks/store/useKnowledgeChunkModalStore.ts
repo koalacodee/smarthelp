@@ -5,9 +5,10 @@ interface KnowledgeChunkModalState {
   isOpen: boolean;
   mode: "add" | "edit";
   chunk: KnowledgeChunk | null;
+  departmentId?: string;
   preSelectedDepartmentId?: string;
   openAddModal: (departmentId?: string) => void;
-  openEditModal: (chunkId: string) => void;
+  openEditModal: (departmentId: string, chunkId: string) => void;
   closeModal: () => void;
 }
 
@@ -26,13 +27,14 @@ export const useKnowledgeChunkModalStore = create<KnowledgeChunkModalState>(
         preSelectedDepartmentId: departmentId,
       }),
 
-    openEditModal: (chunkId: string) => {
+    openEditModal: (departmentId: string, chunkId: string) => {
       // The actual chunk data will be loaded in the modal component
       set({
         isOpen: true,
         mode: "edit",
         chunk: { id: chunkId } as KnowledgeChunk,
         preSelectedDepartmentId: undefined,
+        departmentId,
       });
     },
 
@@ -42,6 +44,7 @@ export const useKnowledgeChunkModalStore = create<KnowledgeChunkModalState>(
         mode: "add",
         chunk: null,
         preSelectedDepartmentId: undefined,
+        departmentId: undefined,
       }),
   })
 );
