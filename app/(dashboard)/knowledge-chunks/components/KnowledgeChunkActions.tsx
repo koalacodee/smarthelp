@@ -1,11 +1,11 @@
 "use client";
 import Pencil from "@/icons/Pencil";
 import Trash from "@/icons/Trash";
-import { useKnowledgeChunksStore } from "../store/useKnowledgeChunksStore";
 import { KnowledgeChunksService } from "@/lib/api";
 import { useKnowledgeChunkModalStore } from "../store/useKnowledgeChunkModalStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import { useKnowledgeChunkStore } from "../../department/store/useKnowledgeChunkStore";
 
 interface KnowledgeChunkActionsProps {
   chunkId: string;
@@ -16,14 +16,14 @@ export default function KnowledgeChunkActions({
   chunkId,
   departmentId,
 }: KnowledgeChunkActionsProps) {
-  const { removeChunk } = useKnowledgeChunksStore();
+  const { removeKnowledgeChunk } = useKnowledgeChunkStore();
   const { openEditModal } = useKnowledgeChunkModalStore();
   const { openModal } = useConfirmationModalStore();
 
   const handleDelete = async () => {
     try {
       await KnowledgeChunksService.deleteKnowledgeChunk(chunkId);
-      removeChunk(departmentId, chunkId);
+      removeKnowledgeChunk(departmentId, chunkId);
       useToastStore.getState().addToast({
         message: "Knowledge chunk deleted successfully",
         type: "success",

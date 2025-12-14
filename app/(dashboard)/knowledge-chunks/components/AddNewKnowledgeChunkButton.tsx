@@ -17,7 +17,7 @@ export default function AddNewKnowledgeChunkButton() {
           transition: { duration: 0.2 },
         }}
         whileTap={{ scale: 0.95 }}
-        onClick={openAddModal}
+        onClick={() => openAddModal()}
         className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
       >
         <motion.svg

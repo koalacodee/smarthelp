@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useKnowledgeChunkModalStore } from "../store/useKnowledgeChunkModalStore";
 import { DepartmentsService, KnowledgeChunksService } from "@/lib/api";
-import { useKnowledgeChunksStore } from "../store/useKnowledgeChunksStore";
 import { CreateKnowledgeChunkRequest } from "@/lib/api/sdk/models";
 import XCircle from "@/icons/XCircle";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -84,61 +83,10 @@ export default function KnowledgeChunkEditModal() {
         const response = await KnowledgeChunksService.createKnowledgeChunk(
           formData
         );
-        if (response.data.data) {
-          // Refresh the entire list instead of trying to update
-          const refreshResponse =
-            await KnowledgeChunksService.getAllKnowledgeChunks();
-          const groupedMap = new Map<string, any>();
-
-          (refreshResponse.knowledgeChunks || []).forEach((chunk) => {
-            const dept = chunk.department;
-            if (dept) {
-              const key = dept.id;
-              if (!groupedMap.has(key)) {
-                groupedMap.set(key, {
-                  departmentId: key,
-                  departmentName: dept.name,
-                  chunks: [],
-                });
-              }
-              groupedMap.get(key)!.chunks.push(chunk);
-            }
-          });
-
-          // Use any to bypass type issues
-          (useKnowledgeChunksStore.getState() as any).setChunks(
-            Array.from(groupedMap.values())
-          );
-        }
       } else {
         const response = await KnowledgeChunksService.createKnowledgeChunk(
           formData
         );
-        if (response.data.data) {
-          // Refresh the entire list
-          const refreshResponse =
-            await KnowledgeChunksService.getAllKnowledgeChunks();
-          const groupedMap = new Map<string, any>();
-
-          (refreshResponse.knowledgeChunks || []).forEach((chunk) => {
-            const dept = chunk.department;
-            if (dept) {
-              const key = dept.id;
-              if (!groupedMap.has(key)) {
-                groupedMap.set(key, {
-                  departmentId: key,
-                  departmentName: dept.name,
-                  chunks: [],
-                });
-              }
-              groupedMap.get(key)!.chunks.push(chunk);
-            }
-          });
-
-          (useKnowledgeChunksStore.getState() as any).setChunks(
-            Array.from(groupedMap.values())
-          );
-        }
       }
       useToastStore.getState().addToast({
         message: "Knowledge chunk saved successfully",
