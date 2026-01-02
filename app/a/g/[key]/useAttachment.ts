@@ -110,7 +110,7 @@ export function useAttachmentGroup(
         transports: ["websocket"],
         autoConnect: true,
         reconnection: true,
-        reconnectionAttempts: reconnectAttempts,
+        reconnectionAttempts: Infinity,
         reconnectionDelay: reconnectDelay,
       });
 

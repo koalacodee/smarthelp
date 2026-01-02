@@ -34,7 +34,7 @@ export class AttachmentGroupSocketClient {
       try {
         this.socket = io(`${this.baseUrl}/attachment-groups`, {
           transports: ["websocket"],
-          reconnectionAttempts: this.maxReconnectAttempts,
+          reconnectionAttempts: Infinity,
           reconnectionDelay: this.reconnectDelay,
         });
 

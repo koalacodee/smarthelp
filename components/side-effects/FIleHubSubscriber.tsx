@@ -49,7 +49,8 @@ export default function FileHubSubscriber() {
         `${env("NEXT_PUBLIC_BASE_SOCKET_IO_URL")}/filehub`,
         {
           transports: ["websocket"],
-          reconnectionAttempts: 5,
+          reconnection: true,
+          reconnectionAttempts: Infinity,
           reconnectionDelay: 1000,
         }
       );

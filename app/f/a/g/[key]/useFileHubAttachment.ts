@@ -104,7 +104,7 @@ export function useFileHubAttachmentGroup(
         transports: ["websocket"],
         autoConnect: true,
         reconnection: true,
-        reconnectionAttempts: reconnectAttempts,
+        reconnectionAttempts: Infinity,
         reconnectionDelay: reconnectDelay,
       });
 
