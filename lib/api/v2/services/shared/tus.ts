@@ -24,7 +24,7 @@ export class TusService {
   constructor(
     uploadUrl: string,
     maximumRoundtrip: number = 1000,
-    minimumChunkSize: number = 5 * 1024 * 1024,
+    minimumChunkSize: number = 512 * 1024,
     maximumChunkSize: number = 50 * 1024 * 1024
   ) {
     this._uploadUrl = uploadUrl;
