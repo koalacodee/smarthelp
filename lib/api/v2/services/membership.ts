@@ -275,8 +275,15 @@ export class AttachmentGroupMemberSDK {
     return () => {
       socket.off("attachments_change", onAttachmentsChange);
       socket.emit("member_unsubscribe", { memberId });
-      this.currentMemberId = null;
-      this.currentAttachmentsChangeCallback = null;
+      // Only clear state if this unsubscribe is for the current subscription
+      // This prevents clearing state during connection renewal
+      if (
+        this.currentMemberId === memberId &&
+        this.currentAttachmentsChangeCallback === onAttachmentsChange
+      ) {
+        this.currentMemberId = null;
+        this.currentAttachmentsChangeCallback = null;
+      }
     };
   }
 
@@ -340,17 +347,30 @@ export class AttachmentGroupMemberSDK {
    * @param onResubscribed - Optional callback with the new unsubscribe function
    */
   renewConnection(onResubscribed?: (unsubscribe: () => void) => void): void {
+    console.log("[renewConnection] Starting hard connection renewal...");
     // Store current subscription info before disconnecting
     const memberId = this.currentMemberId;
     const callback = this.currentAttachmentsChangeCallback;
 
+    console.log("[renewConnection] Current state:", {
+      hasMemberId: !!memberId,
+      hasCallback: !!callback,
+      hasSocket: !!this.socket,
+      isConnected: this.socket?.connected,
+    });
+
     // Completely destroy the connection
     if (this.socket) {
+      console.log("[renewConnection] Disconnecting socket...");
       // Unsubscribe before disconnecting
       if (this.currentMemberId) {
         this.socket.emit("member_unsubscribe", {
           memberId: this.currentMemberId,
         });
+        console.log(
+          "[renewConnection] Unsubscribed from member:",
+          this.currentMemberId
+        );
       }
       // Remove all listeners to ensure clean disconnect
       this.socket.removeAllListeners();
@@ -358,6 +378,7 @@ export class AttachmentGroupMemberSDK {
       this.socket.disconnect();
       // Destroy the socket instance
       this.socket = null;
+      console.log("[renewConnection] Socket disconnected and destroyed");
     }
 
     // Clear current state
@@ -366,16 +387,36 @@ export class AttachmentGroupMemberSDK {
 
     // Reconnect and resubscribe if there was an active subscription
     if (memberId && callback) {
+      console.log("[renewConnection] Will resubscribe after 100ms delay...");
       // Use setTimeout to ensure the old connection is fully closed
       setTimeout(() => {
+        console.log("[renewConnection] Resubscribing to member:", memberId);
         const unsubscribe = this.subscribeToAttachmentChanges(
           memberId,
           callback
         );
+        console.log("[renewConnection] Resubscribed successfully");
         if (onResubscribed) {
+          console.log("[renewConnection] Calling onResubscribed callback");
           onResubscribed(unsubscribe);
         }
       }, 100);
+    } else {
+      console.warn(
+        "[renewConnection] No active subscription to resubscribe. memberId:",
+        memberId,
+        "callback:",
+        !!callback
+      );
+      if (onResubscribed) {
+        console.log(
+          "[renewConnection] No resubscription, but calling onResubscribed with null"
+        );
+        // Still call the callback to update the ref, even if there's nothing to unsubscribe
+        onResubscribed(() => {
+          console.log("[renewConnection] Empty unsubscribe called");
+        });
+      }
     }
   }
 }

@@ -53,15 +53,19 @@ export default function TVViewer() {
 
     // Set up hard connection renewal interval (every 30 minutes)
     connectionRenewalIntervalRef.current = setInterval(() => {
-      console.log("Renewing WebSocket connection...");
+      console.log(
+        "[TVViewer] Interval triggered - Renewing WebSocket connection..."
+      );
       MembershipService.renewConnection((newUnsubscribe) => {
-        // Update the unsubscribe ref with the new function
-        if (unsubscribeRef.current) {
-          unsubscribeRef.current(); // Clean up old subscription
-        }
+        console.log(
+          "[TVViewer] onResubscribed callback called with new unsubscribe function"
+        );
+        // Don't call the old unsubscribe - renewConnection already handled cleanup
+        // Just update the ref with the new unsubscribe function
         unsubscribeRef.current = newUnsubscribe;
+        console.log("[TVViewer] Updated unsubscribeRef with new function");
       });
-    }, 30 * 60 * 1000); // 30 minutes
+    }, 30 * 60 * 1000); // 30 minutes (changed to 1 second for testing)
   }, []);
 
   // Handle successful authentication and attachment retrieval
