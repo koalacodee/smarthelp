@@ -47,6 +47,10 @@ interface AttachmentStore {
     attachmentId: string
   ) => void;
   clearExistingAttachmentsForTarget: (targetId: string) => void;
+  upsertExistingAttachmentForTarget: (
+    targetId: string,
+    attachment: Attachment
+  ) => void;
   moveExistingAttachmentToDelete: (
     targetId: string,
     attachmentId: string
@@ -192,6 +196,23 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
     set((state) => {
       const { [targetId]: _, ...rest } = state.existingAttachments;
       return { existingAttachments: rest };
+    }),
+
+  upsertExistingAttachmentForTarget: (targetId, attachment) =>
+    set((state) => {
+      const existing = state.existingAttachments[targetId] || [];
+      const index = existing.findIndex((att) => att.id === attachment.id);
+      if (index !== -1) {
+        existing[index] = attachment;
+      } else {
+        existing.push(attachment);
+      }
+      return {
+        existingAttachments: {
+          ...state.existingAttachments,
+          [targetId]: existing,
+        },
+      };
     }),
 
   moveExistingAttachmentToDelete: (targetId, attachmentId) => {

@@ -15,7 +15,6 @@ import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
 import TicketsFilters from "./TicketsFilters";
 import TicketsList from "./TicketsList";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import { ExportFileService } from "@/lib/api/v2";
 import { env } from "next-runtime-env";
 import { useToastStore } from "../../store/useToastStore";
@@ -52,8 +51,11 @@ export default function TicketsPageClient({
   const latestDepartmentRef = useRef("");
   const didMountSearchRef = useRef(false);
   const { addToast } = useToastStore();
-  const { clearExistingAttachmentsForTarget, addExistingAttachmentToTarget } =
-    useAttachments();
+  const {
+    clearExistingAttachmentsForTarget,
+    addExistingAttachmentToTarget,
+    upsertExistingAttachmentForTarget,
+  } = useAttachments();
 
   // Fetch user to check admin status
   useEffect(() => {
@@ -111,6 +113,21 @@ export default function TicketsPageClient({
           pendingTickets: response.metrics.pendingTickets,
           answeredTickets: response.metrics.answeredTickets,
           closedTickets: response.metrics.closedTickets,
+        });
+        response.attachments.forEach((attachment) => {
+          upsertExistingAttachmentForTarget(attachment.targetId, {
+            fileType: attachment.type,
+            originalName: attachment.originalName,
+            size: attachment.size,
+            expirationDate: attachment.expirationDate,
+            id: attachment.id,
+            filename: attachment.filename,
+            isGlobal: attachment.isGlobal,
+            createdAt: attachment.createdAt,
+            signedUrl: attachment.signedUrl,
+            targetId: attachment.targetId,
+            userId: attachment.userId,
+          });
         });
       } catch (error) {
         addToast({

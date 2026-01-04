@@ -48,6 +48,7 @@ export const useAttachments = (targetId?: string) => {
     clearCurrentNewTargetUploads,
     confirmExistingAttachmentsDeletionForTarget,
     clearExistingAttachmentsForTarget,
+    upsertExistingAttachmentForTarget,
   } = useAttachmentStore();
   const targetUploads = targetId
     ? attachmentsToUpload[targetId] || []
@@ -261,5 +262,6 @@ export const useAttachments = (targetId?: string) => {
     isLoadingMyAttachments,
     setExistingAttachmentsForTarget,
     clearExistingAttachmentsForTarget,
+    upsertExistingAttachmentForTarget,
   };
 };
