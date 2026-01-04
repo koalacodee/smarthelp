@@ -26,12 +26,19 @@ export default function TVViewer() {
     useState<AttachmentMetadata | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const connectionRenewalIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Subscribe to attachment changes
   const subscribeToChanges = useCallback((memberIdToSubscribe: string) => {
     // Unsubscribe from previous subscription if exists
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
+    }
+
+    // Clear existing connection renewal interval
+    if (connectionRenewalIntervalRef.current) {
+      clearInterval(connectionRenewalIntervalRef.current);
+      connectionRenewalIntervalRef.current = null;
     }
 
     const unsubscribe = MembershipService.subscribeToAttachmentChanges(
@@ -43,6 +50,18 @@ export default function TVViewer() {
     );
 
     unsubscribeRef.current = unsubscribe;
+
+    // Set up hard connection renewal interval (every 30 minutes)
+    connectionRenewalIntervalRef.current = setInterval(() => {
+      console.log("Renewing WebSocket connection...");
+      MembershipService.renewConnection((newUnsubscribe) => {
+        // Update the unsubscribe ref with the new function
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current(); // Clean up old subscription
+        }
+        unsubscribeRef.current = newUnsubscribe;
+      });
+    }, 30 * 60 * 1000); // 30 minutes
   }, []);
 
   // Handle successful authentication and attachment retrieval
@@ -81,6 +100,10 @@ export default function TVViewer() {
     return () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
+      }
+      if (connectionRenewalIntervalRef.current) {
+        clearInterval(connectionRenewalIntervalRef.current);
+        connectionRenewalIntervalRef.current = null;
       }
     };
   }, [handleAttachmentsReceived]);
