@@ -76,9 +76,8 @@ export default function PasswordResetForm() {
       setSuccessMessage("Password reset successfully! Redirecting...");
 
       // Redirect after a short delay
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
+
+      router.push("/");
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);

@@ -509,7 +509,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
             </div>
           )}
 
-          {/* Action buttons for approval/rejection */}
+          {/* Action buttons for approval/rejection
           {task.status !== "COMPLETED" &&
             task.status !== "TODO" &&
             task.status !== "SEEN" && (
@@ -527,7 +527,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                   Reject
                 </button>
               </div>
-            )}
+            )} */}
         </div>
       </div>
 
