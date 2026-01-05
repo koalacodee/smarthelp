@@ -13,6 +13,9 @@ import { useTaskSubmissionsStore } from "../store/useTaskSubmissionsStore";
 import ThreeDotMenu from "./ThreeDotMenu";
 import { useTaskStore } from "@/lib/store";
 import InlineAttachments from "./InlineAttachments";
+import { useTaskSubmissionModalStore } from "../store/useTaskSubmissionModalStore";
+import TaskSubmissionApprovalModal from "./TaskSubmissionApprovalModal";
+import TaskSubmissionRejectionModal from "./TaskSubmissionRejectionModal";
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
@@ -75,6 +78,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
     getDelegationSubmissions,
     getSubmissionAttachments,
   } = useTaskSubmissionsStore();
+  const { openApprovalModal, openRejectionModal } =
+    useTaskSubmissionModalStore();
 
   const handleApprove = async () => {
     try {
@@ -140,28 +145,12 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
     });
   };
 
-  const handleApproveSubmission = async (submissionId: string) => {
-    try {
-      await api.TasksService.approveTaskSubmission({
-        taskSubmissionId: submissionId,
-      });
-      addToast({ message: "Submission approved", type: "success" });
-      // Refresh the task data or update the submission status
-    } catch (error) {
-      addToast({ message: "Failed to approve submission", type: "error" });
-    }
+  const handleApproveSubmission = (submissionId: string) => {
+    openApprovalModal(submissionId);
   };
 
-  const handleRejectSubmission = async (submissionId: string) => {
-    try {
-      await api.TasksService.rejectTaskSubmission({
-        taskSubmissionId: submissionId,
-      });
-      addToast({ message: "Submission rejected", type: "success" });
-      // Refresh the task data or update the submission status
-    } catch (error) {
-      addToast({ message: "Failed to reject submission", type: "error" });
-    }
+  const handleRejectSubmission = (submissionId: string) => {
+    openRejectionModal(submissionId);
   };
 
   return (
@@ -350,22 +339,25 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                             )}
 
                             {/* Three-dot menu */}
-                            <ThreeDotMenu
-                              options={[
-                                {
-                                  label: "Approve",
-                                  onClick: () =>
-                                    handleApproveSubmission(submission.id),
-                                  color: "green",
-                                },
-                                {
-                                  label: "Reject",
-                                  onClick: () =>
-                                    handleRejectSubmission(submission.id),
-                                  color: "red",
-                                },
-                              ]}
-                            />
+                            {submission.status !== "APPROVED" &&
+                              submission.status !== "REJECTED" && (
+                                <ThreeDotMenu
+                                  options={[
+                                    {
+                                      label: "Approve",
+                                      onClick: () =>
+                                        handleApproveSubmission(submission.id),
+                                      color: "green",
+                                    },
+                                    {
+                                      label: "Reject",
+                                      onClick: () =>
+                                        handleRejectSubmission(submission.id),
+                                      color: "red",
+                                    },
+                                  ]}
+                                />
+                              )}
                           </div>
                         </div>
 
@@ -536,6 +528,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
       />
+      <TaskSubmissionApprovalModal />
+      <TaskSubmissionRejectionModal />
     </>
   );
 }

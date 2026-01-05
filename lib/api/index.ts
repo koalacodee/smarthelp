@@ -699,7 +699,7 @@ export interface MultipleTasksResponse extends TaskAttachmentsResponse {
 }
 
 export interface MyTasksResponse {
-  tasks: Task[];
+  tasks: Array<Task & { rejectionReason?: string; approvalFeedback?: string }>;
   delegations: TaskDelegationDTO[];
   total: number;
   metrics: {

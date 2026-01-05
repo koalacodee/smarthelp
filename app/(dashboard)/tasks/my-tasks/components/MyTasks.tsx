@@ -7,18 +7,14 @@ import { useSubmitWorkModalStore } from "@/app/(dashboard)/store/useSubmitWorkMo
 import SubmitWorkModal from "../../components/SubmitWorkModal";
 import { useTaskDetailsStore } from "../../store/useTaskDetailsStore";
 import DetailedTaskCard from "../../components/DetailedTaskCard";
-import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
-import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
-import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
-import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
 import { useMyTasksStore } from "../store/useMyTasksStore";
-import { FileService, TasksService } from "@/lib/api";
+import { TasksService } from "@/lib/api";
 import Check from "@/icons/Check";
 import Eye from "@/icons/Eye";
 import Clock from "@/icons/Clock";
 import ThreeDotMenu, { MenuOption } from "../../components/ThreeDotMenu";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
-import { TaskStatus } from "@/lib/api/tasks";
+import { Task, TaskStatus } from "@/lib/api/tasks";
 import DelegationModal from "./DelegationModal";
 import { TaskDelegationDTO } from "@/lib/api/v2/services/delegations";
 import SubmitDelegationModal from "./SubmitDelegationModal";
@@ -56,38 +52,6 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-const getDueDateStatus = (dueDate: string, status: string) => {
-  if (status === "COMPLETED") {
-    return (
-      <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
-        Completed
-      </span>
-    );
-  }
-
-  const today = new Date();
-  const due = new Date(dueDate);
-  const formattedDate = due.toLocaleDateString("en-US", {
-    month: "short", // Sep
-    day: "numeric", // 4
-    year: "numeric", // 2025
-  });
-
-  if (due < today) {
-    return (
-      <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded">
-        Due: {formattedDate} (Overdue)
-      </span>
-    );
-  }
-
-  return (
-    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-      Due: {formattedDate} (Upcoming)
-    </span>
-  );
-};
-
 export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openModal } = useSubmitWorkModalStore();
   const { openDetails } = useTaskDetailsStore();
@@ -97,6 +61,9 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
     useSubmitDelegationModalStore();
   const [isDelegationModalOpen, setIsDelegationModalOpen] = useState(false);
   const [taskId, setTaskId] = useState<string | null>(null);
+  const [expandedFeedback, setExpandedFeedback] = useState<
+    Record<string, { rejection: boolean; approval: boolean }>
+  >({});
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
   // Initialize store with server data
@@ -217,14 +184,13 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
 
                     <div className="flex items-start gap-3 ml-2">
                       {/* Checkbox */}
-                      <button
-                        onClick={() => onTaskClick(task)}
-                        className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
-                      >
-                        {task.status === "COMPLETED" && (
-                          <Check className="w-3 h-3 text-blue-600" />
-                        )}
-                      </button>
+                      {(task.status === TaskStatus.TODO ||
+                        task.status === TaskStatus.SEEN) && (
+                        <button
+                          onClick={() => onTaskClick(task)}
+                          className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
+                        ></button>
+                      )}
 
                       {/* Task content */}
                       <div className="flex-1 min-w-0">
@@ -241,27 +207,13 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            <ThreeDotMenu
-                              options={
-                                [
-                                  {
-                                    label: "Mark As Seen",
-                                    onClick: () =>
-                                      handleMarkAsSeen(String(task.id)),
-                                    color: "blue",
-                                  },
-                                  user?.role == "SUPERVISOR"
-                                    ? {
-                                        label:
-                                          "Assign to Employee/Sub-Department",
-                                        onClick: () => {
-                                          setTaskId(String(task.id));
-                                          setIsDelegationModalOpen(true);
-                                        },
-                                        color: "green",
-                                      }
-                                    : null,
-                                ].filter(Boolean) as MenuOption[]
+                            <MyTasksActions
+                              task={task}
+                              userRole={user?.role || ""}
+                              handleMarkAsSeen={handleMarkAsSeen}
+                              setTaskId={setTaskId}
+                              setIsDelegationModalOpen={
+                                setIsDelegationModalOpen
                               }
                             />
                           </div>
@@ -321,6 +273,98 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                         )}
 
                         <InlineAttachments targetId={task.id} />
+
+                        {/* Rejection Reason Collapsible */}
+                        {task.rejectionReason && (
+                          <div className="mt-3 border border-red-200 rounded-lg overflow-hidden">
+                            <button
+                              onClick={() =>
+                                setExpandedFeedback((prev) => ({
+                                  ...prev,
+                                  [task.id]: {
+                                    ...prev[task.id],
+                                    rejection: !prev[task.id]?.rejection,
+                                  },
+                                }))
+                              }
+                              className="w-full flex items-center justify-between px-3 py-2 bg-red-50 hover:bg-red-100 transition-colors"
+                            >
+                              <span className="text-sm font-medium text-red-800">
+                                Rejection Reason
+                              </span>
+                              <svg
+                                className={`w-4 h-4 text-red-600 transition-transform ${
+                                  expandedFeedback[task.id]?.rejection
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+                            {expandedFeedback[task.id]?.rejection && (
+                              <div className="px-3 py-2 bg-white border-t border-red-200">
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                  {task.rejectionReason}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Approval Feedback Collapsible */}
+                        {task.approvalFeedback && (
+                          <div className="mt-3 border border-green-200 rounded-lg overflow-hidden">
+                            <button
+                              onClick={() =>
+                                setExpandedFeedback((prev) => ({
+                                  ...prev,
+                                  [task.id]: {
+                                    ...prev[task.id],
+                                    approval: !prev[task.id]?.approval,
+                                  },
+                                }))
+                              }
+                              className="w-full flex items-center justify-between px-3 py-2 bg-green-50 hover:bg-green-100 transition-colors"
+                            >
+                              <span className="text-sm font-medium text-green-800">
+                                Approval Feedback
+                              </span>
+                              <svg
+                                className={`w-4 h-4 text-green-600 transition-transform ${
+                                  expandedFeedback[task.id]?.approval
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+                            {expandedFeedback[task.id]?.approval && (
+                              <div className="px-3 py-2 bg-white border-t border-green-200">
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                  {task.approvalFeedback}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -464,5 +508,53 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
       />
       <SubmitDelegationModal />
     </div>
+  );
+}
+
+function MyTasksActions({
+  task,
+  userRole,
+  handleMarkAsSeen,
+  setTaskId,
+  setIsDelegationModalOpen,
+}: {
+  task: Task;
+  userRole: string;
+  handleMarkAsSeen: (taskId: string) => void;
+  setTaskId: (taskId: string) => void;
+  setIsDelegationModalOpen: (isOpen: boolean) => void;
+}) {
+  if (task.status !== TaskStatus.TODO && task.status !== TaskStatus.SEEN) {
+    return null;
+  }
+
+  if (userRole !== "SUPERVISOR" || task.status !== TaskStatus.TODO) {
+    return null;
+  }
+
+  return (
+    <ThreeDotMenu
+      options={
+        [
+          task.status === TaskStatus.TODO
+            ? {
+                label: "Mark As Seen",
+                onClick: () => handleMarkAsSeen(String(task.id)),
+                color: "blue",
+              }
+            : null,
+          userRole == "SUPERVISOR"
+            ? {
+                label: "Assign to Employee/Sub-Department",
+                onClick: () => {
+                  setTaskId(String(task.id));
+                  setIsDelegationModalOpen(true);
+                },
+                color: "green",
+              }
+            : null,
+        ].filter(Boolean) as MenuOption[]
+      }
+    />
   );
 }
