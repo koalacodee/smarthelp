@@ -4,7 +4,7 @@ import Link from "next/link";
 import BellIcon from "@/icons/Bell";
 import BriefcaseIcon from "@/icons/Briefcase";
 import UserPlusIcon from "@/icons/UserPlus";
-import { NotificationService } from "@/lib/api";
+import { NotificationService, UserResponse } from "@/lib/api";
 
 // Notification types from the backend
 type NotificationType =
@@ -74,14 +74,18 @@ const generateNotificationMessage = (
 };
 
 // Map notification types to their corresponding sidebar hrefs
-const getNotificationHref = (type: NotificationType): string => {
+const getNotificationHref = (
+  type: NotificationType,
+  isSupervisor: boolean = false
+): string => {
   switch (type) {
     // Task notifications -> Tasks page
     case "task_created":
     case "task_approved":
     case "task_rejected":
-    case "task_submitted":
+      return isSupervisor ? "/tasks/my-tasks" : "/tasks";
     case "task_delegation_created":
+    case "task_submitted":
       return "/tasks";
 
     // Ticket notifications -> Tickets page
@@ -102,7 +106,10 @@ const getNotificationHref = (type: NotificationType): string => {
 };
 
 // Notification configuration based on type
-const getNotificationConfig = (type: NotificationType) => {
+const getNotificationConfig = (
+  type: NotificationType,
+  isSupervisor: boolean = false
+) => {
   // Group types by category for consistent styling
   const getCategoryConfig = (notificationType: NotificationType) => {
     if (notificationType.startsWith("task_")) {
@@ -112,7 +119,7 @@ const getNotificationConfig = (type: NotificationType) => {
         buttonClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
         buttonText: "Go to Tasks",
         borderClass: "border-t-4 border-red-500",
-        href: getNotificationHref(notificationType),
+        href: getNotificationHref(notificationType, isSupervisor),
       };
     }
 
@@ -123,7 +130,7 @@ const getNotificationConfig = (type: NotificationType) => {
         buttonClass: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
         buttonText: "Go to Tickets",
         borderClass: "border-t-4 border-blue-500",
-        href: getNotificationHref(notificationType),
+        href: getNotificationHref(notificationType, isSupervisor),
       };
     }
 
@@ -134,7 +141,7 @@ const getNotificationConfig = (type: NotificationType) => {
         buttonClass: "bg-green-600 hover:bg-green-700 focus:ring-green-500",
         buttonText: "Go to Team",
         borderClass: "border-t-4 border-green-500",
-        href: getNotificationHref(notificationType),
+        href: getNotificationHref(notificationType, isSupervisor),
       };
     }
 
@@ -157,9 +164,10 @@ const NotificationModal: React.FC<{
   count?: number;
   onDismiss: () => void;
   onNavigate: () => void;
-}> = ({ notification, count, onDismiss, onNavigate }) => {
+  isSupervisor: boolean;
+}> = ({ notification, count, onDismiss, onNavigate, isSupervisor }) => {
   const { type, title } = notification;
-  const config = getNotificationConfig(type);
+  const config = getNotificationConfig(type, isSupervisor);
   const message = generateNotificationMessage(notification, count);
 
   // Prevent background scroll when modal is open
@@ -236,6 +244,13 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
   const [notificationQueue, setNotificationQueue] = useState<AppNotification[]>(
     []
   );
+  const [user, setUser] = useState<UserResponse | null>(null);
+
+  useEffect(() => {
+    fetch("/server/me")
+      .then((res) => res.json())
+      .then((data) => setUser(data.user));
+  }, []);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
@@ -246,7 +261,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
         response;
       setCounts(fetchedCounts);
       setNotificationQueue(fetchedNotifications);
-    } catch (error) { }
+    } catch (error) {}
   }, []);
 
   // Process notification queue one by one
@@ -300,6 +315,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       count={count}
       onDismiss={handleNotificationDismiss}
       onNavigate={handleNotificationNavigate}
+      isSupervisor={user?.role === "SUPERVISOR"}
     />
   );
 };
