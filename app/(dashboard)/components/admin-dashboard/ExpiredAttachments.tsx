@@ -66,7 +66,7 @@ export default function ExpiredAttachments({
         </h3>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link
-            href="/files"
+            href="/my-files/filehub"
             className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-amber-500"
           >
             <DocumentDuplicate className="h-3.5 w-3.5" />
