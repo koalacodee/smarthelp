@@ -61,7 +61,7 @@ const tabs: Tab[] = [
       },
       {
         label: "Categories",
-        href: "/department",
+        href: "/categories",
       },
     ],
   },
@@ -184,9 +184,8 @@ function SidebarContent({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-0 h-full w-64 z-40 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
+      className={`fixed left-0 top-0 h-full w-64 z-40 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
     >
       <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
         {/* Header with Logo and Title */}
