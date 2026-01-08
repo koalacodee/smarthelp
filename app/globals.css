@@ -1,168 +1,76 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-/*
- * Animation System for Tailwind v4
- *
- * Built-in classes from tw-animate-css:
- * - animate-in / animate-out (base classes)
- * - fade-in / fade-out
- * - zoom-in / zoom-out
- * - spin-in / spin-out
- * - slide-in-from-top / slide-in-from-bottom / slide-in-from-left / slide-in-from-right
- * - slide-out-to-top / slide-out-to-bottom / slide-out-to-left / slide-out-to-right
- *
- * Use with duration-* and delay-* utilities
- * Example: class="animate-in fade-in slide-in-from-bottom-4 duration-500"
- */
-
-/* Custom Animation Utilities */
+/* globals.css or your main CSS file */
 @layer utilities {
-  .animation-delay-100 {
-    animation-delay: 100ms;
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
   }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
   .animation-delay-200 {
-    animation-delay: 200ms;
+    animation-delay: 0.2s;
   }
-  .animation-delay-300 {
-    animation-delay: 300ms;
-  }
+
   .animation-delay-400 {
-    animation-delay: 400ms;
+    animation-delay: 0.4s;
   }
-  .animation-delay-500 {
-    animation-delay: 500ms;
-  }
+
   .animation-delay-600 {
-    animation-delay: 600ms;
-  }
-  .animation-delay-700 {
-    animation-delay: 700ms;
+    animation-delay: 0.6s;
   }
 
-  /* Fill mode utilities */
-  .fill-forwards {
-    animation-fill-mode: forwards;
-  }
-  .fill-backwards {
-    animation-fill-mode: backwards;
-  }
-  .fill-both {
-    animation-fill-mode: both;
-  }
-}
-
-/* Custom Keyframe Animations via @theme */
-@theme {
-  /* Stagger animation for lists */
-  --animate-stagger: stagger-fade-in 0.4s ease-out forwards;
-
-  /* Bounce in animation */
-  --animate-bounce-in: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-
-  /* Slide up and fade */
-  --animate-slide-up-fade: slide-up-fade 0.4s ease-out forwards;
-
-  /* Scale and fade */
-  --animate-scale-fade: scale-fade 0.3s ease-out forwards;
-
-  /* Subtle float */
-  --animate-float: float 3s ease-in-out infinite;
-
-  /* Shimmer loading effect */
-  --animate-shimmer: shimmer 2s linear infinite;
-
-  /* Accordion animations */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes stagger-fade-in {
+  @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
     }
+
     to {
       opacity: 1;
-      transform: translateY(0);
     }
   }
 
-  @keyframes bounce-in {
-    0% {
+  @keyframes scaleIn {
+    from {
       opacity: 0;
-      transform: scale(0.3);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    70% {
       transform: scale(0.9);
     }
-    100% {
+
+    to {
       opacity: 1;
       transform: scale(1);
     }
   }
 
-  @keyframes slide-up-fade {
+  @keyframes fadeInUp {
     from {
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
-  @keyframes scale-fade {
+  @keyframes scaleIn {
     from {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-      opacity: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height, auto);
-      opacity: 1;
-    }
-  }
-
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height, auto);
-      opacity: 1;
-    }
-    to {
-      height: 0;
-      opacity: 0;
     }
   }
 }
