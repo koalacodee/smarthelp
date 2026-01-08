@@ -14,8 +14,6 @@ import ThreeDotMenu from "./ThreeDotMenu";
 import { useTaskStore } from "@/lib/store";
 import InlineAttachments from "./InlineAttachments";
 import { useTaskSubmissionModalStore } from "../store/useTaskSubmissionModalStore";
-import TaskSubmissionApprovalModal from "./TaskSubmissionApprovalModal";
-import TaskSubmissionRejectionModal from "./TaskSubmissionRejectionModal";
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
@@ -528,8 +526,6 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
       />
-      <TaskSubmissionApprovalModal />
-      <TaskSubmissionRejectionModal />
     </>
   );
 }

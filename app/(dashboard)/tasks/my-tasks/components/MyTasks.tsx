@@ -186,11 +186,11 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                       {/* Checkbox */}
                       {(task.status === TaskStatus.TODO ||
                         task.status === TaskStatus.SEEN) && (
-                        <button
-                          onClick={() => onTaskClick(task)}
-                          className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
-                        ></button>
-                      )}
+                          <button
+                            onClick={() => onTaskClick(task)}
+                            className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
+                          ></button>
+                        )}
 
                       {/* Task content */}
                       <div className="flex-1 min-w-0">
@@ -227,26 +227,24 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              task.status === "PENDING_REVIEW"
+                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
                                 ? "bg-blue-100 text-blue-800"
                                 : task.status === "SEEN"
-                                ? "bg-amber-100 text-amber-800"
-                                : task.status === "COMPLETED"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
+                                  ? "bg-amber-100 text-amber-800"
+                                  : task.status === "COMPLETED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                              }`}
                           >
                             {task.status?.replace("_", " ") || "TODO"}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              task.priority === "HIGH"
+                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
                                 ? "bg-red-100 text-red-800"
                                 : task.priority === "MEDIUM"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-green-100 text-green-800"
-                            }`}
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
                           >
                             {task.priority}
                           </span>
@@ -293,11 +291,10 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                                 Rejection Reason
                               </span>
                               <svg
-                                className={`w-4 h-4 text-red-600 transition-transform ${
-                                  expandedFeedback[task.id]?.rejection
+                                className={`w-4 h-4 text-red-600 transition-transform ${expandedFeedback[task.id]?.rejection
                                     ? "rotate-180"
                                     : ""
-                                }`}
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -339,11 +336,10 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                                 Approval Feedback
                               </span>
                               <svg
-                                className={`w-4 h-4 text-green-600 transition-transform ${
-                                  expandedFeedback[task.id]?.approval
+                                className={`w-4 h-4 text-green-600 transition-transform ${expandedFeedback[task.id]?.approval
                                     ? "rotate-180"
                                     : ""
-                                }`}
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -435,26 +431,24 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                             Delegated
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              task.status === "PENDING_REVIEW"
+                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
                                 ? "bg-blue-100 text-blue-800"
                                 : task.status === "SEEN"
-                                ? "bg-amber-100 text-amber-800"
-                                : task.status === "COMPLETED"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
+                                  ? "bg-amber-100 text-amber-800"
+                                  : task.status === "COMPLETED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                              }`}
                           >
                             {task.status?.replace("_", " ") || "TODO"}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              task.priority === "HIGH"
+                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
                                 ? "bg-red-100 text-red-800"
                                 : task.priority === "MEDIUM"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-green-100 text-green-800"
-                            }`}
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
                           >
                             {task.priority}
                           </span>
@@ -528,7 +522,7 @@ function MyTasksActions({
     return null;
   }
 
-  if (userRole !== "SUPERVISOR" || task.status !== TaskStatus.TODO) {
+  if (userRole !== "SUPERVISOR" && task.status !== TaskStatus.TODO) {
     return null;
   }
 
@@ -538,20 +532,20 @@ function MyTasksActions({
         [
           task.status === TaskStatus.TODO
             ? {
-                label: "Mark As Seen",
-                onClick: () => handleMarkAsSeen(String(task.id)),
-                color: "blue",
-              }
+              label: "Mark As Seen",
+              onClick: () => handleMarkAsSeen(String(task.id)),
+              color: "blue",
+            }
             : null,
           userRole == "SUPERVISOR"
             ? {
-                label: "Assign to Employee/Sub-Department",
-                onClick: () => {
-                  setTaskId(String(task.id));
-                  setIsDelegationModalOpen(true);
-                },
-                color: "green",
-              }
+              label: "Assign to Employee/Sub-Department",
+              onClick: () => {
+                setTaskId(String(task.id));
+                setIsDelegationModalOpen(true);
+              },
+              color: "green",
+            }
             : null,
         ].filter(Boolean) as MenuOption[]
       }

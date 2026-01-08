@@ -7,6 +7,8 @@ import TeamTasksDashboard from "./TeamTasksDashboard";
 import TeamTasksFilters from "./TeamTasksFilters";
 import DetailedTaskCard from "./DetailedTaskCard";
 import EditTaskModal from "./EditTaskModal";
+import TaskSubmissionApprovalModal from "./TaskSubmissionApprovalModal";
+import TaskSubmissionRejectionModal from "./TaskSubmissionRejectionModal";
 import { useTaskStore } from "@/lib/store/useTaskStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
@@ -656,6 +658,8 @@ export default function TasksPageClient({
       )}
       <DetailedTaskCard />
       <EditTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />
+      <TaskSubmissionApprovalModal />
+      <TaskSubmissionRejectionModal />
     </>
   );
 }
