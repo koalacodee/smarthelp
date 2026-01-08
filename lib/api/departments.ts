@@ -34,4 +34,5 @@ export interface Department {
   name: string;
   visibility: DepartmentVisibility;
   parent?: Department;
+  parentId?: string;
 }

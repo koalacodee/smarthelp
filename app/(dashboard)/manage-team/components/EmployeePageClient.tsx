@@ -11,20 +11,24 @@ import { EmployeeResponse } from "@/lib/api/v2/services/employee";
 import { env } from "next-runtime-env";
 import InvitationButtons from "./InvitationButtons";
 import InvitationRequestsList from "./InvitationRequestsList";
+import { Department } from "@/lib/api/departments";
+import { useDepartmentsStore } from "../store/useDepartmentsStore";
 
 export default function EmployeePageClient({
   initialEmployees,
   subDepartments = [],
+  departments,
   initialInvitationRequests = [],
   userRole,
 }: {
   initialEmployees: EmployeeResponse[];
-  subDepartments?: any[];
+  subDepartments?: Department[];
+  departments?: Department[];
   initialInvitationRequests?: any[];
   userRole: string;
 }) {
   const { employees, isLoading, error, setEmployees } = useEmployeesStore();
-
+  const { setDepartments, departments: storeDepartments, subDepartments: storeSubDepartments, setSubDepartments, setDepartmentsMap } = useDepartmentsStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubDepartment, setSelectedSubDepartment] = useState("");
   const [selectedPermission, setSelectedPermission] = useState("");
@@ -35,6 +39,27 @@ export default function EmployeePageClient({
   useEffect(() => {
     setEmployees(initialEmployees);
   }, [initialEmployees]);
+
+  useEffect(() => {
+    setSubDepartments(subDepartments);
+    setDepartments(departments || []);
+  }, []);
+
+  useEffect(() => {
+    setDepartmentsMap(
+      storeDepartments.reduce((map, dept) => {
+        const subDepts = storeSubDepartments.filter(
+          (subDept) => subDept.parentId === dept.id
+        );
+        return {
+          ...map,
+          [dept.id]: subDepts,
+        };
+      }, {})
+    );
+  }, [storeDepartments, storeSubDepartments]);
+
+
 
   // Enhanced search filter - search in all string properties
   const filteredEmployees = employees.filter((employee) => {
@@ -263,9 +288,8 @@ export default function EmployeePageClient({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
                         scope="col"
-                        className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
-                          header === "Actions" ? "relative" : ""
-                        }`}
+                        className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${header === "Actions" ? "relative" : ""
+                          }`}
                       >
                         {header === "Actions" ? (
                           <span className="sr-only">Actions</span>
@@ -405,9 +429,8 @@ export default function EmployeePageClient({
                                   }}
                                   src={`${env(
                                     "NEXT_PUBLIC_API_URL"
-                                  )}/profile/pictures/${
-                                    employee.user.profilePicture
-                                  }`}
+                                  )}/profile/pictures/${employee.user.profilePicture
+                                    }`}
                                   alt={employee.user.name}
                                   className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-lg"
                                   onError={(e) => {
@@ -417,19 +440,18 @@ export default function EmployeePageClient({
                                     if (parent) {
                                       parent.innerHTML = `
                                         <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-slate-600 font-medium text-sm shadow-lg">
-                                          ${
-                                            employee.user.name
-                                              ? employee.user.name
-                                                  .split(" ")
-                                                  .map((n) => n[0])
-                                                  .join("")
-                                                  .toUpperCase()
-                                              : employee.user.username
-                                                  .split(" ")
-                                                  .map((n) => n[0])
-                                                  .join("")
-                                                  .toUpperCase()
-                                          }
+                                          ${employee.user.name
+                                          ? employee.user.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")
+                                            .toUpperCase()
+                                          : employee.user.username
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")
+                                            .toUpperCase()
+                                        }
                                         </div>
                                       `;
                                     }
@@ -447,15 +469,15 @@ export default function EmployeePageClient({
                                 >
                                   {employee.user.name
                                     ? employee.user.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")
-                                        .toUpperCase()
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .toUpperCase()
                                     : employee.user.username
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")
-                                        .toUpperCase()}
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .toUpperCase()}
                                 </motion.div>
                               )}
                             </motion.div>

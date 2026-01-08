@@ -14,6 +14,7 @@ import { SupervisorSummary } from "@/lib/api/v2/services/supervisor";
 import { SupervisorService } from "@/lib/api/v2";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useDepartmentsStore } from "../store/useDepartmentsStore";
 
 export default function InviteEmployeeModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -33,8 +34,7 @@ export default function InviteEmployeeModal() {
   const [selectedSubDepartmentIds, setSelectedSubDepartmentIds] = useState<
     string[]
   >([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [subDepartments, setSubDepartments] = useState<Department[]>([]);
+  const { departments, subDepartments, departmentsMap } = useDepartmentsStore();
   const [supervisors, setSupervisors] = useState<SupervisorSummary[]>([]);
   const [selectedSupervisorId, setSelectedSupervisorId] = useState<
     string | undefined
@@ -60,10 +60,6 @@ export default function InviteEmployeeModal() {
   useEffect(() => {
     if (isOpen) {
       Promise.all([
-        apiOld.DepartmentsService.getAllDepartments().then(setDepartments),
-        apiOld.DepartmentsService.getAllSubDepartments().then(
-          setSubDepartments
-        ),
         (async () => {
           const user = await fetch("/server/me").then(
             async (res) => (await res.json()).user
@@ -96,16 +92,6 @@ export default function InviteEmployeeModal() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSupervisorDropdown]);
 
-  // Get all sub-departments grouped by department
-  const subDepartmentsByDepartment = useMemo(() => {
-    const grouped: { [key: string]: Department[] } = {};
-    departments.forEach((dept) => {
-      grouped[dept.id] = subDepartments.filter(
-        (sd) => sd.parent?.id === dept.id
-      );
-    });
-    return grouped;
-  }, [departments, subDepartments]);
 
   // Filter supervisors based on search term
   const filteredSupervisors = useMemo(() => {
@@ -253,9 +239,8 @@ export default function InviteEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            `Failed to ${
-              invitationType === "direct" ? "invite" : "request invitation for"
-            } employee. Please try again.`
+          `Failed to ${invitationType === "direct" ? "invite" : "request invitation for"
+          } employee. Please try again.`
         );
       }
     } finally {
@@ -530,7 +515,7 @@ export default function InviteEmployeeModal() {
                   ) : (
                     departments.map((dept, deptIndex) => {
                       const deptSubDepartments =
-                        subDepartmentsByDepartment[dept.id] || [];
+                        departmentsMap[dept.id] || [];
                       if (deptSubDepartments.length === 0) return null;
 
                       return (
@@ -594,11 +579,10 @@ export default function InviteEmployeeModal() {
                                   }
                                   className={`
                                    relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                                   ${
-                                     isSelected
-                                       ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                                       : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
-                                   }
+                                   ${isSelected
+                                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                                      : "bg-white text-slate-700 border border-slate-300 hover:border-blue-400 hover:bg-blue-50"
+                                    }
                                  `}
                                 >
                                   <motion.span
@@ -706,11 +690,10 @@ export default function InviteEmployeeModal() {
                           }
                           className={`
                            relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                           ${
-                             isSelected
-                               ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
-                               : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
-                           }
+                           ${isSelected
+                              ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30"
+                              : "bg-white text-slate-700 border border-slate-300 hover:border-purple-400 hover:bg-purple-50"
+                            }
                          `}
                         >
                           <motion.span

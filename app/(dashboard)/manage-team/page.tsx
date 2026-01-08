@@ -13,7 +13,7 @@ export default async function ManageTeamPage() {
   const userRole = user.user.role;
 
   // Fetch data based on user role
-  const [employeesData, subDepartmentsData, invitationRequestsData] =
+  const [employeesData, subDepartmentsData, invitationRequestsData, departmentsData] =
     await Promise.all([
       EmployeeService.getAllEmployees(),
       DepartmentsService.getAllSubDepartments(),
@@ -21,12 +21,14 @@ export default async function ManageTeamPage() {
       userRole === "ADMIN"
         ? EmployeeService.getAllEmployeeInvitationRequests()
         : EmployeeService.getMyEmployeeInvitationRequests(),
+      DepartmentsService.getAllDepartments(),
     ]);
 
   return (
     <EmployeePageClient
       initialEmployees={employeesData.employees}
       subDepartments={subDepartmentsData}
+      departments={departmentsData}
       initialInvitationRequests={invitationRequestsData.requests}
       userRole={userRole}
     />
