@@ -15,6 +15,7 @@ import { SupervisorService } from "@/lib/api/v2";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import useFormErrors from "@/hooks/useFormErrors";
 import { useDepartmentsStore } from "../store/useDepartmentsStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function InviteEmployeeModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -53,6 +54,9 @@ export default function InviteEmployeeModal() {
     setIsSubmitting,
     resetForm,
   } = useInviteEmployeeModalStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   // Create EmployeeService instance
   const employeeService = EmployeeService.getInstance(api);
@@ -189,15 +193,13 @@ export default function InviteEmployeeModal() {
       !jobTitle ||
       selectedSubDepartmentIds.length === 0
     ) {
-      setRootError(
-        "Please fill all required fields and select at least one sub-department."
-      );
+      setRootError(locale.manageTeam.inviteModal.requiredFieldsError);
       return;
     }
 
     // Require supervisor selection for admins
     if (userRole === "ADMIN" && !selectedSupervisorId) {
-      setRootError("Please select a supervisor for the new employee.");
+      setRootError(locale.manageTeam.inviteModal.supervisorRequiredError);
       return;
     }
 
@@ -219,7 +221,7 @@ export default function InviteEmployeeModal() {
           supervisorUserId: selectedSupervisorId,
         });
         addToast({
-          message: "Employee invited successfully!",
+          message: locale.manageTeam.toasts.inviteSuccess,
           type: "success",
         });
       } else {
@@ -227,7 +229,7 @@ export default function InviteEmployeeModal() {
           requestData
         );
         addToast({
-          message: "Employee invitation request submitted successfully!",
+          message: locale.manageTeam.toasts.requestSuccess,
           type: "success",
         });
       }
@@ -239,8 +241,9 @@ export default function InviteEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          `Failed to ${invitationType === "direct" ? "invite" : "request invitation for"
-          } employee. Please try again.`
+          (invitationType === "direct"
+            ? locale.manageTeam.toasts.inviteFailed
+            : locale.manageTeam.toasts.requestFailed)
         );
       }
     } finally {
@@ -250,11 +253,13 @@ export default function InviteEmployeeModal() {
 
   const modalTitle =
     invitationType === "direct"
-      ? "Invite Employee Directly"
-      : "Request Employee Invitation";
+      ? locale.manageTeam.inviteModal.directTitle
+      : locale.manageTeam.inviteModal.requestTitle;
 
   const submitButtonText =
-    invitationType === "direct" ? "Send Invitation" : "Submit Request";
+    invitationType === "direct"
+      ? locale.manageTeam.inviteModal.sendInvitation
+      : locale.manageTeam.inviteModal.submitRequest;
 
   if (!isOpen) return null;
 
@@ -330,7 +335,7 @@ export default function InviteEmployeeModal() {
                     htmlFor="employee-email"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Email Address *
+                    {locale.manageTeam.inviteModal.emailLabel}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -360,7 +365,7 @@ export default function InviteEmployeeModal() {
                     htmlFor="employee-fullname"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Full Name *
+                    {locale.manageTeam.inviteModal.fullNameLabel}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -399,7 +404,7 @@ export default function InviteEmployeeModal() {
                     htmlFor="employee-jobtitle"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Job Title *
+                    {locale.manageTeam.inviteModal.jobTitleLabel}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -431,7 +436,7 @@ export default function InviteEmployeeModal() {
                     htmlFor="employee-id"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Employee ID (Optional)
+                    {locale.manageTeam.inviteModal.employeeIdLabel}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -468,10 +473,10 @@ export default function InviteEmployeeModal() {
                   className="flex items-center gap-2 mb-4"
                 >
                   <label className="text-sm font-medium text-slate-700">
-                    Sub-Departments * (Select at least one)
+                    {locale.manageTeam.inviteModal.subDepartmentsLabel}
                   </label>
                   <InfoTooltip
-                    content="Select sub-departments where this employee will work. Multiple selections allowed for cross-departmental roles."
+                    content={locale.manageTeam.inviteModal.subDepartmentsTooltip}
                     position="top"
                     maxWidth="300px"
                     delay={100}
@@ -510,7 +515,7 @@ export default function InviteEmployeeModal() {
                           />
                         </svg>
                       </motion.div>
-                      Loading departments...
+                      {locale.manageTeam.inviteModal.loadingDepartments}
                     </motion.div>
                   ) : (
                     departments.map((dept, deptIndex) => {
@@ -651,7 +656,7 @@ export default function InviteEmployeeModal() {
                   transition={{ duration: 0.3, delay: 0.8 }}
                   className="block text-sm font-medium text-slate-700 mb-4"
                 >
-                  Permissions (Optional)
+                  {locale.manageTeam.inviteModal.permissionsLabel}
                 </motion.label>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -759,10 +764,10 @@ export default function InviteEmployeeModal() {
                     className="flex items-center gap-2 mb-4"
                   >
                     <label className="text-sm font-medium text-slate-700">
-                      Assign Supervisor *
+                      {locale.manageTeam.inviteModal.supervisorLabel}
                     </label>
                     <InfoTooltip
-                      content="Required: Select a supervisor to oversee this employee's work and manage their tasks. Type @ to search by name or username."
+                      content={locale.manageTeam.inviteModal.supervisorTooltip}
                       position="top"
                       maxWidth="300px"
                       delay={200}
@@ -852,7 +857,7 @@ export default function InviteEmployeeModal() {
                         boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
                       }}
                       type="text"
-                      placeholder="Type @ to search for a supervisor..."
+                      placeholder={locale.manageTeam.inviteModal.supervisorPlaceholder}
                       onChange={handleSupervisorInputChange}
                       className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     />
@@ -951,7 +956,7 @@ export default function InviteEmployeeModal() {
                 disabled={isSubmitting}
                 className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {locale.manageTeam.inviteModal.cancel}
               </motion.button>
               <motion.button
                 type="submit"
@@ -967,7 +972,9 @@ export default function InviteEmployeeModal() {
                 disabled={isSubmitting}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing..." : submitButtonText}
+                {isSubmitting
+                  ? locale.manageTeam.inviteModal.processing
+                  : submitButtonText}
               </motion.button>
             </motion.div>
           </form>

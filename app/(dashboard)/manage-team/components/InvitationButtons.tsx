@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useInviteEmployeeModalStore } from "@/app/(dashboard)/store/useInviteEmployeeModalStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function InvitationButtons() {
   const [canInviteEmployeeDirectly, setCanInviteEmployeeDirectly] =
     useState(false);
   const { openModal } = useInviteEmployeeModalStore();
+  const { locale } = useLocaleStore();
 
   useEffect(() => {
     fetch("/server/me")
@@ -21,6 +23,8 @@ export default function InvitationButtons() {
         }
       });
   }, []);
+
+  if (!locale) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-10">
@@ -70,7 +74,9 @@ export default function InvitationButtons() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </motion.svg>
-            <span className="relative z-10">Invite Employee Directly</span>
+            <span className="relative z-10">
+              {locale.manageTeam.invitationButtons.inviteDirectly}
+            </span>
           </motion.button>
         ) : (
           <motion.button
@@ -112,7 +118,9 @@ export default function InvitationButtons() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </motion.svg>
-            <span className="relative z-10">Request Employee Invitation</span>
+            <span className="relative z-10">
+              {locale.manageTeam.invitationButtons.requestInvitation}
+            </span>
           </motion.button>
         )}
       </motion.div>

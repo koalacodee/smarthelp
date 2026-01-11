@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeService } from "@/lib/api/v2";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface InvitationRequestsListProps {
   invitationRequests: any[];
@@ -37,14 +38,17 @@ export default function InvitationRequestsList({
 
       addToast({
         type: "success",
-        message: `Invitation for ${result.invitationDetails.fullName} has been approved successfully!`,
+        message: locale.manageTeam.toasts.acceptSuccess.replace(
+          "{name}",
+          result.invitationDetails.fullName
+        ),
       });
     } catch (error: any) {
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
-          "Failed to accept invitation. Please try again.",
+          locale.manageTeam.toasts.acceptFailed,
       });
     } finally {
       setLoadingTokens((prev) => {
@@ -70,14 +74,17 @@ export default function InvitationRequestsList({
 
       addToast({
         type: "success",
-        message: `Invitation for ${fullName} has been deleted successfully!`,
+        message: locale.manageTeam.toasts.deleteInvitationSuccess.replace(
+          "{name}",
+          fullName
+        ),
       });
     } catch (error: any) {
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
-          "Failed to delete invitation. Please try again.",
+          locale.manageTeam.toasts.deleteInvitationFailed,
       });
     } finally {
       setLoadingTokens((prev) => {
@@ -93,17 +100,17 @@ export default function InvitationRequestsList({
       PENDING_APPROVAL: {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
-        label: "Pending Approval",
+        label: locale.manageTeam.invitationRequests.status.pendingApproval,
       },
       APPROVED: {
         bg: "bg-green-100",
         text: "text-green-800",
-        label: "Approved",
+        label: locale.manageTeam.invitationRequests.status.approved,
       },
       REJECTED: {
         bg: "bg-red-100",
         text: "text-red-800",
-        label: "Rejected",
+        label: locale.manageTeam.invitationRequests.status.rejected,
       },
     };
 
@@ -163,8 +170,8 @@ export default function InvitationRequestsList({
           className="text-xl font-bold text-slate-800 flex items-center gap-2"
         >
           {userRole === "ADMIN"
-            ? "Employee Invitation Requests"
-            : "My Invitation Requests"}
+            ? locale.manageTeam.invitationRequests.adminTitle
+            : locale.manageTeam.invitationRequests.supervisorTitle}
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -222,27 +229,38 @@ export default function InvitationRequestsList({
                   className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-600"
                 >
                   <div>
-                    <span className="font-medium">Email:</span> {request.email}
+                    <span className="font-medium">
+                      {locale.manageTeam.invitationRequests.labels.email}
+                    </span>{" "}
+                    {request.email}
                   </div>
                   <div>
-                    <span className="font-medium">Job Title:</span>{" "}
+                    <span className="font-medium">
+                      {locale.manageTeam.invitationRequests.labels.jobTitle}
+                    </span>{" "}
                     {request.jobTitle}
                   </div>
                   {request.employeeId && (
                     <div>
-                      <span className="font-medium">Employee ID:</span>{" "}
+                      <span className="font-medium">
+                        {locale.manageTeam.invitationRequests.labels.employeeId}
+                      </span>{" "}
                       {request.employeeId}
                     </div>
                   )}
                   {userRole === "ADMIN" && request.supervisorName && (
                     <div>
-                      <span className="font-medium">Supervisor:</span>{" "}
+                      <span className="font-medium">
+                        {locale.manageTeam.invitationRequests.labels.supervisor}
+                      </span>{" "}
                       {request.supervisorName}
                     </div>
                   )}
                   {userRole === "SUPERVISOR" && request.subDepartmentNames && (
                     <div className="md:col-span-2">
-                      <span className="font-medium">Sub-Departments:</span>{" "}
+                      <span className="font-medium">
+                        {locale.manageTeam.invitationRequests.labels.subDepartments}
+                      </span>{" "}
                       <div className="flex flex-wrap gap-1 mt-1">
                         {request.subDepartmentNames.map(
                           (dept: string, deptIndex: number) => (
@@ -317,7 +335,9 @@ export default function InvitationRequestsList({
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                           </motion.svg>
-                          <span>Accepting...</span>
+                          <span>
+                            {locale.manageTeam.invitationRequests.actions.accepting}
+                          </span>
                         </motion.div>
                       ) : (
                         <motion.span
@@ -325,7 +345,7 @@ export default function InvitationRequestsList({
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.3 }}
                         >
-                          Accept
+                          {locale.manageTeam.invitationRequests.actions.accept}
                         </motion.span>
                       )}
                     </motion.button>
@@ -333,7 +353,7 @@ export default function InvitationRequestsList({
                 <ThreeDotMenu
                   options={[
                     {
-                      label: "Delete Invitation",
+                      label: locale.manageTeam.invitationRequests.actions.delete,
                       onClick: () =>
                         handleDeleteInvitation(request.token, request.fullName),
                       color: "red",

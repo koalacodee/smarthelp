@@ -8,6 +8,7 @@ import { EmployeePermissionsEnum } from "@/lib/api/v2/services/employee";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { EmployeeService } from "@/lib/api/v2";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function EditEmployeeModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -26,6 +27,7 @@ export default function EditEmployeeModal() {
   } = useEditEmployeeStore();
   const { addToast } = useToastStore();
   const { updateEmployee } = useEmployeesStore();
+  const { locale } = useLocaleStore();
   const [subDepartments, setSubDepartments] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -76,7 +78,11 @@ export default function EditEmployeeModal() {
 
       updateEmployee(currentEmployee.id, updatedEmployee as any);
 
-      addToast({ message: "Employee updated successfully", type: "success" });
+      addToast({
+        message:
+          locale?.manageTeam?.toasts?.employeeUpdated || "Employee updated",
+        type: "success",
+      });
       closeModal();
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
@@ -84,7 +90,8 @@ export default function EditEmployeeModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to update employee. Please try again."
+            locale?.manageTeam?.toasts?.updateFailed ||
+            "Update failed"
         );
       }
     } finally {
@@ -109,7 +116,7 @@ export default function EditEmployeeModal() {
     setFormData({ [field]: value });
   };
 
-  if (!isOpen || !currentEmployee) return null;
+  if (!isOpen || !currentEmployee || !locale) return null;
 
   return (
     <AnimatePresence>
@@ -138,7 +145,7 @@ export default function EditEmployeeModal() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="text-2xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent"
             >
-              Manage Permissions
+              {locale.manageTeam.editModal.title}
             </motion.h3>
             <motion.p
               initial={{ opacity: 0 }}
@@ -146,7 +153,7 @@ export default function EditEmployeeModal() {
               transition={{ duration: 0.4, delay: 0.2 }}
               className="text-slate-600 mb-6"
             >
-              for{" "}
+              {locale.manageTeam.editModal.for}{" "}
               <span className="font-semibold text-slate-800">
                 {currentEmployee.user.username}
               </span>
@@ -191,10 +198,10 @@ export default function EditEmployeeModal() {
                   className="flex items-center gap-2 mb-4"
                 >
                   <label className="text-sm font-medium text-slate-700">
-                    Assigned Sub-departments
+                    {locale.manageTeam.editModal.subDepartmentsLabel}
                   </label>
                   <InfoTooltip
-                    content="Select sub-departments where this employee will work. Multiple selections allowed for cross-departmental roles."
+                    content={locale.manageTeam.editModal.subDepartmentsTooltip}
                     position="top"
                     maxWidth="300px"
                     delay={100}
@@ -233,7 +240,7 @@ export default function EditEmployeeModal() {
                           />
                         </svg>
                       </motion.div>
-                      Loading sub-departments...
+                      {locale.manageTeam.inviteModal.loadingDepartments}
                     </motion.div>
                   ) : (
                     <div className="grid overflow-x-hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -342,7 +349,7 @@ export default function EditEmployeeModal() {
                   transition={{ duration: 0.3, delay: 0.6 }}
                   className="block text-sm font-medium text-slate-700 mb-4"
                 >
-                  Granted Abilities
+                  {locale.manageTeam.editModal.permissionsLabel}
                 </motion.label>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -461,7 +468,7 @@ export default function EditEmployeeModal() {
                     htmlFor="employee-designation"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Job Title / Designation
+                    {locale.manageTeam.editModal.jobTitleLabel}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -474,7 +481,9 @@ export default function EditEmployeeModal() {
                     id="employee-designation"
                     type="text"
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                    placeholder="e.g., Support Specialist"
+                    placeholder={
+                      locale.manageTeam.editModal.jobTitlePlaceholder
+                    }
                     value={formData.jobTitle || ""}
                     onChange={(e) =>
                       handleInputChange("jobTitle", e.target.value)
@@ -547,7 +556,7 @@ export default function EditEmployeeModal() {
                 disabled={isSubmitting}
                 className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {locale.manageTeam.editModal.cancel}
               </motion.button>
               <motion.button
                 type="submit"
@@ -563,7 +572,9 @@ export default function EditEmployeeModal() {
                 disabled={isSubmitting}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Saving..." : "Save Changes"}
+                {isSubmitting
+                  ? locale.manageTeam.editModal.saving
+                  : locale.manageTeam.editModal.saveChanges}
               </motion.button>
             </motion.div>
           </form>

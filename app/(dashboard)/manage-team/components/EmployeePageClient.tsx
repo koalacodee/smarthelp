@@ -13,6 +13,8 @@ import InvitationButtons from "./InvitationButtons";
 import InvitationRequestsList from "./InvitationRequestsList";
 import { Department } from "@/lib/api/departments";
 import { useDepartmentsStore } from "../store/useDepartmentsStore";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function EmployeePageClient({
   initialEmployees,
@@ -20,21 +22,30 @@ export default function EmployeePageClient({
   departments,
   initialInvitationRequests = [],
   userRole,
+  locale,
+  language,
 }: {
   initialEmployees: EmployeeResponse[];
   subDepartments?: Department[];
   departments?: Department[];
   initialInvitationRequests?: any[];
   userRole: string;
+  locale: Locale;
+  language: string;
 }) {
   const { employees, isLoading, error, setEmployees } = useEmployeesStore();
   const { setDepartments, departments: storeDepartments, subDepartments: storeSubDepartments, setSubDepartments, setDepartmentsMap } = useDepartmentsStore();
+  const { setLocale } = useLocaleStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubDepartment, setSelectedSubDepartment] = useState("");
   const [selectedPermission, setSelectedPermission] = useState("");
   const [invitationRequests, setInvitationRequests] = useState(
     initialInvitationRequests
   );
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   useEffect(() => {
     setEmployees(initialEmployees);
@@ -183,7 +194,7 @@ export default function EmployeePageClient({
               }}
               className="text-4xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent"
             >
-              Team Management
+              {locale.manageTeam.pageHeader.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -191,8 +202,7 @@ export default function EmployeePageClient({
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Grant or revoke sub-department access and specific abilities for
-              employees on your team with precision and ease
+              {locale.manageTeam.pageHeader.description}
             </motion.p>
           </motion.div>
 
@@ -215,7 +225,11 @@ export default function EmployeePageClient({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>{employees.length} Active Employees</span>
+                <span>
+                  {locale.manageTeam.pageHeader.activeEmployees
+                    .replace("{count}", employees.length.toString())
+                    .replace("{plural}", employees.length !== 1 ? "s" : "")}
+                </span>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -276,11 +290,11 @@ export default function EmployeePageClient({
                 >
                   <tr>
                     {[
-                      "Name",
-                      "Designation",
-                      "Sub-Departments",
-                      "Permissions",
-                      "Actions",
+                      locale.manageTeam.table.headers.name,
+                      locale.manageTeam.table.headers.designation,
+                      locale.manageTeam.table.headers.subDepartments,
+                      locale.manageTeam.table.headers.permissions,
+                      locale.manageTeam.table.headers.actions,
                     ].map((header, index) => (
                       <motion.th
                         key={header}
@@ -291,8 +305,8 @@ export default function EmployeePageClient({
                         className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${header === "Actions" ? "relative" : ""
                           }`}
                       >
-                        {header === "Actions" ? (
-                          <span className="sr-only">Actions</span>
+                        {header === locale.manageTeam.table.headers.actions ? (
+                          <span className="sr-only">{locale.manageTeam.table.headers.actions}</span>
                         ) : (
                           header
                         )}
@@ -311,7 +325,7 @@ export default function EmployeePageClient({
                         colSpan={5}
                         className="px-6 py-12 text-center text-slate-500"
                       >
-                        Loading employees...
+                        {locale.manageTeam.table.loading}
                       </td>
                     </motion.tr>
                   ) : error ? (
@@ -533,7 +547,7 @@ export default function EmployeePageClient({
                             }}
                             className="font-medium"
                           >
-                            {employee.user.jobTitle || "Not specified"}
+                            {employee.user.jobTitle || locale.manageTeam.table.notSpecified}
                           </motion.span>
                         </motion.td>
                         <motion.td
@@ -598,7 +612,7 @@ export default function EmployeePageClient({
                               }}
                               className="text-sm text-slate-400 italic"
                             >
-                              None
+                              {locale.manageTeam.table.none}
                             </motion.span>
                           )}
                         </motion.td>

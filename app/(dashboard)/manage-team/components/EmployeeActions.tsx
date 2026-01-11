@@ -9,6 +9,7 @@ import TrashIcon from "@/icons/Trash";
 import { useEmployeesStore } from "@/app/(dashboard)/store/useEmployeesStore";
 import { EmployeeResponse } from "@/lib/api/v2/services/employee";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface EmployeeActionsProps {
   employee: EmployeeResponse;
@@ -19,6 +20,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
   const { openModal: openConfirmationModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
   const { deleteEmployee } = useEmployeesStore();
+  const { locale } = useLocaleStore();
 
   const handleEdit = () => {
     openEditModal(employee);
@@ -30,19 +32,34 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
 
       if (canDelete) {
         openConfirmationModal({
-          title: "Delete Employee",
-          message: `Are you sure you want to delete ${employee.user.name}? This action cannot be undone.`,
+          title:
+            locale?.manageTeam?.confirmations?.deleteTitle || "Delete Employee",
+          message:
+            locale?.manageTeam?.confirmations?.deleteMessage?.replace(
+              "{name}",
+              employee.user.name
+            ) || "Are you sure you want to delete this employee?",
+          confirmText:
+            locale?.manageTeam?.confirmations?.confirmText || "Confirm",
           onConfirm: async () => {
             try {
               await EmployeeService.deleteEmployee(employee.id);
               addToast({
-                message: `${employee.user.name} has been successfully deleted`,
+                message:
+                  locale?.manageTeam?.toasts?.employeeDeleted.replace(
+                    "{name}",
+                    employee.user.name
+                  ) || "Employee deleted",
                 type: "success",
               });
               deleteEmployee(employee.id);
             } catch (error) {
               addToast({
-                message: `Failed to delete ${employee.user.name}`,
+                message:
+                  locale?.manageTeam?.toasts?.deleteFailed.replace(
+                    "{name}",
+                    employee.user.name
+                  ) || "Delete failed",
                 type: "error",
               });
             }
@@ -50,28 +67,36 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
         });
       } else {
         addToast({
-          message: `${employee.user.name} cannot be deleted because they have active assignments or records associated with them.`,
+          message:
+            locale?.manageTeam?.toasts?.cannotDelete.replace(
+              "{name}",
+              employee.user.name
+            ) || "Cannot delete employee",
           type: "error",
         });
       }
     } catch (error) {
       addToast({
-        message: "Failed to check if employee can be deleted",
+        message:
+          locale?.manageTeam?.toasts?.checkDeleteFailed ||
+          "Check delete failed",
         type: "error",
       });
     }
   };
 
+  if (!locale) return null;
+
   return (
     <ThreeDotMenu
       options={[
         {
-          label: "Edit",
+          label: locale.manageTeam.actions.edit,
           onClick: handleEdit,
           color: "blue",
         },
         {
-          label: "Delete",
+          label: locale.manageTeam.actions.delete,
           onClick: handleDelete,
           color: "red",
         },

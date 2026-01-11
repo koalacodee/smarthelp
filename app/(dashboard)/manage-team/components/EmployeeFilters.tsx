@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useEmployeesStore } from "@/app/(dashboard)/store/useEmployeesStore";
 import { EmployeeResponse } from "@/lib/api/v2/services/employee";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface EmployeeFiltersProps {
   searchTerm: string;
@@ -25,6 +26,7 @@ export default function EmployeeFilters({
   subDepartments,
 }: EmployeeFiltersProps) {
   const { employees } = useEmployeesStore();
+  const { locale } = useLocaleStore();
 
   // Get unique permissions for filter dropdown
   const permissions = useMemo(() => {
@@ -42,6 +44,8 @@ export default function EmployeeFilters({
     setSelectedSubDepartment("");
     setSelectedPermission("");
   };
+
+  if (!locale) return null;
 
   return (
     <motion.div
@@ -87,7 +91,7 @@ export default function EmployeeFilters({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-            placeholder="Search in all employee properties..."
+            placeholder={locale.manageTeam.filters.searchPlaceholder}
           />
         </motion.div>
 
@@ -107,7 +111,9 @@ export default function EmployeeFilters({
             onChange={(e) => setSelectedSubDepartment(e.target.value)}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer pr-8"
           >
-            <option value="">Select Sub-Department</option>
+            <option value="">
+              {locale.manageTeam.filters.selectSubDepartment}
+            </option>
             {subDepartments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name}
@@ -152,7 +158,9 @@ export default function EmployeeFilters({
             onChange={(e) => setSelectedPermission(e.target.value)}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer pr-8"
           >
-            <option value="">Select Permission</option>
+            <option value="">
+              {locale.manageTeam.filters.selectPermission}
+            </option>
             {permissions.map((permission) => (
               <option key={permission} value={permission}>
                 {permission
@@ -206,7 +214,7 @@ export default function EmployeeFilters({
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
           </svg>
-          Search
+          {locale.manageTeam.filters.search}
         </motion.button>
 
         {/* Clear Filters Button */}
@@ -233,7 +241,7 @@ export default function EmployeeFilters({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            Clear
+            {locale.manageTeam.filters.clear}
           </motion.button>
         )}
       </div>
