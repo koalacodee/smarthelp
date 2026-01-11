@@ -6,6 +6,7 @@ import InfoCircle from "@/icons/InfoCircle";
 import XCircle from "@/icons/XCircle";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface ToastProps {
   toast: ToastMessage;
@@ -38,6 +39,7 @@ const toastConfig = {
 
 export default function Toast({ toast, onDismiss }: ToastProps) {
   const [isExiting, setIsExiting] = useState(false);
+  const {locale} = useLocaleStore()
   const config = toastConfig[toast.type];
 
   useEffect(() => {
@@ -173,7 +175,9 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
                 whileTap={{ scale: 0.9 }}
                 className="w-8 h-8 bg-white/80 hover:bg-white rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                <span className="sr-only">Close</span>
+                <span className="sr-only">
+                  {locale?.components.toast.close || ""}
+                </span>
                 <motion.svg
                   initial={{ rotate: 0 }}
                   whileHover={{ rotate: 90 }}
