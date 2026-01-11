@@ -1,5 +1,6 @@
 import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import ChevronLeft from "@/icons/ChevronLeft";
+import ChevronRight from "@/icons/ChevronRight";
 import {
   HIJRI_MONTHS,
   HIJRI_MONTHS_AR,
@@ -67,9 +68,9 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
         }}
       >
         {language === "ar" ? (
-          <ChevronRight size={20} />
+          <ChevronRight className="w-5 h-5" />
         ) : (
-          <ChevronLeft size={20} />
+          <ChevronLeft className="w-5 h-5" />
         )}
       </button>
 
@@ -109,9 +110,9 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
         }}
       >
         {language === "ar" ? (
-          <ChevronLeft size={20} />
+          <ChevronLeft className="w-5 h-5" />
         ) : (
-          <ChevronRight size={20} />
+          <ChevronRight className="w-5 h-5" />
         )}
       </button>
     </div>

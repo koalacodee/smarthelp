@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Calendar, X } from "lucide-react";
+import Calendar from "@/icons/Calendar";
+import X from "@/icons/X";
 import { useDatePicker } from "../hooks/useDatePicker";
 import { useCalendarGrid } from "../hooks/useCalendarGrid";
 import { DatePickerHeader } from "./DatePickerHeader";
@@ -170,8 +171,8 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
           }}
         >
           <Calendar
-            size={18}
-            style={{ color: isOpen ? "#ffd700" : "#666", flexShrink: 0 }}
+            className="w-[18px] h-[18px] flex-shrink-0"
+            style={{ color: isOpen ? "#ffd700" : "#666" }}
           />
           <span
             style={{
@@ -208,7 +209,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
             onMouseEnter={(e) => (e.currentTarget.style.color = "#ff4444")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#999")}
           >
-            <X size={16} />
+            <X className="w-4 h-4" />
           </button>
         )}
 
@@ -304,11 +305,11 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   e.currentTarget.style.background = "rgba(26, 26, 46, 0.1)";
                 }}
               >
-                <X size={18} />
+                <X className="w-4 h-4" />
               </button>
 
               {/* Date Picker Content */}
-              <div 
+              <div
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
                 style={{ padding: "1rem" }}
