@@ -1,0 +1,1622 @@
+{
+  "accessDenied": {
+    "title": "Access Denied",
+    "description": "You do not have permission to access this page.",
+    "helpText": "If you believe this is an error, please contact support."
+  },
+  "categories": {
+    "pageHeader": {
+      "titleAdmin": "Categories & Sub-categories",
+      "titleNonAdmin": "Sub-categories",
+      "description": "Manage your organizational structure and knowledge base"
+    },
+    "categoriesList": {
+      "title": "Categories",
+      "description": "Manage main categories & knowledge",
+      "empty": "No categories found",
+      "emptyHint": "Create your first category to get started"
+    },
+    "subCategoriesTable": {
+      "title": "Sub-categories",
+      "description": "Manage your sections",
+      "searchPlaceholder": "Search sub-categories...",
+      "allCategories": "All Categories",
+      "noSubCategories": "No sub-categories found",
+      "noMatches": "No matches found",
+      "underLabel": "Under:"
+    },
+    "addButton": {
+      "addCategory": "Add Category",
+      "addSubCategory": "Add Sub-category"
+    },
+    "categoryCard": {
+      "addKnowledgeChunk": "Add Knowledge Chunk",
+      "noKnowledgeChunks": "No knowledge chunks found",
+      "public": "Public",
+      "private": "Private"
+    },
+    "categoryModal": {
+      "addTitle": "Add Category",
+      "editTitle": "Edit Category",
+      "nameLabel": "Category Name",
+      "namePlaceholder": "Enter category name",
+      "visibilityLabel": "Visibility",
+      "visibilityPublic": "Public",
+      "visibilityPrivate": "Private",
+      "initialKnowledgeLabel": "Initial Knowledge (Optional)",
+      "initialKnowledgePlaceholder": "Enter initial knowledge...",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "create": "Create"
+    },
+    "subCategoryModal": {
+      "addTitle": "Add Sub-category",
+      "editTitle": "Edit Sub-category",
+      "nameLabel": "Sub-category Name",
+      "namePlaceholder": "e.g., Domestic Shipping",
+      "parentLabel": "Parent Category",
+      "parentPlaceholder": "Select a parent category",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "create": "Create"
+    },
+    "knowledgeChunkModal": {
+      "addTitle": "Add Knowledge Chunk",
+      "editTitle": "Edit Knowledge Chunk",
+      "contentLabel": "Content",
+      "contentPlaceholder": "Enter knowledge content...",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Select a category",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "save": "Save"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "share": "Share"
+    },
+    "confirmations": {
+      "deleteCategoryTitle": "Delete Category",
+      "deleteCategoryMessage": "Are you sure you want to delete \"{name}\"?",
+      "deleteSubCategoryTitle": "Delete Sub-category",
+      "deleteSubCategoryMessage": "Are you sure you want to delete \"{name}\"?",
+      "deleteKnowledgeChunkTitle": "Delete Knowledge Chunk",
+      "deleteKnowledgeChunkMessage": "Are you sure you want to delete this knowledge chunk?"
+    },
+    "toasts": {
+      "categoryCreated": "Category created",
+      "categoryUpdated": "Category updated",
+      "categoryDeleted": "Category deleted",
+      "cannotDeleteCategory": "Cannot delete this category",
+      "subCategoryCreated": "Sub-category created",
+      "subCategoryUpdated": "Sub-category updated",
+      "subCategoryDeleted": "Sub-category deleted",
+      "cannotDeleteSubCategory": "Cannot delete - has active assignments",
+      "knowledgeChunkCreated": "Knowledge chunk created",
+      "knowledgeChunkUpdated": "Knowledge chunk updated",
+      "knowledgeChunkDeleted": "Knowledge chunk deleted",
+      "shareLinkCopied": "Share link copied!",
+      "shareError": "Failed to generate share link",
+      "deleteError": "Failed to delete",
+      "checkDeleteError": "Failed to check deletion status"
+    }
+  },
+  "faqs": {
+    "pageHeader": {
+      "title": "Knowledge Base",
+      "description": "Manage frequently asked questions and build a comprehensive knowledge base"
+    },
+    "filters": {
+      "title": "Filters & Search",
+      "description": "Refine your search results",
+      "clearAll": "Clear All",
+      "searchPlaceholder": "Search FAQs by question or department...",
+      "departmentLabel": "Department",
+      "allDepartments": "All Departments",
+      "sortByLabel": "Sort By",
+      "sortByQuestion": "Question Text",
+      "sortByDepartment": "Department",
+      "sortByViews": "Views",
+      "sortBySatisfaction": "Satisfaction",
+      "sortByDissatisfaction": "Dissatisfaction",
+      "sortOrderLabel": "Sort Order:",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "table": {
+      "title": "FAQ Database",
+      "faqsAvailable": "{count} FAQ{plural} available",
+      "noFaqsFound": "No FAQs found",
+      "noFaqsHint": "Try adjusting your search or filter criteria",
+      "mainCategory": "Main Category",
+      "question": "question",
+      "questions": "questions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "addButton": {
+      "addNewFaq": "Add New FAQ"
+    },
+    "modal": {
+      "addTitle": "Add New FAQ",
+      "editTitle": "Edit FAQ",
+      "questionLabel": "Question",
+      "answerLabel": "Answer",
+      "answerPlaceholder": "Provide a detailed answer to the question.",
+      "mainCategoryLabel": "Main Category",
+      "subDepartmentLabel": "Sub-department (Optional)",
+      "allOfCategory": "All of {category}",
+      "noSubDepartments": "No Sub-Departments",
+      "translateToLabel": "Translate To (Optional)",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes"
+    },
+    "confirmations": {
+      "deleteTitle": "Confirm Deletion",
+      "deleteMessage": "Are you sure you want to delete this FAQ?",
+      "confirmText": "Yes, Delete",
+      "cancelText": "Cancel"
+    },
+    "toasts": {
+      "faqAdded": "FAQ Added Successfully!",
+      "faqUpdated": "FAQ Updated Successfully!",
+      "faqDeleted": "FAQ Deleted Successfully!",
+      "addError": "Failed to add FAQ. Please try again.",
+      "updateError": "Failed to update FAQ. Please try again.",
+      "uploadError": "Failed to upload new attachments. Please try again.",
+      "missingUploadKey": "Missing upload key for new attachments. Please retry the upload."
+    }
+  },
+  "dashboard": {
+    "admin": {
+      "header": {
+        "title": "Executive Dashboard",
+        "description": "Overview of key metrics and quick actions"
+      },
+      "metrics": {
+        "totalUsers": "Total Users",
+        "activeTickets": "Active Tickets",
+        "completedTickets": "Completed Tickets",
+        "pendingTasks": "Pending Tasks",
+        "completedTasks": "Completed Tasks",
+        "faqSatisfaction": "FAQ Satisfaction",
+        "expiredAttachments": "Expired Attachments"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "createDepartment": "Create Department",
+        "createSupervisor": "Create Supervisor"
+      },
+      "barChart": {
+        "title": "Weekly Activity",
+        "tasks": "Tasks",
+        "tickets": "Tickets",
+        "avgResp": "Avg Resp"
+      },
+      "analytics": {
+        "title": "Analytics Summary",
+        "showMore": "Show more",
+        "showLess": "Show less"
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "noActivity": "No recent activity"
+      },
+      "expiredAttachments": {
+        "title": "Expired Attachments",
+        "noAttachments": "No expired attachments",
+        "manage": "Manage",
+        "file": "File",
+        "size": "Size",
+        "type": "Type",
+        "status": "Status",
+        "expires": "Expires",
+        "created": "Created",
+        "expired": "Expired",
+        "expiringSoon": "Expiring Soon",
+        "active": "Active"
+      },
+      "departmentFilter": {
+        "label": "Department",
+        "allDepartments": "All departments",
+        "apply": "Apply Filter",
+        "applying": "Applying..."
+      },
+      "toasts": {
+        "filterError": "Failed to filter dashboard data. Please try again."
+      }
+    },
+    "employee": {
+      "header": {
+        "title": "My Dashboard",
+        "description": "Overview of your tasks, tickets, and activities"
+      },
+      "metrics": {
+        "completedTasks": "Completed Tasks",
+        "closedTickets": "Closed Tickets",
+        "expiredFiles": "Expired Files"
+      },
+      "pendingTasks": {
+        "title": "Pending Tasks",
+        "noTasks": "No pending tasks",
+        "viewAll": "View all →",
+        "due": "Due:",
+        "today": "Today"
+      },
+      "pendingTickets": {
+        "title": "My Tickets",
+        "noTickets": "No pending tickets",
+        "viewAll": "View all →",
+        "justNow": "Just now",
+        "hoursAgo": "{hours}h ago"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "myTasks": "My Tasks",
+        "myTickets": "My Tickets",
+        "myFiles": "My Files",
+        "addFaq": "Add FAQ"
+      }
+    }
+  },
+  "tickets": {
+    "pageHeader": {
+      "title": "Support Tickets",
+      "ticketsAvailable": "{count} ticket{plural} available"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "totalTickets": "Total Tickets",
+      "pending": "Pending",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "filters": {
+      "title": "Filters & Search",
+      "searchPlaceholder": "Search by name, email, phone, subject, or description...",
+      "statusLabel": "Status",
+      "allStatus": "All",
+      "new": "New",
+      "seen": "Seen",
+      "answered": "Answered",
+      "closed": "Closed",
+      "departmentLabel": "Department",
+      "allDepartments": "All departments",
+      "updating": "Updating tickets with selected filters..."
+    },
+    "list": {
+      "subject": "Subject",
+      "status": "Status",
+      "department": "Department",
+      "date": "Date",
+      "priority": "Priority",
+      "actions": "Actions",
+      "noTickets": "No tickets found",
+      "noTicketsHint": "Try adjusting your search or filter criteria",
+      "unknown": "Unknown",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "reply": "Reply",
+      "viewEditReply": "View / Edit Reply",
+      "reopenForReply": "Re-open for Reply",
+      "close": "Close",
+      "delete": "Delete"
+    },
+    "export": {
+      "exportTickets": "Export Tickets",
+      "startDate": "Start Date (Optional)",
+      "endDate": "End Date (Optional)",
+      "export": "Export",
+      "exporting": "Exporting...",
+      "cancel": "Cancel"
+    },
+    "modal": {
+      "title": "Ticket Details #{subject}",
+      "customer": "Customer:",
+      "phone": "Phone:",
+      "subDepartment": "Sub-department:",
+      "subject": "Subject:",
+      "description": "Description:",
+      "attachmentsTitle": "Attachments Uploaded by Customer",
+      "reply": "Reply:",
+      "noReply": "No reply provided.",
+      "replyPlaceholder": "Write your reply...",
+      "promoteToFaq": "Promote to public FAQ",
+      "promoteHint": "The ticket subject will be the question, and your reply will be the answer.",
+      "close": "Close",
+      "cancel": "Cancel",
+      "sendReply": "Send Reply"
+    },
+    "confirmations": {
+      "deleteTitle": "Delete Ticket",
+      "deleteMessage": "Are you sure you want to delete this ticket? This action cannot be undone.",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "toasts": {
+      "ticketDeleted": "Ticket deleted successfully",
+      "ticketReplied": "Ticket has been replied successfully.",
+      "fetchError": "Failed to fetch tickets for the selected filters. Please try again.",
+      "exportError": "Failed to export tickets. Please try again.",
+      "replyError": "Failed to reply to ticket. Please try again."
+    },
+    "loading": {
+      "loadingTickets": "Loading tickets..."
+    }
+  },
+  "manageTeam": {
+    "pageHeader": {
+      "title": "Team Management",
+      "description": "Grant or revoke sub-department access and specific abilities for employees on your team with precision and ease",
+      "activeEmployees": "{count} Active Employee{plural}"
+    },
+    "filters": {
+      "searchPlaceholder": "Search in all employee properties...",
+      "selectSubDepartment": "Select Sub-Department",
+      "selectPermission": "Select Permission",
+      "search": "Search",
+      "clear": "Clear"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "designation": "Designation",
+        "subDepartments": "Sub-Departments",
+        "permissions": "Permissions",
+        "actions": "Actions"
+      },
+      "loading": "Loading employees...",
+      "notSpecified": "Not specified",
+      "none": "None",
+      "noEmployees": {
+        "title": "No employees found",
+        "hint": "Get started by inviting new employees to your team."
+      }
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "inviteModal": {
+      "directTitle": "Invite Employee Directly",
+      "requestTitle": "Request Employee Invitation",
+      "emailLabel": "Email Address *",
+      "fullNameLabel": "Full Name *",
+      "jobTitleLabel": "Job Title *",
+      "employeeIdLabel": "Employee ID (Optional)",
+      "subDepartmentsLabel": "Sub-Departments * (Select at least one)",
+      "subDepartmentsTooltip": "Select sub-departments where this employee will work. Multiple selections allowed for cross-departmental roles.",
+      "permissionsLabel": "Permissions (Optional)",
+      "supervisorLabel": "Assign Supervisor *",
+      "supervisorTooltip": "Required: Select a supervisor to oversee this employee's work and manage their tasks. Type @ to search by name or username.",
+      "supervisorPlaceholder": "Type @ to search for a supervisor...",
+      "loadingDepartments": "Loading departments...",
+      "cancel": "Cancel",
+      "sendInvitation": "Send Invitation",
+      "submitRequest": "Submit Request",
+      "processing": "Processing...",
+      "requiredFieldsError": "Please fill all required fields and select at least one sub-department.",
+      "supervisorRequiredError": "Please select a supervisor for the new employee."
+    },
+    "editModal": {
+      "title": "Manage Permissions",
+      "for": "for",
+      "subDepartmentsLabel": "Assigned Sub-departments",
+      "subDepartmentsTooltip": "Select sub-departments where this employee will work. Multiple selections allowed for cross-departmental roles.",
+      "permissionsLabel": "Granted Abilities",
+      "jobTitleLabel": "Job Title / Designation",
+      "jobTitlePlaceholder": "e.g., Support Specialist",
+      "employeeIdLabel": "Employee ID",
+      "employeeIdPlaceholder": "e.g., E123",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "saving": "Saving..."
+    },
+    "invitationButtons": {
+      "inviteDirectly": "Invite Employee Directly",
+      "requestInvitation": "Request Employee Invitation"
+    },
+    "invitationRequests": {
+      "adminTitle": "Employee Invitation Requests",
+      "supervisorTitle": "My Invitation Requests",
+      "status": {
+        "pendingApproval": "Pending Approval",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "labels": {
+        "email": "Email:",
+        "jobTitle": "Job Title:",
+        "employeeId": "Employee ID:",
+        "supervisor": "Supervisor:",
+        "subDepartments": "Sub-Departments:"
+      },
+      "actions": {
+        "accept": "Accept",
+        "accepting": "Accepting...",
+        "delete": "Delete Invitation"
+      }
+    },
+    "confirmations": {
+      "deleteTitle": "Delete Employee",
+      "deleteMessage": "Are you sure you want to delete {name}? This action cannot be undone.",
+      "confirmText": "Delete"
+    },
+    "toasts": {
+      "employeeDeleted": "{name} has been successfully deleted",
+      "deleteFailed": "Failed to delete {name}",
+      "cannotDelete": "{name} cannot be deleted because they have active assignments or records associated with them.",
+      "checkDeleteFailed": "Failed to check if employee can be deleted",
+      "employeeUpdated": "Employee updated successfully",
+      "updateFailed": "Failed to update employee. Please try again.",
+      "inviteSuccess": "Employee invited successfully!",
+      "requestSuccess": "Employee invitation request submitted successfully!",
+      "inviteFailed": "Failed to invite employee. Please try again.",
+      "requestFailed": "Failed to request invitation for employee. Please try again.",
+      "acceptSuccess": "Invitation for {name} has been approved successfully!",
+      "acceptFailed": "Failed to accept invitation. Please try again.",
+      "deleteInvitationSuccess": "Invitation for {name} has been deleted successfully!",
+      "deleteInvitationFailed": "Failed to delete invitation. Please try again."
+    }
+  },
+  "myFiles": {
+    "filehub": {
+      "pageHeader": {
+        "title": "My FileHub",
+        "description": "Browse your previously uploaded attachments and add new ones."
+      },
+      "uploadButton": "Upload file",
+      "attachments": {
+        "title": "My attachments",
+        "count": "{count} item{plural}",
+        "loading": "Loading your attachments...",
+        "empty": {
+          "title": "You don't have any attachments yet.",
+          "hint": "Upload files to reuse them across FAQs, tasks, and other areas."
+        },
+        "unknownType": "Unknown type",
+        "expires": "Expires",
+        "global": "Global",
+        "noExpiration": "No expiration",
+        "expirationDate": "Expiration date",
+        "uploadedOn": "Uploaded on {date} at {time}",
+        "uploaded": "Uploaded",
+        "queued": "Queued",
+        "markedForDeletion": "Marked for Deletion",
+        "label": "Attachments",
+        "description": "Drag and drop files here or click to browse. Max size per file: 100MB",
+        "dropFilesHere": "Drop files here",
+        "orClickToBrowse": "or click to browse files from your computer",
+        "selectFiles": "Select files",
+        "myFiles": "My Files",
+        "filesSelected": "{count} file{plural} selected",
+        "totalSize": "Total size",
+        "removeFile": "Remove file",
+        "preview": "Preview",
+        "noFilesSelected": "No files selected yet.",
+        "globalFlag": "Global flag",
+        "confirm": "Confirm",
+        "previewUnavailable": "Preview Unavailable",
+        "previewUnavailableMessage": "Preview is not available for this attachment. The file may not have a signed URL or may not be accessible at this time.",
+        "file": "File",
+        "close": "Close",
+        "myAttachments": "My Attachments",
+        "noAttachmentsAvailable": "No attachments available",
+        "addSelected": "Add Selected",
+        "restoreFile": "Restore file",
+        "delete": "Delete attachment"
+      },
+      "uploadModal": {
+        "title": "Upload a file",
+        "dragDrop": "Drag & drop a file here, or click to browse",
+        "fileSizeHint": "Up to 100 MB per file. You'll set an expiration and global flag in the next step.",
+        "preview": "Preview",
+        "editMetadata": "Edit metadata",
+        "remove": "Remove",
+        "cancel": "Cancel",
+        "uploadFile": "Upload file",
+        "uploading": "Uploading...",
+        "selectFileError": "Please select a file to upload.",
+        "endpointError": "Upload endpoint is not configured."
+      },
+      "metadataModal": {
+        "title": "Attachment options",
+        "expirationLabel": "Expiration date (optional)",
+        "globalLabel": "Make attachment global",
+        "globalHint": "Global attachments can be reused across multiple FAQs, tasks, and other areas.",
+        "yes": "Yes",
+        "no": "No",
+        "cancel": "Cancel",
+        "done": "Done"
+      },
+      "confirmations": {
+        "deleteTitle": "Delete attachment",
+        "deleteMessage": "Are you sure you want to delete this attachment? This action cannot be undone.",
+        "confirmText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "toasts": {
+        "deleteSuccess": "Attachment deleted successfully.",
+        "deleteFailed": "Failed to delete attachment. Please try again.",
+        "uploadFailed": "Failed to upload file. Please try again."
+      }
+    },
+    "groups": {
+      "pageHeader": {
+        "title": "TV Content",
+        "description": "Manage your TV content and share collections of files."
+      },
+      "createButton": "Create TV Content",
+      "loading": "Loading TV content...",
+      "loadError": "Failed to load TV content",
+      "grid": {
+        "title": "My TV Content",
+        "count": "{count} group{plural}",
+        "empty": {
+          "title": "You don't have any TV content yet.",
+          "hint": "Create TV content to share collections of files."
+        },
+        "groupId": "Group ID: {id}...",
+        "files": "{count} files",
+        "watchers": "{count} watchers",
+        "expired": "Expired",
+        "expires": "Expires {date}",
+        "createdOn": "Created on {date} at {time}",
+        "share": "Share group",
+        "view": "View group",
+        "edit": "Edit group",
+        "delete": "Delete group"
+      },
+      "modal": {
+        "createTitle": "Create TV Content",
+        "editTitle": "Edit TV Content",
+        "viewTitle": "TV Content",
+        "createHint": "Create new TV content by selecting files from your available attachments.",
+        "expirationLabel": "Expiration Date (optional)",
+        "expirationHint": "Leave empty to keep this group available indefinitely.",
+        "selectedAttachments": "Selected Attachments ({count})",
+        "availableAttachments": "Available Attachments",
+        "groupKey": "Group Key:",
+        "createdAt": "Created At:",
+        "watchers": "Watchers:",
+        "clients": "{count} clients",
+        "expiresAt": "Expires At:",
+        "noExpiration": "No expiration",
+        "currentAttachments": "Current Attachments ({count})",
+        "updateExpiration": "Update Expiration Date",
+        "updateExpirationHint": "Leave empty to remove the expiration date.",
+        "close": "Close",
+        "cancel": "Cancel",
+        "createGroup": "Create Group",
+        "saveChanges": "Save Changes",
+        "saving": "Saving..."
+      },
+      "shareModal": {
+        "title": "Share TV Content",
+        "shareLink": "Share Link",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "linkHint": "This link provides access to all attachments in this group.",
+        "close": "Close",
+        "openLink": "Open Link",
+        "generateError": "Failed to generate share link. Please try again."
+      },
+      "members": {
+        "title": "TV Display Members",
+        "description": "Manage members who can access TV content displays",
+        "addButton": "Add Member",
+        "loading": "Loading members...",
+        "empty": {
+          "title": "No members yet",
+          "hint": "Add members to grant them access to TV content displays"
+        },
+        "table": {
+          "name": "Name",
+          "attachmentGroup": "Attachment Group",
+          "created": "Created",
+          "actions": "Actions"
+        },
+        "status": {
+          "online": "Online",
+          "offline": "Offline"
+        },
+        "addModal": {
+          "title": "Add New Member",
+          "otpLabel": "OTP Code",
+          "otpPlaceholder": "Enter OTP from display",
+          "nameLabel": "Member Name",
+          "namePlaceholder": "Enter member name",
+          "groupLabel": "Attachment Group",
+          "groupPlaceholder": "Select a group",
+          "cancel": "Cancel",
+          "add": "Add Member"
+        },
+        "editModal": {
+          "title": "Edit Member",
+          "nameLabel": "Member Name",
+          "namePlaceholder": "Enter member name",
+          "groupLabel": "Attachment Group",
+          "groupPlaceholder": "Select a group",
+          "cancel": "Cancel",
+          "update": "Update Member"
+        },
+        "confirmations": {
+          "deleteTitle": "Delete Member",
+          "deleteMessage": "Are you sure you want to delete member \"{name}\"? This action cannot be undone.",
+          "confirmText": "Delete",
+          "cancelText": "Cancel"
+        },
+        "toasts": {
+          "loadFailed": "Failed to load members",
+          "addSuccess": "Member added successfully",
+          "addFailed": "Failed to add member",
+          "updateSuccess": "Member updated successfully",
+          "updateFailed": "Failed to update member",
+          "deleteSuccess": "Member deleted successfully",
+          "deleteFailed": "Failed to delete member",
+          "fillAllFields": "Please fill in all fields"
+        }
+      },
+      "confirmations": {
+        "deleteTitle": "Delete TV content",
+        "deleteMessage": "Are you sure you want to delete this TV content? This action cannot be undone.",
+        "confirmText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "toasts": {
+        "createSuccess": "TV content created successfully",
+        "updateSuccess": "TV content updated successfully",
+        "deleteSuccess": "TV content deleted successfully",
+        "deleteFailed": "Failed to delete TV content. Please try again.",
+        "createFailed": "Failed to create TV content",
+        "updateFailed": "Failed to update TV content"
+      }
+    }
+  },
+  "profile": {
+    "pageHeader": {
+      "title": "My Profile",
+      "description": "Manage your profile information and settings"
+    },
+    "editButton": "Edit Profile",
+    "profilePicture": {
+      "title": "Profile Picture",
+      "changePicture": "Change Picture",
+      "uploading": "Uploading...",
+      "uploadNewPicture": "Upload New Picture"
+    },
+    "profileInformation": {
+      "title": "Profile Information",
+      "fields": {
+        "fullName": "Full Name",
+        "email": "Email",
+        "role": "Role",
+        "jobTitle": "Job Title",
+        "departments": "Departments / Sub-Departments",
+        "permissions": "Permissions"
+      },
+      "placeholders": {
+        "fullName": "Enter your full name",
+        "email": "Enter your email"
+      },
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "passwordSecurity": {
+      "title": "Password & Security",
+      "description": "Keep your account secure by regularly updating your password.",
+      "resetPassword": "Reset Password",
+      "sendOtp": {
+        "title": "Send OTP to Email",
+        "sending": "Sending OTP...",
+        "hint": "Click the button below to receive a one-time password (OTP) via email. You'll need this code to reset your password."
+      },
+      "resetForm": {
+        "otpSent": "✅ OTP sent successfully! Check your email and enter the code below along with your new password.",
+        "otpCode": "OTP Code",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "placeholders": {
+          "otpCode": "Enter the code from your email",
+          "newPassword": "Enter your new password",
+          "confirmPassword": "Confirm your new password"
+        },
+        "resetting": "Resetting Password...",
+        "reset": "Reset Password"
+      }
+    },
+    "toasts": {
+      "profileUpdated": "Profile updated successfully!",
+      "updateFailed": "Failed to update profile. Please try again.",
+      "pictureUpdated": "Profile picture updated successfully!",
+      "pictureUpdateFailed": "Failed to update profile picture. Please try again.",
+      "invalidFileType": "Invalid file type. Please upload an image file.",
+      "otpSent": "OTP sent to your email successfully!",
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "passwordReset": "Password reset successfully!",
+      "passwordResetFailed": "Failed to reset password. Please try again.",
+      "invalidOtp": "Invalid OTP. Please try again.",
+      "fillAllFields": "Please fill in all fields",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 4 characters long"
+    },
+    "errors": {
+      "nameAndEmailRequired": "Name and email are required"
+    }
+  },
+  "promotions": {
+    "pageHeader": {
+      "title": "Promotions Management",
+      "description": "Create and manage promotional campaigns for your customers"
+    },
+    "filters": {
+      "title": "Filters & Search",
+      "description": "Refine your promotion results",
+      "clearAll": "Clear All",
+      "searchPlaceholder": "Search promotions by title...",
+      "audience": {
+        "label": "Audience",
+        "all": "All Audiences",
+        "allValue": "All",
+        "customer": "Customer",
+        "supervisor": "Supervisor",
+        "employee": "Employee"
+      },
+      "status": {
+        "label": "Status",
+        "all": "All Statuses",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "sortBy": {
+        "label": "Sort By",
+        "title": "Title",
+        "audience": "Audience",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "createdAt": "Created Date"
+      },
+      "sortOrder": {
+        "label": "Sort Order:",
+        "ascending": "Ascending",
+        "descending": "Descending"
+      }
+    },
+    "table": {
+      "title": "Promotions Database",
+      "count": "{count} promotion{plural} available",
+      "empty": {
+        "title": "No promotions found",
+        "hint": "Try adjusting your search or filter criteria"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "audience": {
+        "all": "All",
+        "customer": "Customer",
+        "supervisor": "Supervisor",
+        "employee": "Employee"
+      },
+      "notSet": "Not set",
+      "actions": {
+        "edit": "Edit",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "delete": "Delete"
+      }
+    },
+    "addButton": "Add New Promotion",
+    "modal": {
+      "createTitle": "Add New Promotion",
+      "editTitle": "Edit Promotion",
+      "fields": {
+        "title": "Promotion Title *",
+        "titlePlaceholder": "e.g., Summer Sale 2024",
+        "audience": "Target Audience *",
+        "startDate": "Start Date (Optional)",
+        "endDate": "End Date (Optional)"
+      },
+      "audienceOptions": {
+        "all": "All",
+        "customer": "Customer",
+        "supervisor": "Supervisor",
+        "employee": "Employee"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "saveChanges": "Save Changes",
+        "create": "Create Promotion"
+      }
+    },
+    "confirmations": {
+      "deleteTitle": "Delete Promotion",
+      "deleteMessage": "Are you sure you want to delete this promotion? This action cannot be undone.",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "toasts": {
+      "loadFailed": "Failed to load promotions",
+      "createSuccess": "Promotion Created Successfully!",
+      "createFailed": "Failed to create promotion. Please try again.",
+      "updateSuccess": "Promotion Updated Successfully!",
+      "updateFailed": "Failed to update promotion. Please try again.",
+      "deleteSuccess": "Promotion deleted successfully",
+      "deleteFailed": "Failed to delete promotion",
+      "activateSuccess": "Promotion activated successfully",
+      "deactivateSuccess": "Promotion deactivated successfully",
+      "statusUpdateFailed": "Failed to update promotion status",
+      "uploadFailed": "Failed to upload new attachments. Please try again.",
+      "missingUploadKey": "Missing upload key for new attachments. Please retry the upload.",
+      "fillAllFields": "Please fill all required fields."
+    }
+  },
+  "supervisors": {
+    "pageHeader": {
+      "title": "Supervisor Management",
+      "description": "Manage your team supervisors, permissions, and assignments with precision and ease"
+    },
+    "inviteButton": "Invite New Supervisor",
+    "stats": {
+      "activeSupervisors": "{count} Active Supervisors",
+      "pendingInvitations": "{count} Pending Invitations"
+    },
+    "filters": {
+      "searchPlaceholder": "Search...",
+      "departmentPlaceholder": "Select Department",
+      "clear": "Clear"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "designation": "Designation",
+        "department": "Department",
+        "email": "Email",
+        "actions": "Actions"
+      },
+      "notSpecified": "Not specified",
+      "none": "None",
+      "empty": {
+        "title": "No supervisors found",
+        "hint": "Get started by inviting a new supervisor to manage your team."
+      },
+      "actions": {
+        "edit": "Edit",
+        "delegate": "Delegate",
+        "delete": "Delete",
+        "forceDelete": "Force Delete"
+      }
+    },
+    "invitations": {
+      "title": "Pending Invitations",
+      "jobTitle": "Job Title:",
+      "departments": "Departments:",
+      "expires": "Expires:",
+      "status": {
+        "pending": "PENDING",
+        "completed": "COMPLETED",
+        "rejected": "REJECTED"
+      },
+      "actions": {
+        "delete": "Delete Invitation"
+      }
+    },
+    "editModal": {
+      "createTitle": "Invite New Supervisor via Email",
+      "editTitle": "Edit Supervisor Invitation",
+      "fields": {
+        "fullName": "Full Name *",
+        "email": "Email to Invite *",
+        "employeeId": "Employee ID (Optional)",
+        "employeeIdPlaceholder": "e.g., A123",
+        "jobTitle": "Job Title / Designation *",
+        "jobTitlePlaceholder": "e.g., Shipping Supervisor",
+        "assignDepartments": "Assign Departments",
+        "assignDepartmentsTooltip": "Select departments that this supervisor will manage. Multiple selections allowed for cross-departmental supervision.",
+        "choosePermissions": "Choose Permissions"
+      },
+      "permissions": {
+        "manageTvContent": "Manage TV Content"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "saveChanges": "Save Changes",
+        "sendInvitation": "Send Invitation"
+      }
+    },
+    "delegateModal": {
+      "title": "Delegate Supervisor",
+      "searchPlaceholder": "Type @ to search for a supervisor...",
+      "buttons": {
+        "cancel": "Cancel",
+        "delegate": "Delegate",
+        "delegating": "Delegating..."
+      }
+    },
+    "imageCropModal": {
+      "title": "Crop Your Profile Picture",
+      "instructions": {
+        "dragMove": "Drag to move the crop area or use the handles to resize",
+        "squareCrop": "A square will be cropped from the center of your selection",
+        "tip": "💡 Tip: For wide images, position your crop area to center the most important part"
+      },
+      "cropArea": "Crop Area:",
+      "output": "Output:",
+      "buttons": {
+        "cancel": "Cancel",
+        "cropImage": "Crop Image"
+      }
+    },
+    "confirmations": {
+      "deleteTitle": "Delete Supervisor",
+      "deleteMessage": "Are you sure you want to delete supervisor {username}? This action cannot be undone.",
+      "forceDeleteTitle": "Force Delete Supervisor",
+      "forceDeleteMessage": "Are you sure you want to force delete supervisor {username}? This will delete them regardless of active assignments and cannot be undone.",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "toasts": {
+      "invitationDeleted": "Invitation for {name} has been deleted successfully!",
+      "deleteInvitationFailed": "Failed to delete invitation. Please try again.",
+      "updateSuccess": "Invitation details updated successfully",
+      "inviteSuccess": "Supervisor invitation sent successfully",
+      "operationFailed": "Operation failed. Please try again.",
+      "deleteSuccess": "Supervisor deleted successfully",
+      "deleteFailed": "Failed to delete supervisor",
+      "cannotDelete": "Cannot delete supervisor with active assignments",
+      "checkPermissionsFailed": "Failed to check delete permissions",
+      "delegateSuccess": "Successfully delegated supervisor responsibilities from {from} to {to}",
+      "delegateFailed": "Failed to delegate supervisor. Please try again.",
+      "selectSupervisor": "Please select a supervisor to delegate to.",
+      "loadSupervisorsFailed": "Failed to load supervisors",
+      "fillAllFields": "Please fill all required fields"
+    }
+  },
+  "tasks": {
+    "teamTasks": {
+      "pageHeader": {
+        "title": "Team Tasks",
+        "count": "{count} task{plural} available"
+      },
+      "dashboard": {
+        "title": "Team Dashboard",
+        "totalTasks": "Total Tasks",
+        "completed": "Completed",
+        "inProgress": "In Progress"
+      },
+      "filters": {
+        "title": "Filters & Search",
+        "searchPlaceholder": "Search tasks...",
+        "status": {
+          "label": "Status",
+          "all": "All",
+          "todo": "Todo",
+          "seen": "Seen",
+          "pendingReview": "Pending Review",
+          "completed": "Completed"
+        },
+        "priority": {
+          "label": "Priority",
+          "all": "All",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "department": {
+          "label": "Department",
+          "all": "All Departments"
+        }
+      },
+      "export": {
+        "button": "Export Tasks",
+        "startDate": "Start Date (Optional)",
+        "endDate": "End Date (Optional)",
+        "exporting": "Exporting...",
+        "export": "Export",
+        "cancel": "Cancel"
+      },
+      "empty": {
+        "title": "No tasks found",
+        "hint": "Try adjusting your search or filter criteria"
+      },
+      "loading": "Loading tasks...",
+      "card": {
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "approve": "Approve",
+          "reject": "Reject",
+          "viewDetails": "View Details"
+        },
+        "status": {
+          "pendingReview": "Pending Review",
+          "seen": "Seen",
+          "completed": "Completed",
+          "rejected": "Rejected",
+          "todo": "Todo"
+        },
+        "submissionStatus": {
+          "submitted": "SUBMITTED",
+          "approved": "APPROVED",
+          "rejected": "REJECTED"
+        },
+        "priority": {
+          "high": "HIGH",
+          "medium": "MEDIUM",
+          "low": "LOW"
+        },
+        "submissions": "Submissions",
+        "viewSubmission": "View Submission",
+        "approve": "Approve",
+        "reject": "Reject",
+        "noSubmissions": "No submissions yet",
+        "dueDate": "Due Date:",
+        "noDueDate": "No due date",
+        "overdue": "Overdue",
+        "assignedTo": "Assigned to:",
+        "unassigned": "Unassigned",
+        "lastUpdated": "Last Updated",
+        "createdAt": "Created At",
+        "notes": "Notes",
+        "attachment": "attachment",
+        "attachments": "attachments",
+        "every": "Every"
+      },
+      "confirmations": {
+        "deleteTitle": "Delete Task",
+        "deleteMessage": "Are you sure you want to delete this task?",
+        "confirmText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "toasts": {
+        "fetchFailed": "Failed to fetch tasks for the selected filters. Please try again.",
+        "exportFailed": "Failed to export tasks. Please try again.",
+        "taskApproved": "Task approved",
+        "approveFailed": "Failed to approve task",
+        "taskDeleted": "Task deleted",
+        "deleteFailed": "Failed to delete task",
+        "createSuccess": "Task created successfully!",
+        "createFailed": "Failed to create task. Please try again.",
+        "updateSuccess": "Task updated successfully!",
+        "updateFailed": "Failed to update task. Please try again.",
+        "uploadFailed": "Failed to upload new attachments. Please try again.",
+        "missingUploadKey": "Missing upload key for new attachments. Please retry the upload."
+      }
+    },
+    "myTasks": {
+      "pageHeader": {
+        "title": "My Tasks",
+        "description": "View and manage your assigned tasks",
+        "count": "{count} task{plural} assigned"
+      },
+      "dashboard": {
+        "title": "My Dashboard",
+        "totalTasks": "Total Tasks",
+        "completed": "Completed",
+        "inProgress": "In Progress"
+      },
+      "filters": {
+        "title": "Filters & Search",
+        "searchPlaceholder": "Search tasks...",
+        "status": {
+          "label": "Status",
+          "all": "All",
+          "todo": "Todo",
+          "seen": "Seen",
+          "pendingReview": "Pending Review",
+          "completed": "Completed",
+          "inProgress": "In Progress",
+          "rejected": "Rejected"
+        },
+        "priority": {
+          "label": "Priority",
+          "all": "All",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        }
+      },
+      "empty": {
+        "title": "No tasks found",
+        "hint": "Try adjusting your search or filter criteria"
+      },
+      "loading": "Loading tasks...",
+      "clearFilters": "Clear Filters",
+      "actions": {
+        "markAsSeen": "Mark as Seen",
+        "submitWork": "Submit Work",
+        "viewDetails": "View Details",
+        "delegate": "Delegate"
+      },
+      "toasts": {
+        "markSeenSuccess": "Task marked as seen",
+        "markSeenFailed": "Failed to mark task as seen",
+        "submitSuccess": "Task submitted for review successfully!",
+        "submitFailed": "Failed to submit task. Please try again.",
+        "uploadFailed": "Failed to upload new attachments. Please try again.",
+        "missingUploadKey": "Missing upload key for new attachments. Please retry the upload.",
+        "addNotes": "Please add completion notes"
+      }
+    },
+    "delegations": {
+      "pageHeader": {
+        "title": "My Delegations",
+        "description": "Manage tasks delegated to you",
+        "count": "{count} delegation{plural} assigned"
+      },
+      "dashboard": {
+        "title": "Delegations Dashboard",
+        "totalDelegations": "Total Delegations",
+        "completed": "Completed",
+        "inProgress": "In Progress"
+      },
+      "filters": {
+        "title": "Filters & Search",
+        "searchPlaceholder": "Search delegations...",
+        "status": {
+          "label": "Status",
+          "all": "All",
+          "todo": "Todo",
+          "seen": "Seen",
+          "pendingReview": "Pending Review",
+          "completed": "Completed",
+          "inProgress": "In Progress"
+        },
+        "priority": {
+          "label": "Priority",
+          "all": "All",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        }
+      },
+      "empty": {
+        "title": "No delegations found",
+        "hint": "Try adjusting your search or filter criteria"
+      },
+      "loading": "Loading delegations...",
+      "actions": {
+        "submitWork": "Submit Work",
+        "viewDetails": "View Details"
+      },
+      "delegated": "Delegated",
+      "card": {
+        "individual": "Individual",
+        "subDepartment": "Sub-Department",
+        "showSubmissions": "Show",
+        "hideSubmissions": "Hide",
+        "submitted": "Submitted:",
+        "feedback": "Feedback:",
+        "forward": "Forward"
+      },
+      "toasts": {
+        "submitSuccess": "Delegation submitted for review successfully!",
+        "submitFailed": "Failed to submit delegation. Please try again.",
+        "uploadFailed": "Failed to upload new attachments. Please try again.",
+        "missingUploadKey": "Missing upload key for new attachments. Please retry the upload.",
+        "addNotes": "Please add completion notes"
+      }
+    },
+    "modals": {
+      "approvalFeedback": "Approval Feedback",
+      "addTask": {
+        "title": "Assign New Task",
+        "fields": {
+          "title": "Title *",
+          "titlePlaceholder": "Enter task title",
+          "description": "Description *",
+          "descriptionPlaceholder": "Enter task description",
+          "department": "Department *",
+          "departmentPlaceholder": "Select department",
+          "subDepartment": "Sub-Department *",
+          "subDepartmentPlaceholder": "Select sub-department",
+          "assignee": "Assignee (Optional)",
+          "assigneePlaceholder": "Select assignee",
+          "priority": "Priority *",
+          "dueDate": "Due Date (Optional)",
+          "reminder": "Reminder (Optional)",
+          "days": "Days",
+          "hours": "Hours",
+          "minutes": "Minutes",
+          "saveAsPreset": "Save as Preset"
+        },
+        "priorityOptions": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "create": "Create Task"
+        }
+      },
+      "editTask": {
+        "title": "Edit Task",
+        "buttons": {
+          "cancel": "Cancel",
+          "save": "Save Changes",
+          "saving": "Saving..."
+        }
+      },
+      "submitWork": {
+        "title": "Submit Work",
+        "fields": {
+          "notes": "Completion Notes *",
+          "notesPlaceholder": "Add your completion notes here...",
+          "description": "Description:",
+          "noDescription": "No description provided"
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "submit": "Submit for Review",
+          "submitting": "Submitting..."
+        }
+      },
+      "submitDelegation": {
+        "title": "Submit Delegation Work",
+        "fields": {
+          "notes": "Completion Notes *",
+          "notesPlaceholder": "Add your completion notes here..."
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "submit": "Submit for Review",
+          "submitting": "Submitting..."
+        }
+      },
+      "presets": {
+        "title": "Task Presets",
+        "empty": "No presets available",
+        "createHint": "Create a preset when creating a task to reuse it later",
+        "searchPlaceholder": "Search presets...",
+        "loading": "Loading presets...",
+        "noMatch": "No presets match your search",
+        "priority": "Priority:",
+        "buttons": {
+          "close": "Close",
+          "create": "Create Task",
+          "creating": "Creating..."
+        }
+      },
+      "createFromPreset": {
+        "title": "Create Task from Preset",
+        "buttons": {
+          "cancel": "Cancel",
+          "create": "Create Task",
+          "creating": "Creating..."
+        }
+      },
+      "approval": {
+        "title": "Approve Submission",
+        "message": "Are you sure you want to approve this submission?",
+        "buttons": {
+          "cancel": "Cancel",
+          "approve": "Approve",
+          "approving": "Approving..."
+        }
+      },
+      "rejection": {
+        "title": "Reject Submission",
+        "fields": {
+          "reason": "Rejection Reason *",
+          "reasonPlaceholder": "Enter rejection reason..."
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "reject": "Reject",
+          "rejecting": "Rejecting..."
+        }
+      },
+      "taskRejection": {
+        "title": "Reject Task",
+        "fields": {
+          "reason": "Rejection Reason *",
+          "reasonPlaceholder": "Enter rejection reason..."
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "reject": "Reject",
+          "rejecting": "Rejecting..."
+        }
+      },
+      "delegation": {
+        "title": "Delegate Task",
+        "fields": {
+          "supervisor": "Select Supervisor *",
+          "supervisorPlaceholder": "Type @ to search for employees or sub-departments",
+          "notes": "Delegation Notes (Optional)",
+          "notesPlaceholder": "Add any notes for the supervisor...",
+          "employees": "Employees",
+          "subDepartments": "Sub-Departments"
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "delegate": "Delegate",
+          "delegating": "Delegating..."
+        }
+      }
+    },
+    "toasts": {
+      "delegationSuccess": "Task delegated successfully!",
+      "delegationFailed": "Failed to delegate task. Please try again.",
+      "approvalSuccess": "Submission approved successfully!",
+      "approvalFailed": "Failed to approve submission. Please try again.",
+      "rejectionSuccess": "Submission rejected successfully!",
+      "rejectionFailed": "Failed to reject submission. Please try again.",
+      "taskRejectionSuccess": "Task rejected successfully!",
+      "taskRejectionFailed": "Failed to reject task. Please try again."
+    }
+  },
+  "userActivity": {
+    "pageHeader": {
+      "title": "User Activity & Performance",
+      "description": "Monitor user performance metrics, activity analytics, and team productivity insights"
+    },
+    "stats": {
+      "activeUsers": "{count} Active Users",
+      "totalActivities": "{count} Total Activities"
+    },
+    "filters": {
+      "title": "Search & Filters",
+      "searchPlaceholder": "Search by user name, activity title, or content...",
+      "clearFilters": "Clear Filters",
+      "activityType": {
+        "label": "Activity Type",
+        "all": "All Activities",
+        "ticketAnswered": "Answered Tickets",
+        "taskPerformed": "Tasks Performed",
+        "taskApproved": "Tasks Approved",
+        "faqCreated": "FAQs Created",
+        "faqUpdated": "FAQs Updated",
+        "promotionCreated": "Promotions Created",
+        "staffRequestCreated": "Staff Requests"
+      },
+      "role": {
+        "label": "User Role",
+        "all": "All Roles",
+        "admin": "Admin",
+        "supervisor": "Supervisor",
+        "employee": "Employee"
+      },
+      "dateRange": {
+        "label": "Date Range",
+        "all": "All Time",
+        "today": "Today",
+        "week": "This Week",
+        "month": "This Month",
+        "quarter": "This Quarter",
+        "year": "This Year"
+      }
+    },
+    "performanceTable": {
+      "title": "User Performance Analytics",
+      "empty": "No ticket performance data available yet.",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "answered": "Answered",
+        "satisfied": "Satisfied 👍",
+        "dissatisfied": "Dissatisfied 👎",
+        "avgResponseTime": "Avg Response Time",
+        "satisfactionRate": "Satisfaction Rate"
+      }
+    },
+    "activityReport": {
+      "title": "Activity Report",
+      "sections": {
+        "answeredTickets": "Answered Tickets",
+        "tasksPerformed": "Tasks Performed",
+        "tasksApproved": "Tasks Approved",
+        "faqsCreated": "FAQs Created",
+        "faqsUpdated": "FAQs Updated",
+        "promotionsCreated": "Promotions Created",
+        "staffRequestsCreated": "Staff Requests Created"
+      },
+      "emptyMessages": {
+        "answeredTickets": "No tickets answered.",
+        "tasksPerformed": "No tasks performed.",
+        "tasksApproved": "No tasks approved.",
+        "faqsCreated": "No FAQs created.",
+        "faqsUpdated": "No FAQs updated.",
+        "promotionsCreated": "No promotions created.",
+        "staffRequestsCreated": "No staff requests created."
+      },
+      "columns": {
+        "user": "User",
+        "ticketId": "Ticket ID",
+        "subject": "Subject",
+        "responseTime": "Response Time",
+        "rating": "Rating",
+        "dateAnswered": "Date Answered",
+        "taskTitle": "Task Title",
+        "completionTime": "Completion Time",
+        "status": "Status",
+        "dateSubmitted": "Date Submitted",
+        "dateApproved": "Date Approved",
+        "question": "Question",
+        "dateCreated": "Date Created",
+        "dateUpdated": "Date Updated",
+        "title": "Title",
+        "audience": "Audience",
+        "requestedUser": "Requested User",
+        "date": "Date",
+        "satisfied": "👍 Satisfied",
+        "dissatisfied": "👎 Dissatisfied",
+        "notAvailable": "N/A"
+      }
+    }
+  },
+  "login": {
+    "header": {
+      "title": "Admin & Supervisor Login",
+      "description": "Access your dashboard"
+    },
+    "form": {
+      "title": "Sign In",
+      "fields": {
+        "username": {
+          "label": "Username",
+          "placeholder": "Enter your username"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "Enter your password",
+          "forgotPassword": "Forgot Password?"
+        }
+      },
+      "buttons": {
+        "submit": "Sign In"
+      }
+    },
+    "errors": {
+      "invalidCredentials": "Invalid username or password. Please try again"
+    }
+  },
+  "passwordReset": {
+    "header": {
+      "title": "Password Reset",
+      "description": {
+        "email": "Enter your email to receive a reset code",
+        "reset": "Enter the code and your new password"
+      }
+    },
+    "form": {
+      "emailStep": {
+        "title": "Enter Email",
+        "fields": {
+          "email": {
+            "label": "Email Address",
+            "placeholder": "Enter your email address"
+          }
+        },
+        "buttons": {
+          "send": "Send Reset Code",
+          "sending": "Sending Code..."
+        }
+      },
+      "resetStep": {
+        "title": "Reset Password",
+        "fields": {
+          "code": {
+            "label": "Reset Code",
+            "placeholder": "Enter the code from your email"
+          },
+          "newPassword": {
+            "label": "New Password",
+            "placeholder": "Enter your new password"
+          },
+          "confirmPassword": {
+            "label": "Confirm Password",
+            "placeholder": "Confirm your new password"
+          }
+        },
+        "buttons": {
+          "reset": "Reset Password",
+          "resetting": "Resetting Password...",
+          "backToEmail": "Back to Email"
+        }
+      }
+    },
+    "success": {
+      "resetSuccess": "Password reset successfully! Redirecting..."
+    },
+    "errors": {
+      "sendCodeFailed": "Failed to send reset code. Please check your email and try again.",
+      "resetFailed": "Failed to reset password. Please check your code and try again.",
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "backToLogin": "Back to Login"
+  },
+  "components": {
+    "notifications": {
+      "messages": {
+        "staffRequestCreated": "A new staff request has been created: \"{title}\".",
+        "staffRequestResolved": "Staff request \"{title}\" has been resolved.",
+        "taskCreated": "A new task has been created: \"{title}\".",
+        "taskApproved": "Your task \"{title}\" has been approved and completed.",
+        "taskRejected": "Your task \"{title}\" was rejected and requires changes.",
+        "taskSubmitted": "Task \"{title}\" has been submitted for review.",
+        "taskDelegationCreated": "A new task has been delegated: \"{title}\".",
+        "ticketAssigned": "Ticket \"{title}\" has been assigned to you.",
+        "ticketCreated": "A new ticket has been created: \"{title}\".",
+        "ticketReopened": "Ticket \"{title}\" has been reopened for review.",
+        "default": "New notification: {title}"
+      },
+      "buttons": {
+        "dismiss": "Dismiss",
+        "goToTasks": "Go to Tasks",
+        "goToTickets": "Go to Tickets",
+        "goToTeam": "Go to Team",
+        "viewDetails": "View Details"
+      },
+      "totalItems": "Total: {count} items"
+    },
+    "logoutButton": {
+      "title": "Logout",
+      "label": "Logout"
+    },
+    "permissionDenied": {
+      "title": "Access Denied",
+      "description": "You don't have permission to access this page.",
+      "helpText": "Please contact your administrator if you believe this is an error."
+    },
+    "sidebar": {
+      "header": {
+        "title": "SmartHelp",
+        "subtitle": "Support Dashboard"
+      },
+      "tabs": {
+        "analytics": "Analytics And Insights",
+        "faqsAndCategories": "FAQs & Categories",
+        "faqs": "FAQs",
+        "categories": "Categories",
+        "tickets": "Tickets",
+        "tasks": "Tasks",
+        "teamTasks": "Team Tasks",
+        "myTasks": "My Tasks",
+        "manageTeam": "Manage Team",
+        "promotions": "Promotions",
+        "supervisors": "Supervisors",
+        "userActivity": "User Activity",
+        "myFiles": "My Files",
+        "attachments": "Attachments",
+        "tvContent": "TV Content",
+        "myProfile": "My Profile",
+        "settings": "Settings"
+      }
+    },
+    "toast": {
+      "close": "Close"
+    },
+    "refreshButton": {
+      "label": "Refresh"
+    },
+    "dateInput": {
+      "switchToHijri": "Switch to Hijri calendar",
+      "switchToGregorian": "Switch to Gregorian calendar"
+    }
+  },
+  "settings": {
+    "pageHeader": {
+      "title": "Settings",
+      "description": "Manage your application preferences"
+    },
+    "language": {
+      "title": "Language Settings",
+      "description": "Choose your preferred language for the application interface.",
+      "selectLabel": "Select Language",
+      "updating": "Updating language..."
+    }
+  }
+}
