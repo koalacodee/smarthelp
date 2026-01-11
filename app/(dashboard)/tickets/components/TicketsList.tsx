@@ -43,33 +43,6 @@ function getTicketStatusBadge(status: TicketStatus, locale: any) {
   }
 }
 
-function getPriorityBadge(priority?: string, locale?: any) {
-  if (!priority || !locale) return null;
-
-  switch (priority.toUpperCase()) {
-    case "HIGH":
-      return (
-        <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs">
-          {locale.tickets.list.high}
-        </span>
-      );
-    case "MEDIUM":
-      return (
-        <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded text-xs">
-          {locale.tickets.list.medium}
-        </span>
-      );
-    case "LOW":
-      return (
-        <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">
-          {locale.tickets.list.low}
-        </span>
-      );
-    default:
-      return null;
-  }
-}
-
 interface TicketsListProps {
   tickets: SupportTicket[];
 }
@@ -185,16 +158,6 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                     )}
                   </motion.div>
 
-                  {/* Priority */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
-                    className="col-span-1 flex items-center"
-                  >
-                    {getPriorityBadge(ticket.priority, locale)}
-                  </motion.div>
-
                   {/* Date */}
                   <motion.div
                     initial={{ opacity: 0, x: 10 }}
@@ -263,9 +226,7 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                   <p className="text-lg font-medium mb-2">
                     {locale.tickets.list.noTickets}
                   </p>
-                  <p className="text-sm">
-                    {locale.tickets.list.noTicketsHint}
-                  </p>
+                  <p className="text-sm">{locale.tickets.list.noTicketsHint}</p>
                 </motion.div>
               </motion.div>
             </motion.div>
