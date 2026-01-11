@@ -12,6 +12,8 @@ import { useState } from "react";
 import { UploadService } from "@/lib/api/v2";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri, formatDateTimeWithHijri } from "@/locales/dateFormatter";
 
 interface FilesTableProps {
   attachments: Attachment[];
@@ -88,6 +90,7 @@ export default function FilesTable({
   onDelete,
   onRefresh,
 }: FilesTableProps) {
+  const language = useLocaleStore((state) => state.language);
   const { openPreview } = useMediaPreviewStore();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { addToast } = useToastStore();
@@ -253,7 +256,7 @@ export default function FilesTable({
                   <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600">
                     <div>
                       <p className="font-medium">
-                        {new Date(attachment.createdAt).toLocaleDateString()}
+                        {formatDateWithHijri(attachment.createdAt, language)}
                       </p>
                       <p className="text-xs text-slate-500">
                         {new Date(attachment.createdAt).toLocaleTimeString()}
@@ -273,9 +276,7 @@ export default function FilesTable({
                         {attachment.expirationDate && (
                           <p className="text-xs text-slate-500">
                             Expires:{" "}
-                            {new Date(
-                              attachment.expirationDate
-                            ).toLocaleDateString()}
+                            {formatDateWithHijri(attachment.expirationDate, language)}
                           </p>
                         )}
                       </div>

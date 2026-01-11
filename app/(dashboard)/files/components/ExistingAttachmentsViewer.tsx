@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAttachments } from "@/hooks/useAttachments";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateDisplay as formatDateDisplayWithHijri } from "@/locales/dateFormatter";
 
 interface ExistingAttachmentsViewerProps {
   targetId: string;
@@ -20,19 +22,13 @@ const formatBytes = (bytes: number) => {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[exponent]}`;
 };
 
-const formatDateDisplay = (date?: string | Date | null) => {
-  if (!date) return "No expiration";
-  const parsed = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(parsed.getTime())) return "No expiration";
-  return parsed.toLocaleDateString();
-};
-
 export default function ExistingAttachmentsViewer({
   targetId,
   title = "Existing Attachments",
 }: ExistingAttachmentsViewerProps) {
   const { existingAttachments } = useAttachments(targetId);
   const { openPreview } = useMediaPreviewStore();
+  const language = useLocaleStore((state) => state.language);
   const [noPreviewFile, setNoPreviewFile] = useState<string | null>(null);
 
   const handlePreview = (attachment: {
@@ -103,7 +99,7 @@ export default function ExistingAttachmentsViewer({
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
                       {formatBytes(attachment.size)} ·{" "}
-                      {formatDateDisplay(attachment.expirationDate)} ·{" "}
+                      {formatDateDisplayWithHijri(attachment.expirationDate, language)} ·{" "}
                       {attachment.signedUrl
                         ? "Preview available"
                         : "Preview not available"}

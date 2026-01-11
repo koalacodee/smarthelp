@@ -9,6 +9,8 @@ import Pencil from "@/icons/Pencil";
 import Trash from "@/icons/Trash";
 import { useState } from "react";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri, formatDateTimeWithHijri } from "@/locales/dateFormatter";
 
 interface AttachmentGroupsTableProps {
   attachmentGroups: AttachmentGroup[];
@@ -18,14 +20,6 @@ interface AttachmentGroupsTableProps {
   onDelete?: (attachmentGroup: AttachmentGroup) => void;
 }
 
-const formatDate = (date: Date) => {
-  return (
-    new Date(date).toLocaleDateString() +
-    " " +
-    new Date(date).toLocaleTimeString()
-  );
-};
-
 export default function AttachmentGroupsTable({
   attachmentGroups,
   onView,
@@ -33,6 +27,7 @@ export default function AttachmentGroupsTable({
   onShare,
   onDelete,
 }: AttachmentGroupsTableProps) {
+  const language = useLocaleStore((state) => state.language);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (attachmentGroups.length === 0) {
@@ -144,7 +139,7 @@ export default function AttachmentGroupsTable({
                 <td className="px-8 py-5 whitespace-nowrap text-sm text-slate-600">
                   <div>
                     <p className="font-medium">
-                      {new Date(group.createdAt).toLocaleDateString()}
+                      {formatDateWithHijri(group.createdAt, language)}
                     </p>
                     <p className="text-xs text-slate-500">
                       {new Date(group.createdAt).toLocaleTimeString()}
@@ -161,7 +156,7 @@ export default function AttachmentGroupsTable({
                           : "text-slate-800"
                           }`}
                       >
-                        {new Date(group.expiresAt).toLocaleDateString()}
+                        {formatDateWithHijri(group.expiresAt, language)}
                       </p>
                       <p className="text-xs text-slate-500">
                         {new Date(group.expiresAt).toLocaleTimeString()}

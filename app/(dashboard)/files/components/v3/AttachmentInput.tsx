@@ -14,6 +14,10 @@ import X from "@/icons/X";
 import RefreshCw from "@/icons/RefreshCw";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateDisplay as formatDateDisplayWithHijri } from "@/locales/dateFormatter";
+import { DatePickerInput, Language } from "@/components/ui/hijri-datepicker";
+import { isRTL } from "@/locales/isRTL";
 
 type AttachmentInputV3Props = {
   targetId?: string;
@@ -45,13 +49,6 @@ const toDateInputValue = (date: Date | null) => {
   return `${year}-${month}-${day}`;
 };
 
-const formatDateDisplay = (date?: string | Date | null) => {
-  if (!date) return "No expiration";
-  const parsed = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(parsed.getTime())) return "No expiration";
-  return parsed.toLocaleDateString();
-};
-
 export default function AttachmentInputV3({
   targetId,
   uploadKey,
@@ -81,6 +78,9 @@ export default function AttachmentInputV3({
     getUploadProgress,
     isUploading,
   } = useAttachments(targetId);
+
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
 
   const [isMyAttachmentsFetched, setIsMyAttachmentsFetched] = useState(false);
   const [isMetadataDialogOpen, setIsMetadataDialogOpen] = useState(false);
@@ -450,10 +450,10 @@ export default function AttachmentInputV3({
     const progressValue = attachment.progress ?? 0;
     const statusLabel =
       attachment.status === "completed" || attachment.status === "uploaded"
-        ? "Uploaded"
+        ? locale?.myFiles?.filehub?.attachments?.uploaded || "Uploaded"
         : attachment.status === "uploading" || attachment.progress !== undefined
         ? `${Math.round(progressValue)}%`
-        : "Queued";
+        : locale?.myFiles?.filehub?.attachments?.queued || "Queued";
 
     return (
       <div
@@ -491,19 +491,29 @@ export default function AttachmentInputV3({
               <span>{formatBytes(attachment.size)}</span>
               <span className="hidden sm:inline">•</span>
               <span>
-                {formatDateDisplay(attachment.expirationDate) ||
-                  "No expiration"}
+                {formatDateDisplayWithHijri(
+                  attachment.expirationDate,
+                  language,
+                  locale?.myFiles?.filehub?.attachments?.noExpiration ||
+                    "No expiration"
+                )}
               </span>
             </div>
             <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
               {attachment.expirationDate && (
                 <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                  Expires {formatDateDisplay(attachment.expirationDate)}
+                  {locale?.myFiles?.filehub?.attachments?.expires || "Expires"}{" "}
+                  {formatDateDisplayWithHijri(
+                    attachment.expirationDate,
+                    language,
+                    locale?.myFiles?.filehub?.attachments?.noExpiration ||
+                      "No expiration"
+                  )}
                 </span>
               )}
               {attachment.isGlobal && (
                 <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
-                  Global
+                  {locale?.myFiles?.filehub?.attachments?.global || "Global"}
                 </span>
               )}
             </div>
@@ -556,10 +566,11 @@ export default function AttachmentInputV3({
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-slate-800">
-          Attachments
+          {locale?.myFiles?.filehub?.attachments?.label || "Attachments"}
         </label>
         <p className="text-xs text-slate-500 mt-1">
-          Drag and drop files here or click to browse. Max size per file: 100MB
+          {locale?.myFiles?.filehub?.attachments?.description ||
+            "Drag and drop files here or click to browse. Max size per file: 100MB"}
         </p>
       </div>
 
@@ -592,10 +603,12 @@ export default function AttachmentInputV3({
           </span>
           <div>
             <p className="text-sm font-semibold text-slate-800">
-              Drop files here
+              {locale?.myFiles?.filehub?.attachments?.dropFilesHere ||
+                "Drop files here"}
             </p>
             <p className="text-xs text-slate-500">
-              or click to browse files from your computer
+              {locale?.myFiles?.filehub?.attachments?.orClickToBrowse ||
+                "or click to browse files from your computer"}
             </p>
           </div>
         </div>
@@ -606,7 +619,8 @@ export default function AttachmentInputV3({
             className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Select files
+            {locale?.myFiles?.filehub?.attachments?.selectFiles ||
+              "Select files"}
           </label>
           <input
             id={inputId}
@@ -620,7 +634,7 @@ export default function AttachmentInputV3({
             className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
           >
             <Plus className="h-4 w-4" />
-            My Files
+            {locale?.myFiles?.filehub?.attachments?.myFiles || "My Files"}
           </button>
         </div>
       </div>
@@ -631,7 +645,12 @@ export default function AttachmentInputV3({
             <span className="font-semibold text-slate-800">
               {totalFilesCount}
             </span>{" "}
-            file{totalFilesCount === 1 ? "" : "s"} selected
+            {locale?.myFiles?.filehub?.attachments?.filesSelected
+              ?.replace("{count}", totalFilesCount.toString())
+              ?.replace("{plural}", totalFilesCount === 1 ? "" : "s") ||
+              `${totalFilesCount} file${
+                totalFilesCount === 1 ? "" : "s"
+              } selected`}
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs uppercase tracking-wide text-slate-400">
@@ -681,7 +700,10 @@ export default function AttachmentInputV3({
                     type="button"
                     onClick={() => removeAttachmentToUpload(attachment.id)}
                     className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
-                    aria-label="Remove file"
+                    aria-label={
+                      locale?.myFiles?.filehub?.attachments?.removeFile ||
+                      "Remove file"
+                    }
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -696,7 +718,12 @@ export default function AttachmentInputV3({
                       <div className="flex flex-wrap gap-x-4 text-xs items-center text-slate-500">
                         <span>{formatBytes(attachment.size)}</span>
                         <span className="hidden sm:inline">•</span>
-                        <span>{attachment.file?.type || "Unknown type"}</span>
+                        <span>
+                          {attachment.file?.type ||
+                            locale?.myFiles?.filehub?.attachments
+                              ?.unknownType ||
+                            "Unknown type"}
+                        </span>
                         <span
                           className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow ${statusStyle.badge}`}
                         >
@@ -704,22 +731,31 @@ export default function AttachmentInputV3({
                             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                           )}
                           {status === "uploaded"
-                            ? "Uploaded"
+                            ? locale?.myFiles?.filehub?.attachments?.uploaded ||
+                              "Uploaded"
                             : status === "uploading"
                             ? `${Math.round(progress)}%`
-                            : "Queued"}
+                            : locale?.myFiles?.filehub?.attachments?.queued ||
+                              "Queued"}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {attachment.expirationDate && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                            Expires{" "}
-                            {formatDateDisplay(attachment.expirationDate)}
+                            {locale?.myFiles?.filehub?.attachments?.expires ||
+                              "Expires"}{" "}
+                            {formatDateDisplayWithHijri(
+                              attachment.expirationDate,
+                              language,
+                              locale?.myFiles?.filehub?.attachments
+                                ?.noExpiration || "No expiration"
+                            )}
                           </span>
                         )}
                         {attachment.isGlobal && (
                           <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
-                            Global
+                            {locale?.myFiles?.filehub?.attachments?.global ||
+                              "Global"}
                           </span>
                         )}
                       </div>
@@ -738,7 +774,10 @@ export default function AttachmentInputV3({
                           })
                         }
                         className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-                        title="Preview"
+                        title={
+                          locale?.myFiles?.filehub?.attachments?.preview ||
+                          "Preview"
+                        }
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -746,7 +785,10 @@ export default function AttachmentInputV3({
                         type="button"
                         onClick={() => openMetadataDialog(attachment.id)}
                         className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-                        title="Edit Metadata"
+                        title={
+                          locale?.myFiles?.filehub?.uploadModal?.editMetadata ||
+                          "Edit Metadata"
+                        }
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
@@ -799,7 +841,10 @@ export default function AttachmentInputV3({
                     type="button"
                     onClick={() => deselectFormMyAttachment(attachment.id)}
                     className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
-                    aria-label="Remove file"
+                    aria-label={
+                      locale?.myFiles?.filehub?.attachments?.removeFile ||
+                      "Remove file"
+                    }
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -814,18 +859,30 @@ export default function AttachmentInputV3({
                       <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
                         <span>{formatBytes(attachment.size)}</span>
                         <span className="hidden sm:inline">•</span>
-                        <span>{attachment.fileType || "Unknown type"}</span>
+                        <span>
+                          {attachment.fileType ||
+                            locale?.myFiles?.filehub?.attachments
+                              ?.unknownType ||
+                            "Unknown type"}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {attachment.expirationDate && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                            Expires{" "}
-                            {formatDateDisplay(attachment.expirationDate)}
+                            {locale?.myFiles?.filehub?.attachments?.expires ||
+                              "Expires"}{" "}
+                            {formatDateDisplayWithHijri(
+                              attachment.expirationDate,
+                              language,
+                              locale?.myFiles?.filehub?.attachments
+                                ?.noExpiration || "No expiration"
+                            )}
                           </span>
                         )}
                         {attachment.isGlobal && (
                           <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
-                            Global
+                            {locale?.myFiles?.filehub?.attachments?.global ||
+                              "Global"}
                           </span>
                         )}
                       </div>
@@ -844,7 +901,10 @@ export default function AttachmentInputV3({
                           })
                         }
                         className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-                        title="Preview"
+                        title={
+                          locale?.myFiles?.filehub?.attachments?.preview ||
+                          "Preview"
+                        }
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -878,7 +938,10 @@ export default function AttachmentInputV3({
                       )
                     }
                     className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-slate-400 shadow hover:text-red-600"
-                    aria-label="Remove file"
+                    aria-label={
+                      locale?.myFiles?.filehub?.attachments?.removeFile ||
+                      "Remove file"
+                    }
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -893,18 +956,30 @@ export default function AttachmentInputV3({
                       <div className="flex flex-wrap gap-x-4 text-xs text-slate-500">
                         <span>{formatBytes(attachment.size)}</span>
                         <span className="hidden sm:inline">•</span>
-                        <span>{attachment.fileType || "Unknown type"}</span>
+                        <span>
+                          {attachment.fileType ||
+                            locale?.myFiles?.filehub?.attachments
+                              ?.unknownType ||
+                            "Unknown type"}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {attachment.expirationDate && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                            Expires{" "}
-                            {formatDateDisplay(attachment.expirationDate)}
+                            {locale?.myFiles?.filehub?.attachments?.expires ||
+                              "Expires"}{" "}
+                            {formatDateDisplayWithHijri(
+                              attachment.expirationDate,
+                              language,
+                              locale?.myFiles?.filehub?.attachments
+                                ?.noExpiration || "No expiration"
+                            )}
                           </span>
                         )}
                         {attachment.isGlobal && (
                           <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
-                            Global
+                            {locale?.myFiles?.filehub?.attachments?.global ||
+                              "Global"}
                           </span>
                         )}
                       </div>
@@ -923,7 +998,10 @@ export default function AttachmentInputV3({
                           })
                         }
                         className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-                        title="Preview"
+                        title={
+                          locale?.myFiles?.filehub?.attachments?.preview ||
+                          "Preview"
+                        }
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -954,7 +1032,10 @@ export default function AttachmentInputV3({
                       restoreAttachmentFromExistingAttachments(attachment.id)
                     }
                     className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-1 text-green-600 shadow hover:text-green-700"
-                    aria-label="Restore file"
+                    aria-label={
+                      locale?.myFiles?.filehub?.attachments?.restoreFile ||
+                      "Restore file"
+                    }
                   >
                     <RefreshCw className="h-4 w-4" />
                   </button>
@@ -969,23 +1050,36 @@ export default function AttachmentInputV3({
                       <div className="flex flex-wrap gap-x-4 text-xs items-center text-slate-500">
                         <span>{formatBytes(attachment.size)}</span>
                         <span className="hidden sm:inline">•</span>
-                        <span>{attachment.fileType || "Unknown type"}</span>
+                        <span>
+                          {attachment.fileType ||
+                            locale?.myFiles?.filehub?.attachments
+                              ?.unknownType ||
+                            "Unknown type"}
+                        </span>
                         <span
                           className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow ${statusStyle.badge}`}
                         >
-                          Marked for Deletion
+                          {locale?.myFiles?.filehub?.attachments
+                            ?.markedForDeletion || "Marked for Deletion"}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {attachment.expirationDate && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                            Expires{" "}
-                            {formatDateDisplay(attachment.expirationDate)}
+                            {locale?.myFiles?.filehub?.attachments?.expires ||
+                              "Expires"}{" "}
+                            {formatDateDisplayWithHijri(
+                              attachment.expirationDate,
+                              language,
+                              locale?.myFiles?.filehub?.attachments
+                                ?.noExpiration || "No expiration"
+                            )}
                           </span>
                         )}
                         {attachment.isGlobal && (
                           <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700">
-                            Global
+                            {locale?.myFiles?.filehub?.attachments?.global ||
+                              "Global"}
                           </span>
                         )}
                       </div>
@@ -1013,30 +1107,32 @@ export default function AttachmentInputV3({
           >
             <div className="mb-4">
               <h4 className="text-base font-semibold text-slate-900">
-                Edit Metadata
+                {locale?.myFiles?.filehub?.uploadModal?.editMetadata ||
+                  "Edit Metadata"}
               </h4>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-medium uppercase tracking-wide text-slate-600">
-                  Expiration date
+                  {locale?.myFiles?.filehub?.attachments?.expirationDate ||
+                    locale?.myFiles?.filehub?.metadataModal?.expirationLabel ||
+                    "Expiration date"}
                 </label>
-                <input
-                  type="date"
-                  value={toDateInputValue(currentlySelectingExpirationDate)}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setCurrentlySelectingExpirationDate(
-                      value ? new Date(`${value}T00:00:00`) : null
-                    );
+                <DatePickerInput
+                  defaultCalendar={language === "ar" ? "hijri" : "gregorian"}
+                  defaultLanguage={language as Language}
+                  onChange={(date) => {
+                    setCurrentlySelectingExpirationDate(date);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  value={currentlySelectingExpirationDate || undefined}
                 />
               </div>
               <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-slate-900">
-                    Global flag
+                    {locale?.myFiles?.filehub?.attachments?.globalFlag ||
+                      locale?.myFiles?.filehub?.metadataModal?.globalLabel ||
+                      "Global flag"}
                   </p>
                 </div>
                 <button
@@ -1053,7 +1149,11 @@ export default function AttachmentInputV3({
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${
                       currentlySelectingGlobalFlag
-                        ? "translate-x-6"
+                        ? isRTL(language)
+                          ? "-translate-x-6"
+                          : "translate-x-6"
+                        : isRTL(language)
+                        ? "-translate-x-1"
                         : "translate-x-1"
                     }`}
                   />
@@ -1066,14 +1166,18 @@ export default function AttachmentInputV3({
                 onClick={() => closeMetadataDialog()}
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                Cancel
+                {locale?.myFiles?.filehub?.uploadModal?.cancel ||
+                  locale?.myFiles?.filehub?.metadataModal?.cancel ||
+                  "Cancel"}
               </button>
               <button
                 type="button"
                 onClick={onMetadataConfirm}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Confirm
+                {locale?.myFiles?.filehub?.attachments?.confirm ||
+                  locale?.myFiles?.filehub?.metadataModal?.done ||
+                  "Confirm"}
               </button>
             </div>
           </div>
@@ -1089,17 +1193,20 @@ export default function AttachmentInputV3({
           >
             <div className="mb-4">
               <h4 className="text-base font-semibold text-slate-900">
-                Preview Unavailable
+                {locale?.myFiles?.filehub?.attachments?.previewUnavailable ||
+                  "Preview Unavailable"}
               </h4>
             </div>
             <div className="mb-6">
               <p className="text-sm text-slate-600">
-                Preview is not available for this attachment. The file may not
-                have a signed URL or may not be accessible at this time.
+                {locale?.myFiles?.filehub?.attachments
+                  ?.previewUnavailableMessage ||
+                  "Preview is not available for this attachment. The file may not have a signed URL or may not be accessible at this time."}
               </p>
               {previewAttachment && (
                 <p className="text-sm text-slate-500 mt-2">
-                  File: {previewAttachment.originalName}
+                  {locale?.myFiles?.filehub?.attachments?.file || "File"}:{" "}
+                  {previewAttachment.originalName}
                 </p>
               )}
             </div>
@@ -1112,7 +1219,9 @@ export default function AttachmentInputV3({
                 }}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Close
+                {locale?.myFiles?.filehub?.attachments?.close ||
+                  locale?.myFiles?.filehub?.uploadModal?.cancel ||
+                  "Close"}
               </button>
             </div>
           </div>
@@ -1128,7 +1237,8 @@ export default function AttachmentInputV3({
           >
             <div className="mb-4">
               <h4 className="text-base font-semibold text-slate-900">
-                My Attachments
+                {locale?.myFiles?.filehub?.attachments?.myAttachments ||
+                  "My Attachments"}
               </h4>
             </div>
             <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-2">
@@ -1144,7 +1254,12 @@ export default function AttachmentInputV3({
                       </p>
                       <p className="text-xs text-slate-500">
                         {formatBytes(attachment.size)} ·{" "}
-                        {formatDateDisplay(attachment.expirationDate)}
+                        {formatDateDisplayWithHijri(
+                          attachment.expirationDate,
+                          language,
+                          locale?.myFiles?.filehub?.attachments?.noExpiration ||
+                            "No expiration"
+                        )}
                       </p>
                     </div>
                     <input
@@ -1159,7 +1274,8 @@ export default function AttachmentInputV3({
                 ))
               ) : (
                 <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                  No attachments available
+                  {locale?.myFiles?.filehub?.attachments
+                    ?.noAttachmentsAvailable || "No attachments available"}
                 </p>
               )}
             </div>
@@ -1169,14 +1285,17 @@ export default function AttachmentInputV3({
                 onClick={() => setIsChooseFromMyFilesDialogOpen(false)}
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                Cancel
+                {locale?.myFiles?.filehub?.uploadModal?.cancel ||
+                  locale?.myFiles?.filehub?.metadataModal?.cancel ||
+                  "Cancel"}
               </button>
               <button
                 type="button"
                 onClick={onChooseFromMyFilesConfirm}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Add Selected
+                {locale?.myFiles?.filehub?.attachments?.addSelected ||
+                  "Add Selected"}
               </button>
             </div>
           </div>
