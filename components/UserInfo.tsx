@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import api, { UserResponse } from "@/lib/api";
 import { FileHubProfilePictureService } from "@/lib/api/v2";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { isRTL } from "@/locales/isRTL";
 
 interface UserInfoProps {
   className?: string;
@@ -30,6 +32,8 @@ const formatRole = (role: string) => {
 export default function UserInfo({ className = "" }: UserInfoProps) {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [profilePic, setProfilePic] = useState("");
+  const language = useLocaleStore((state) => state.language);
+  const rtl = isRTL(language || "en");
   useEffect(() => {
     fetch("/server/me")
       .then((res) => res.json())
@@ -55,7 +59,11 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
 
   return (
     <div className={`p-4 border-t border-gray-200 bg-gray-50 ${className}`}>
-      <div className="flex items-center space-x-3">
+      <div
+        className={`flex items-center ${
+          rtl ? "flex-row-reverse justify-end" : ""
+        } ${rtl ? "space-x-reverse space-x-3" : "space-x-3"}`}
+      >
         {/* Profile Picture */}
         <div className="flex-shrink-0">
           {profilePic ? (
@@ -74,9 +82,17 @@ export default function UserInfo({ className = "" }: UserInfoProps) {
         </div>
 
         {/* User Info */}
-        <div className="flex flex-col space-y-1 min-w-0 flex-1">
+        <div
+          className={`flex flex-col space-y-1 min-w-0 flex-1 ${
+            rtl ? "text-right" : "text-left"
+          }`}
+        >
           {/* Name and Role Badge in a row */}
-          <div className="flex items-center space-x-2">
+          <div
+            className={`flex items-center ${
+              rtl ? "flex-row-reverse justify-end space-x-reverse" : ""
+            } space-x-2`}
+          >
             <span className="text-sm font-medium text-gray-900 truncate">
               {user.name}
             </span>
