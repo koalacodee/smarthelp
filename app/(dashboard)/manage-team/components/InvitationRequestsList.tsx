@@ -21,6 +21,8 @@ export default function InvitationRequestsList({
   const [loadingTokens, setLoadingTokens] = useState<Set<string>>(new Set());
   const { addToast } = useToastStore();
 
+  const locale = useLocaleStore((state) => state.locale);
+
   const handleAcceptInvitation = async (token: string) => {
     setLoadingTokens((prev) => new Set(prev).add(token));
 
@@ -38,17 +40,19 @@ export default function InvitationRequestsList({
 
       addToast({
         type: "success",
-        message: locale.manageTeam.toasts.acceptSuccess.replace(
-          "{name}",
-          result.invitationDetails.fullName
-        ),
+        message:
+          locale?.manageTeam.toasts.acceptSuccess.replace(
+            "{name}",
+            result.invitationDetails.fullName
+          ) || "",
       });
     } catch (error: any) {
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
-          locale.manageTeam.toasts.acceptFailed,
+          locale?.manageTeam.toasts.acceptFailed ||
+          "",
       });
     } finally {
       setLoadingTokens((prev) => {
@@ -74,17 +78,19 @@ export default function InvitationRequestsList({
 
       addToast({
         type: "success",
-        message: locale.manageTeam.toasts.deleteInvitationSuccess.replace(
-          "{name}",
-          fullName
-        ),
+        message:
+          locale?.manageTeam.toasts.deleteInvitationSuccess.replace(
+            "{name}",
+            fullName
+          ) || "",
       });
     } catch (error: any) {
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
-          locale.manageTeam.toasts.deleteInvitationFailed,
+          locale?.manageTeam.toasts.deleteInvitationFailed ||
+          "",
       });
     } finally {
       setLoadingTokens((prev) => {
@@ -100,17 +106,18 @@ export default function InvitationRequestsList({
       PENDING_APPROVAL: {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
-        label: locale.manageTeam.invitationRequests.status.pendingApproval,
+        label:
+          locale?.manageTeam.invitationRequests.status.pendingApproval || "",
       },
       APPROVED: {
         bg: "bg-green-100",
         text: "text-green-800",
-        label: locale.manageTeam.invitationRequests.status.approved,
+        label: locale?.manageTeam.invitationRequests.status.approved || "",
       },
       REJECTED: {
         bg: "bg-red-100",
         text: "text-red-800",
-        label: locale.manageTeam.invitationRequests.status.rejected,
+        label: locale?.manageTeam.invitationRequests.status.rejected || "",
       },
     };
 
@@ -126,6 +133,8 @@ export default function InvitationRequestsList({
       </span>
     );
   };
+
+  if (!locale) return null;
 
   return (
     <motion.div
@@ -259,7 +268,10 @@ export default function InvitationRequestsList({
                   {userRole === "SUPERVISOR" && request.subDepartmentNames && (
                     <div className="md:col-span-2">
                       <span className="font-medium">
-                        {locale.manageTeam.invitationRequests.labels.subDepartments}
+                        {
+                          locale.manageTeam.invitationRequests.labels
+                            .subDepartments
+                        }
                       </span>{" "}
                       <div className="flex flex-wrap gap-1 mt-1">
                         {request.subDepartmentNames.map(
@@ -336,7 +348,10 @@ export default function InvitationRequestsList({
                             ></path>
                           </motion.svg>
                           <span>
-                            {locale.manageTeam.invitationRequests.actions.accepting}
+                            {
+                              locale.manageTeam.invitationRequests.actions
+                                .accepting
+                            }
                           </span>
                         </motion.div>
                       ) : (
@@ -353,7 +368,8 @@ export default function InvitationRequestsList({
                 <ThreeDotMenu
                   options={[
                     {
-                      label: locale.manageTeam.invitationRequests.actions.delete,
+                      label:
+                        locale.manageTeam.invitationRequests.actions.delete,
                       onClick: () =>
                         handleDeleteInvitation(request.token, request.fullName),
                       color: "red",
