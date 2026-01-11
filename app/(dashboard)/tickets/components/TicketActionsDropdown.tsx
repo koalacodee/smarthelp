@@ -6,6 +6,7 @@ import api, { SupportTicket, TicketStatus, UserResponse } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useToastStore } from "../../store/useToastStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TicketActionsDropdownProps {
   ticket: SupportTicket;
@@ -49,6 +50,9 @@ export default function TicketActionsDropdown({
   const { updateStatus, removeTicket } = useTicketStore();
   const { openModal } = useConfirmationModalStore();
   const { addToast } = useToastStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   const handleReopenTicket = async (id: string) => {
     await api.TicketsService.reopenTicket(id);
@@ -69,17 +73,16 @@ export default function TicketActionsDropdown({
 
   const handleDeleteTicket = (id: string) => {
     openModal({
-      title: "Delete Ticket",
-      message:
-        "Are you sure you want to delete this ticket? This action cannot be undone.",
-      confirmText: "Delete",
-      cancelText: "Cancel",
+      title: locale.tickets.confirmations.deleteTitle,
+      message: locale.tickets.confirmations.deleteMessage,
+      confirmText: locale.tickets.confirmations.confirmText,
+      cancelText: locale.tickets.confirmations.cancelText,
       onConfirm: async () => {
         await api.TicketsService.deleteTicket(id);
         removeTicket(id);
         setIsOpen(false);
         addToast({
-          message: "Ticket deleted successfully",
+          message: locale.tickets.toasts.ticketDeleted,
           type: "success",
         });
       },
@@ -90,7 +93,7 @@ export default function TicketActionsDropdown({
     if (ticket.status === TicketStatus.CLOSED) {
       const actions = [
         {
-          label: "View Details",
+          label: locale.tickets.actions.viewDetails,
           onClick: () => handleViewDetails(ticket),
           className: "text-blue-600 hover:bg-blue-50",
         },
@@ -98,7 +101,7 @@ export default function TicketActionsDropdown({
 
       if (isAdmin) {
         actions.push({
-          label: "Delete",
+          label: locale.tickets.actions.delete,
           onClick: () => handleDeleteTicket(ticket.id),
           className: "text-red-600 hover:bg-red-50",
         });
@@ -110,7 +113,7 @@ export default function TicketActionsDropdown({
     if (ticket.status === TicketStatus.ANSWERED) {
       const actions = [
         {
-          label: "View Details",
+          label: locale.tickets.actions.viewDetails,
           onClick: () => handleViewDetails(ticket),
           className: "text-blue-600 hover:bg-blue-50",
         },
@@ -118,7 +121,7 @@ export default function TicketActionsDropdown({
 
       if (isManager) {
         actions.push({
-          label: "Re-open for Reply",
+          label: locale.tickets.actions.reopenForReply,
           onClick: () => handleReopenTicket(ticket.id),
           className: "text-amber-600 hover:bg-amber-50",
         });
@@ -126,7 +129,7 @@ export default function TicketActionsDropdown({
 
       if (isManager || isAllowedEmployee) {
         actions.push({
-          label: "Close",
+          label: locale.tickets.actions.close,
           onClick: () => handleCloseTicket(ticket.id),
           className: "text-green-600 hover:bg-green-50",
         });
@@ -134,7 +137,7 @@ export default function TicketActionsDropdown({
 
       if (isAdmin) {
         actions.push({
-          label: "Delete",
+          label: locale.tickets.actions.delete,
           onClick: () => handleDeleteTicket(ticket.id),
           className: "text-red-600 hover:bg-red-50",
         });
@@ -146,7 +149,9 @@ export default function TicketActionsDropdown({
     // Status is New or Seen
     const actions = [
       {
-        label: ticket.answer ? "View / Edit Reply" : "Reply",
+        label: ticket.answer
+          ? locale.tickets.actions.viewEditReply
+          : locale.tickets.actions.reply,
         onClick: () => handleViewDetails(ticket),
         className: "text-blue-600 hover:bg-blue-50",
       },
@@ -154,7 +159,7 @@ export default function TicketActionsDropdown({
 
     if (isAdmin) {
       actions.push({
-        label: "Delete",
+        label: locale.tickets.actions.delete,
         onClick: () => handleDeleteTicket(ticket.id),
         className: "text-red-600 hover:bg-red-50",
       });

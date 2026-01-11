@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { TicketMetrics } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function TicketsDashboard({
   totalTickets,
@@ -8,8 +9,11 @@ export default function TicketsDashboard({
   answeredTickets,
   closedTickets,
 }: TicketMetrics) {
+  const { locale } = useLocaleStore();
   const completionPercentage =
     totalTickets > 0 ? Math.round((closedTickets / totalTickets) * 100) : 0;
+
+  if (!locale) return null;
 
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
@@ -19,7 +23,7 @@ export default function TicketsDashboard({
         transition={{ duration: 0.4, delay: 0.1 }}
         className="text-base font-semibold mb-4 text-[#4a5568]"
       >
-        Dashboard
+        {locale.tickets.dashboard.title}
       </motion.h3>
       <motion.div
         initial={{ scale: 0, rotate: -180 }}
@@ -52,25 +56,25 @@ export default function TicketsDashboard({
         {[
           {
             icon: "🎫",
-            label: "Total Tickets",
+            label: locale.tickets.dashboard.totalTickets,
             value: totalTickets,
             color: "text-[#667eea]",
           },
           {
             icon: "⏳",
-            label: "Pending",
+            label: locale.tickets.dashboard.pending,
             value: pendingTickets,
             color: "text-[#f59e0b]",
           },
           {
             icon: "✅",
-            label: "Answered",
+            label: locale.tickets.dashboard.answered,
             value: answeredTickets,
             color: "text-[#48bb78]",
           },
           {
             icon: "🔒",
-            label: "Closed",
+            label: locale.tickets.dashboard.closed,
             value: closedTickets,
             color: "text-[#6b7280]",
           },

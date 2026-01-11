@@ -22,12 +22,16 @@ import api from "@/lib/api";
 import { Department } from "@/lib/api/departments";
 import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
 import { useAttachments } from "@/hooks/useAttachments";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TicketsPageClientProps {
   initialTickets: SupportTicket[];
   initialAttachments: FileHubAttachment[];
   initialMetrics: TicketMetrics;
   departments: Department[];
+  locale: Locale;
+  language: string;
 }
 
 export default function TicketsPageClient({
@@ -35,6 +39,8 @@ export default function TicketsPageClient({
   initialAttachments,
   initialMetrics,
   departments,
+  locale,
+  language,
 }: TicketsPageClientProps) {
   const { tickets, setTickets } = useTicketStore();
   const [metrics, setMetrics] = useState<TicketMetrics>(initialMetrics);
@@ -51,11 +57,16 @@ export default function TicketsPageClient({
   const latestDepartmentRef = useRef("");
   const didMountSearchRef = useRef(false);
   const { addToast } = useToastStore();
+  const { setLocale } = useLocaleStore();
   const {
     clearExistingAttachmentsForTarget,
     addExistingAttachmentToTarget,
     upsertExistingAttachmentForTarget,
   } = useAttachments();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   // Fetch user to check admin status
   useEffect(() => {
@@ -130,8 +141,10 @@ export default function TicketsPageClient({
           });
         });
       } catch (error) {
+        const { locale: storeLocale } = useLocaleStore.getState();
         addToast({
           message:
+            storeLocale?.tickets?.toasts?.fetchError ||
             "Failed to fetch tickets for the selected filters. Please try again.",
           type: "error",
         });
@@ -232,8 +245,11 @@ export default function TicketsPageClient({
       setEndDate(null);
     } catch (error) {
       console.error("Export failed:", error);
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
-        message: "Failed to export tickets. Please try again.",
+        message:
+          storeLocale?.tickets?.toasts?.exportError ||
+          "Failed to export tickets. Please try again.",
         type: "error",
       });
     } finally {
@@ -285,7 +301,7 @@ export default function TicketsPageClient({
                   transition={{ duration: 0.4, delay: 0.2 }}
                   className="text-lg font-semibold text-slate-800"
                 >
-                  Support Tickets
+                  {locale.tickets.pageHeader.title}
                 </motion.h2>
                 <motion.p
                   initial={{ opacity: 0, x: -20 }}
@@ -293,8 +309,9 @@ export default function TicketsPageClient({
                   transition={{ duration: 0.4, delay: 0.3 }}
                   className="text-sm text-slate-600"
                 >
-                  {tickets.length} ticket
-                  {tickets.length !== 1 ? "s" : ""} available
+                  {locale.tickets.pageHeader.ticketsAvailable
+                    .replace("{count}", tickets.length.toString())
+                    .replace("{plural}", tickets.length !== 1 ? "s" : "")}
                 </motion.p>
               </div>
             </div>
@@ -308,7 +325,7 @@ export default function TicketsPageClient({
                   >
                     <div className="flex flex-col">
                       <label className="text-xs text-slate-500 mb-1">
-                        Start Date (Optional)
+                        {locale.tickets.export.startDate}
                       </label>
                       <input
                         type="date"
@@ -319,7 +336,7 @@ export default function TicketsPageClient({
                     </div>
                     <div className="flex flex-col">
                       <label className="text-xs text-slate-500 mb-1">
-                        End Date (Optional)
+                        {locale.tickets.export.endDate}
                       </label>
                       <input
                         type="date"
@@ -333,7 +350,9 @@ export default function TicketsPageClient({
                       disabled={isExporting}
                       className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isExporting ? "Exporting..." : "Export"}
+                      {isExporting
+                        ? locale.tickets.export.exporting
+                        : locale.tickets.export.export}
                     </button>
                     <button
                       onClick={() => {
@@ -343,7 +362,7 @@ export default function TicketsPageClient({
                       }}
                       className="px-3 py-1.5 text-slate-600 text-sm font-medium rounded-md hover:bg-slate-100 transition-colors"
                     >
-                      Cancel
+                      {locale.tickets.export.cancel}
                     </button>
                   </motion.div>
                 )}
@@ -434,7 +453,7 @@ export default function TicketsPageClient({
               <div className="flex flex-col items-center justify-center py-24">
                 <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
                 <p className="mt-4 text-sm text-slate-500">
-                  Loading tickets...
+                  {locale.tickets.loading.loadingTickets}
                 </p>
               </div>
             ) : (

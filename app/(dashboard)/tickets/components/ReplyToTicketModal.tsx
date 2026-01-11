@@ -9,6 +9,7 @@ import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInput from "../../files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import ExistingAttachmentsViewer from "../../files/components/ExistingAttachmentsViewer";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function ReplyToTicketModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -27,6 +28,9 @@ export default function ReplyToTicketModal() {
   const [hasStartedUpload, setHasStartedUpload] = useState(false);
   const [isWaitingToClose, setIsWaitingToClose] = useState(false);
   const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   const handleClose = () => {
     setTicket(null);
@@ -50,7 +54,7 @@ export default function ReplyToTicketModal() {
     clearErrors();
 
     if (!answer.trim()) {
-      setRootError("Please provide a reply message.");
+      setRootError(locale.tickets.modal.replyPlaceholder || "Please provide a reply message.");
       return;
     }
 
@@ -69,7 +73,7 @@ export default function ReplyToTicketModal() {
         moveCurrentNewTargetSelectionsToExisting(savedAnswer.id);
       }
       addToast({
-        message: "Ticket has been replied successfully.",
+        message: locale.tickets.toasts.ticketReplied,
         type: "success",
       });
 
@@ -88,7 +92,7 @@ export default function ReplyToTicketModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to reply to ticket. Please try again."
+            locale.tickets.toasts.replyError
         );
       }
     }
@@ -122,7 +126,7 @@ export default function ReplyToTicketModal() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="text-2xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent"
             >
-              Ticket Details #{ticket.subject}
+              {locale.tickets.modal.title.replace("{subject}", ticket.subject)}
             </motion.h3>
 
             <AnimatePresence>
@@ -190,7 +194,7 @@ export default function ReplyToTicketModal() {
                   transition={{ duration: 0.3, delay: 0.4 }}
                 >
                   <p className="font-semibold text-sm text-slate-600 mb-2">
-                    Customer:
+                    {locale.tickets.modal.customer}
                   </p>
                   <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
                     {ticket.guestName}
@@ -202,7 +206,7 @@ export default function ReplyToTicketModal() {
                   transition={{ duration: 0.3, delay: 0.4 }}
                 >
                   <p className="font-semibold text-sm text-slate-600 mb-2">
-                    Phone:
+                    {locale.tickets.modal.phone}
                   </p>
                   <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
                     {ticket.guestPhone}
@@ -214,9 +218,9 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 }}
               >
-                <p className="font-semibold text-sm text-slate-600 mb-2">
-                  Sub-department:
-                </p>
+                  <p className="font-semibold text-sm text-slate-600 mb-2">
+                    {locale.tickets.modal.subDepartment}
+                  </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
                   Domestic Shipping
                 </p>
@@ -226,9 +230,9 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.6 }}
               >
-                <p className="font-semibold text-sm text-slate-600 mb-2">
-                  Subject:
-                </p>
+                  <p className="font-semibold text-sm text-slate-600 mb-2">
+                    {locale.tickets.modal.subject}
+                  </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
                   {ticket.subject}
                 </p>
@@ -238,16 +242,16 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.7 }}
               >
-                <p className="font-semibold text-sm text-slate-600 mb-2">
-                  Description:
-                </p>
+                  <p className="font-semibold text-sm text-slate-600 mb-2">
+                    {locale.tickets.modal.description}
+                  </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200 whitespace-pre-wrap">
                   {ticket.description}
                 </p>
               </motion.div>
               <ExistingAttachmentsViewer
                 targetId={ticket.id}
-                title="Attachments Uploaded by Customer"
+                title={locale.tickets.modal.attachmentsTitle}
               />
             </motion.div>
             {isTicketClosedOrAnswered ? (
@@ -263,7 +267,7 @@ export default function ReplyToTicketModal() {
                   transition={{ duration: 0.4, delay: 0.9 }}
                 >
                   <p className="font-semibold text-sm text-slate-600 mb-2">
-                    Reply:
+                    {locale.tickets.modal.reply}
                   </p>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -271,7 +275,7 @@ export default function ReplyToTicketModal() {
                     transition={{ duration: 0.3, delay: 1 }}
                     className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200 whitespace-pre-wrap"
                   >
-                    {ticket.answer?.content || "No reply provided."}
+                    {ticket.answer?.content || locale.tickets.modal.noReply}
                   </motion.div>
                 </motion.div>
                 <motion.div
@@ -293,7 +297,7 @@ export default function ReplyToTicketModal() {
                     className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => setTicket(null)}
                   >
-                    Close
+                    {locale.tickets.modal.close}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -319,7 +323,7 @@ export default function ReplyToTicketModal() {
                       }}
                       rows={5}
                       className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
-                      placeholder="Write your reply..."
+                      placeholder={locale.tickets.modal.replyPlaceholder}
                       defaultValue={ticket.answer?.content || ""}
                       onChange={(e) => setAnswer(e.target.value)}
                     />
@@ -383,11 +387,10 @@ export default function ReplyToTicketModal() {
                         htmlFor="promote"
                         className="font-medium text-slate-900"
                       >
-                        Promote to public FAQ
+                        {locale.tickets.modal.promoteToFaq}
                       </label>
                       <p className="text-xs text-slate-500">
-                        The ticket subject will be the question, and your reply
-                        will be the answer.
+                        {locale.tickets.modal.promoteHint}
                       </p>
                     </motion.div>
                   </motion.div>
@@ -411,7 +414,7 @@ export default function ReplyToTicketModal() {
                     className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => setTicket(null)}
                   >
-                    Cancel
+                    {locale.tickets.modal.cancel}
                   </motion.button>
                   <motion.button
                     type="submit"
@@ -427,7 +430,7 @@ export default function ReplyToTicketModal() {
                     className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={handleSubmit}
                   >
-                    Send Reply
+                    {locale.tickets.modal.sendReply}
                   </motion.button>
                 </motion.div>
               </motion.form>

@@ -3,68 +3,72 @@ import { SupportTicket, Ticket, TicketStatus } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketActionsDropdown from "./TicketActionsDropdown";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
-const getTicketStatusBadge = (status: TicketStatus) => {
+function getTicketStatusBadge(status: TicketStatus, locale: any) {
+  if (!locale) return null;
+
   switch (status) {
     case TicketStatus.NEW:
       return (
         <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs">
-          New
+          {locale.tickets.filters.new}
         </span>
       );
     case TicketStatus.SEEN:
       return (
         <span className="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">
-          Seen
+          {locale.tickets.filters.seen}
         </span>
       );
     case TicketStatus.ANSWERED:
       return (
         <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">
-          Answered
+          {locale.tickets.filters.answered}
         </span>
       );
     case TicketStatus.CLOSED:
       return (
         <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs">
-          Closed
+          {locale.tickets.filters.closed}
         </span>
       );
     default:
       return (
         <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
-          Unknown
+          {locale.tickets.list.unknown}
         </span>
       );
   }
-};
+}
 
-const getPriorityBadge = (priority?: string) => {
-  if (!priority) return null;
+function getPriorityBadge(priority?: string, locale?: any) {
+  if (!priority || !locale) return null;
 
   switch (priority.toUpperCase()) {
     case "HIGH":
       return (
         <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs">
-          High
+          {locale.tickets.list.high}
         </span>
       );
     case "MEDIUM":
       return (
         <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded text-xs">
-          Medium
+          {locale.tickets.list.medium}
         </span>
       );
     case "LOW":
       return (
         <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">
-          Low
+          {locale.tickets.list.low}
         </span>
       );
     default:
       return null;
   }
-};
+}
 
 interface TicketsListProps {
   tickets: SupportTicket[];
@@ -72,6 +76,10 @@ interface TicketsListProps {
 
 export default function TicketsList({ tickets }: TicketsListProps) {
   const { setTicket } = useCurrentEditingTicketStore();
+  const { locale } = useLocaleStore();
+  const language = useLocaleStore((state) => state.language);
+
+  if (!locale) return null;
 
   const handleTicketClick = (ticket: SupportTicket) => {
     setTicket(ticket);
@@ -92,12 +100,12 @@ export default function TicketsList({ tickets }: TicketsListProps) {
           transition={{ duration: 0.3, delay: 0.9 }}
           className="grid grid-cols-12 gap-4 text-xs font-semibold text-slate-600 uppercase tracking-wider"
         >
-          <div className="col-span-4">Subject</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-2">Department</div>
-          <div className="col-span-2">Date</div>
-          <div className="col-span-1">Priority</div>
-          <div className="col-span-1">Actions</div>
+          <div className="col-span-4">{locale.tickets.list.subject}</div>
+          <div className="col-span-2">{locale.tickets.list.status}</div>
+          <div className="col-span-2">{locale.tickets.list.department}</div>
+          <div className="col-span-1">{locale.tickets.list.priority}</div>
+          <div className="col-span-2">{locale.tickets.list.date}</div>
+          <div className="col-span-1">{locale.tickets.list.actions}</div>
         </motion.div>
       </motion.div>
 
@@ -158,7 +166,7 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                     transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
                     className="col-span-2 flex items-center"
                   >
-                    {getTicketStatusBadge(ticket.status)}
+                    {getTicketStatusBadge(ticket.status, locale)}
                   </motion.div>
 
                   {/* Department */}
@@ -177,6 +185,16 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                     )}
                   </motion.div>
 
+                  {/* Priority */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                    className="col-span-1 flex items-center"
+                  >
+                    {getPriorityBadge(ticket.priority, locale)}
+                  </motion.div>
+
                   {/* Date */}
                   <motion.div
                     initial={{ opacity: 0, x: 10 }}
@@ -185,7 +203,7 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                     className="col-span-2 flex items-center"
                   >
                     <span className="text-sm text-slate-600">
-                      {new Date(ticket.createdAt).toLocaleDateString()}
+                      {formatDateWithHijri(ticket.createdAt, language)}
                     </span>
                   </motion.div>
 
@@ -242,9 +260,11 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                   transition={{ duration: 0.3, delay: 1.3 }}
                   className="text-slate-500"
                 >
-                  <p className="text-lg font-medium mb-2">No tickets found</p>
+                  <p className="text-lg font-medium mb-2">
+                    {locale.tickets.list.noTickets}
+                  </p>
                   <p className="text-sm">
-                    Try adjusting your search or filter criteria
+                    {locale.tickets.list.noTicketsHint}
                   </p>
                 </motion.div>
               </motion.div>

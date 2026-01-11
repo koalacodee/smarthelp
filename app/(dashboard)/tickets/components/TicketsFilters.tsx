@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { TicketStatus } from "@/lib/api";
 import { Department } from "@/lib/api/departments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TicketsFiltersProps {
   search: string;
@@ -25,12 +26,16 @@ export default function TicketsFilters({
   onDepartmentChange,
   isLoading = false,
 }: TicketsFiltersProps) {
+  const { locale } = useLocaleStore();
+
   const handleInputChange = (
     handler: (value: string) => void,
     value: string
   ) => {
     handler(value);
   };
+
+  if (!locale) return null;
 
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
@@ -40,7 +45,7 @@ export default function TicketsFilters({
         transition={{ duration: 0.4, delay: 0.1 }}
         className="text-base font-semibold mb-4 text-[#4a5568]"
       >
-        Filters &amp; Search
+        {locale.tickets.filters.title}
       </motion.h3>
       <motion.input
         initial={{ opacity: 0, x: -20 }}
@@ -54,7 +59,7 @@ export default function TicketsFilters({
         value={search}
         onChange={(e) => handleInputChange(onSearchChange, e.target.value)}
         className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#3b82f6] transition-all duration-200 disabled:opacity-60"
-        placeholder="Search by name, email, phone, subject, or description..."
+        placeholder={locale.tickets.filters.searchPlaceholder}
         disabled={isLoading}
       />
       <motion.div
@@ -69,7 +74,7 @@ export default function TicketsFilters({
           transition={{ duration: 0.3, delay: 0.4 }}
           className="block mb-1 text-xs text-[#4a5568]"
         >
-          Status
+          {locale.tickets.filters.statusLabel}
         </motion.label>
         <motion.select
           initial={{ opacity: 0, scale: 0.95 }}
@@ -84,11 +89,15 @@ export default function TicketsFilters({
           className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
           disabled={isLoading}
         >
-          <option value="">All</option>
-          <option value={TicketStatus.NEW}>New</option>
-          <option value={TicketStatus.SEEN}>Seen</option>
-          <option value={TicketStatus.ANSWERED}>Answered</option>
-          <option value={TicketStatus.CLOSED}>Closed</option>
+          <option value="">{locale.tickets.filters.allStatus}</option>
+          <option value={TicketStatus.NEW}>{locale.tickets.filters.new}</option>
+          <option value={TicketStatus.SEEN}>{locale.tickets.filters.seen}</option>
+          <option value={TicketStatus.ANSWERED}>
+            {locale.tickets.filters.answered}
+          </option>
+          <option value={TicketStatus.CLOSED}>
+            {locale.tickets.filters.closed}
+          </option>
         </motion.select>
       </motion.div>
       <motion.div
@@ -103,7 +112,7 @@ export default function TicketsFilters({
           transition={{ duration: 0.3, delay: 0.45 }}
           className="block mb-1 text-xs text-[#4a5568]"
         >
-          Department
+          {locale.tickets.filters.departmentLabel}
         </motion.label>
         <motion.select
           initial={{ opacity: 0, scale: 0.95 }}
@@ -120,7 +129,9 @@ export default function TicketsFilters({
           className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6] transition-all duration-200"
           disabled={isLoading}
         >
-          <option value="">All departments</option>
+          <option value="">
+            {locale.tickets.filters.allDepartments}
+          </option>
           {departments.map((dept) => (
             <option key={dept.id} value={dept.id}>
               {dept.name}
@@ -130,7 +141,7 @@ export default function TicketsFilters({
       </motion.div>
       {isLoading && (
         <p className="mt-4 text-xs text-slate-500 italic">
-          Updating tickets with selected filters...
+          {locale.tickets.filters.updating}
         </p>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { TicketsService, TicketMetrics, DepartmentsService } from "@/lib/api";
+import { getLocale, getLanguage } from "@/locales/helpers";
 import TicketsPageClient from "./components/TicketsPageClient";
 
 export const metadata: Metadata = {
@@ -9,9 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [response, departments] = await Promise.all([
+  const [response, departments, locale, language] = await Promise.all([
     TicketsService.getAllTickets(),
     DepartmentsService.getAllDepartments(),
+    getLocale(),
+    getLanguage(),
   ]);
 
   console.log(response);
@@ -35,6 +38,8 @@ export default async function Page() {
       initialAttachments={response.attachments}
       initialMetrics={metrics}
       departments={departments}
+      locale={locale}
+      language={language}
     />
   );
 }
