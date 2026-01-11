@@ -4,6 +4,7 @@ import { getIronSession } from "iron-session";
 import { env } from "next-runtime-env";
 import { UserResponse } from "@/lib/api";
 import ProfilePageClient from "./components/ProfilePageClient";
+import { getLocale, getLanguage } from "@/locales/helpers";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -24,6 +25,11 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  return <ProfilePageClient user={user} />;
+  const [locale, language] = await Promise.all([
+    getLocale(),
+    getLanguage(),
+  ]);
+
+  return <ProfilePageClient user={user} locale={locale} language={language} />;
 }
 

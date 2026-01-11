@@ -17,12 +17,20 @@ import Check from "@/icons/Check";
 import X from "@/icons/X";
 import LockClosed from "@/icons/LockClosed";
 import { useToastStore } from "../../store/useToastStore";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface ProfilePageClientProps {
   user: UserResponse;
+  locale: Locale;
+  language: string;
 }
 
-export default function ProfilePageClient({ user }: ProfilePageClientProps) {
+export default function ProfilePageClient({
+  user,
+  locale,
+  language,
+}: ProfilePageClientProps) {
   const { openCropModal, croppedImageFile, croppedImageUrl } =
     useImageCropStore();
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -33,6 +41,11 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const { addToast } = useToastStore();
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
   const [formData, setFormData] = useState({
     name: user.name || "",
     email: user.email || "",
@@ -110,8 +123,11 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
       // Validate file extension
       if (!["avif", "webp", "png", "jpeg", "jpg"].includes(fileExtension)) {
+        const { locale: storeLocale } = useLocaleStore.getState();
         addToast({
-          message: "Invalid file type. Please upload an image file.",
+          message:
+            storeLocale?.profile?.toasts?.invalidFileType ||
+            "Invalid file type. Please upload an image file.",
           type: "error",
         });
         return;
@@ -136,17 +152,22 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       setProfilePicture(null);
 
       // Show success message
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
-        message: "Profile picture updated successfully!",
+        message:
+          storeLocale?.profile?.toasts?.pictureUpdated ||
+          "Profile picture updated successfully!",
         type: "success",
       });
 
       // Reload the page to refresh session
       window.location.reload();
     } catch (err: any) {
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
         message:
           err?.response?.data?.message ||
+          storeLocale?.profile?.toasts?.pictureUpdateFailed ||
           "Failed to update profile picture. Please try again.",
         type: "error",
       });
@@ -162,7 +183,11 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
     // Validation
     if (!formData.name || !formData.email) {
-      setRootError("Name and email are required");
+      const { locale: storeLocale } = useLocaleStore.getState();
+      setRootError(
+        storeLocale?.profile?.errors?.nameAndEmailRequired ||
+          "Name and email are required"
+      );
       setLoading(false);
       return;
     }
@@ -177,8 +202,11 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       setIsEditMode(false);
 
       // Show success message
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
-        message: "Profile updated successfully!",
+        message:
+          storeLocale?.profile?.toasts?.profileUpdated ||
+          "Profile updated successfully!",
         type: "success",
       });
 
@@ -188,8 +216,10 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       if (err?.response?.data?.data?.details) {
         setErrors(err?.response?.data?.data?.details);
       } else {
+        const { locale: storeLocale } = useLocaleStore.getState();
         setRootError(
           err?.response?.data?.message ||
+            storeLocale?.profile?.toasts?.updateFailed ||
             "Failed to update profile. Please try again."
         );
       }
@@ -212,14 +242,20 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
     try {
       const result = await ProfileService.sendPasswordResetOTP();
       setOtpSent(true);
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
-        message: result.message || "OTP sent to your email successfully!",
+        message:
+          result.message ||
+          storeLocale?.profile?.toasts?.otpSent ||
+          "OTP sent to your email successfully!",
         type: "success",
       });
     } catch (err: any) {
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
         message:
           err?.response?.data?.message ||
+          storeLocale?.profile?.toasts?.otpSendFailed ||
           "Failed to send OTP. Please try again.",
         type: "error",
       });
@@ -242,13 +278,16 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
     e.preventDefault();
 
     // Validation
+    const { locale: storeLocale } = useLocaleStore.getState();
     if (
       !passwordResetData.code ||
       !passwordResetData.newPassword ||
       !passwordResetData.confirmPassword
     ) {
       addToast({
-        message: "Please fill in all fields",
+        message:
+          storeLocale?.profile?.toasts?.fillAllFields ||
+          "Please fill in all fields",
         type: "error",
       });
       return;
@@ -256,7 +295,9 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
     if (passwordResetData.newPassword !== passwordResetData.confirmPassword) {
       addToast({
-        message: "Passwords do not match",
+        message:
+          storeLocale?.profile?.toasts?.passwordsDoNotMatch ||
+          "Passwords do not match",
         type: "error",
       });
       return;
@@ -264,7 +305,9 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
 
     if (passwordResetData.newPassword.length < 4) {
       addToast({
-        message: "Password must be at least 4 characters long",
+        message:
+          storeLocale?.profile?.toasts?.passwordTooShort ||
+          "Password must be at least 4 characters long",
         type: "error",
       });
       return;
@@ -278,7 +321,10 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       });
 
       addToast({
-        message: result.message || "Password reset successfully!",
+        message:
+          result.message ||
+          storeLocale?.profile?.toasts?.passwordReset ||
+          "Password reset successfully!",
         type: "success",
       });
 
@@ -293,7 +339,9 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
     } catch (err: any) {
       if (err.message === "invalid_otp") {
         addToast({
-          message: "Invalid OTP. Please try again.",
+          message:
+            storeLocale?.profile?.toasts?.invalidOtp ||
+            "Invalid OTP. Please try again.",
           type: "error",
         });
         return;
@@ -301,6 +349,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
       addToast({
         message:
           err?.response?.data?.message ||
+          storeLocale?.profile?.toasts?.passwordResetFailed ||
           "Failed to reset password. Please try again.",
         type: "error",
       });
@@ -351,7 +400,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className="text-2xl font-bold text-slate-800"
               >
-                My Profile
+                {locale.profile.pageHeader.title}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, x: -20 }}
@@ -359,7 +408,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                 transition={{ duration: 0.4, delay: 0.3 }}
                 className="text-sm text-slate-600"
               >
-                Manage your profile information and settings
+                {locale.profile.pageHeader.description}
               </motion.p>
             </div>
           </div>
@@ -374,7 +423,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Pencil className="w-4 h-4" />
-              Edit Profile
+              {locale.profile.editButton}
             </motion.button>
           )}
         </div>
@@ -417,7 +466,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               transition={{ duration: 0.4, delay: 0.8 }}
               className="text-lg font-semibold text-slate-800"
             >
-              Profile Picture
+              {locale.profile.profilePicture.title}
             </motion.h2>
           </motion.div>
 
@@ -454,7 +503,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
               >
                 <Pencil className="w-4 h-4" />
-                Change Picture
+                {locale.profile.profilePicture.changePicture}
               </motion.label>
               <input
                 type="file"
@@ -505,10 +554,10 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </motion.svg>
-                        Uploading...
+                        {locale.profile.profilePicture.uploading}
                       </span>
                     ) : (
-                      "Upload New Picture"
+                      locale.profile.profilePicture.uploadNewPicture
                     )}
                   </motion.button>
                 )}
@@ -563,7 +612,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               transition={{ duration: 0.4, delay: 0.9 }}
               className="text-lg font-semibold text-slate-800"
             >
-              Profile Information
+              {locale.profile.profileInformation.title}
             </motion.h2>
           </motion.div>
 
@@ -608,17 +657,19 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                 {
                   id: "name",
                   name: "name",
-                  label: "Full Name",
+                  label: locale.profile.profileInformation.fields.fullName,
                   type: "text",
-                  placeholder: "Enter your full name",
+                  placeholder:
+                    locale.profile.profileInformation.placeholders.fullName,
                   required: true,
                 },
                 {
                   id: "email",
                   name: "email",
-                  label: "Email",
+                  label: locale.profile.profileInformation.fields.email,
                   type: "email",
-                  placeholder: "Enter your email",
+                  placeholder:
+                    locale.profile.profileInformation.placeholders.email,
                   required: true,
                 },
               ].map((field, index) => (
@@ -710,12 +761,12 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </motion.svg>
-                      Saving...
+                      {locale.profile.profileInformation.saving}
                     </>
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      Save Changes
+                      {locale.profile.profileInformation.saveChanges}
                     </>
                   )}
                 </motion.button>
@@ -728,7 +779,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <X className="w-4 h-4" />
-                  Cancel
+                  {locale.profile.profileInformation.cancel}
                 </motion.button>
               </motion.div>
             </motion.form>
@@ -741,10 +792,22 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { label: "Full Name", value: user.name },
-                  { label: "Email", value: user.email },
-                  { label: "Role", value: user.role },
-                  { label: "Job Title", value: user.jobTitle },
+                  {
+                    label: locale.profile.profileInformation.fields.fullName,
+                    value: user.name,
+                  },
+                  {
+                    label: locale.profile.profileInformation.fields.email,
+                    value: user.email,
+                  },
+                  {
+                    label: locale.profile.profileInformation.fields.role,
+                    value: user.role,
+                  },
+                  {
+                    label: locale.profile.profileInformation.fields.jobTitle,
+                    value: user.jobTitle,
+                  },
                 ].map((field, index) => (
                   <motion.div
                     key={field.label}
@@ -775,7 +838,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                   className="p-3 bg-slate-50 rounded-xl"
                 >
                   <p className="text-xs font-medium text-slate-500 mb-2">
-                    Departments / Sub-Departments
+                    {locale.profile.profileInformation.fields.departments}
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {user.departmentNames.map((dept, index) => (
@@ -811,7 +874,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                   className="p-3 bg-slate-50 rounded-xl"
                 >
                   <p className="text-xs font-medium text-slate-500 mb-2">
-                    Permissions
+                    {locale.profile.profileInformation.fields.permissions}
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {user.permissions.map((perm, index) => (
@@ -872,7 +935,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
             transition={{ duration: 0.4, delay: 1.0 }}
             className="text-lg font-semibold text-slate-800"
           >
-            Password & Security
+            {locale.profile.passwordSecurity.title}
           </motion.h2>
         </motion.div>
 
@@ -884,7 +947,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
             className="space-y-4"
           >
             <p className="text-sm text-slate-600">
-              Keep your account secure by regularly updating your password.
+              {locale.profile.passwordSecurity.description}
             </p>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -893,7 +956,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               <LockClosed className="w-4 h-4" />
-              Reset Password
+              {locale.profile.passwordSecurity.resetPassword}
             </motion.button>
           </motion.div>
         ) : (
@@ -911,8 +974,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               >
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                   <p className="text-sm text-blue-800">
-                    Click the button below to receive a one-time password (OTP)
-                    via email. You'll need this code to reset your password.
+                    {locale.profile.passwordSecurity.sendOtp.hint}
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -950,10 +1012,10 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </motion.svg>
-                        Sending OTP...
+                        {locale.profile.passwordSecurity.sendOtp.sending}
                       </>
                     ) : (
-                      "Send OTP to Email"
+                      locale.profile.passwordSecurity.sendOtp.title
                     )}
                   </motion.button>
                   <motion.button
@@ -963,7 +1025,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                     disabled={sendingOtp}
                     className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    {locale.profile.profileInformation.cancel}
                   </motion.button>
                 </div>
               </motion.div>
@@ -976,8 +1038,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
               >
                 <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
                   <p className="text-sm text-green-800">
-                    ✅ OTP sent successfully! Check your email and enter the
-                    code below along with your new password.
+                    {locale.profile.passwordSecurity.resetForm.otpSent}
                   </p>
                 </div>
 
@@ -985,26 +1046,34 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                   {
                     id: "code",
                     name: "code",
-                    label: "OTP Code",
+                    label: locale.profile.passwordSecurity.resetForm.otpCode,
                     type: "text",
-                    placeholder: "Enter the code from your email",
+                    placeholder:
+                      locale.profile.passwordSecurity.resetForm.placeholders
+                        .otpCode,
                     required: true,
                   },
                   {
                     id: "newPassword",
                     name: "newPassword",
-                    label: "New Password",
+                    label:
+                      locale.profile.passwordSecurity.resetForm.newPassword,
                     type: "password",
-                    placeholder: "Enter your new password",
+                    placeholder:
+                      locale.profile.passwordSecurity.resetForm.placeholders
+                        .newPassword,
                     required: true,
                     minLength: 4,
                   },
                   {
                     id: "confirmPassword",
                     name: "confirmPassword",
-                    label: "Confirm New Password",
+                    label:
+                      locale.profile.passwordSecurity.resetForm.confirmPassword,
                     type: "password",
-                    placeholder: "Confirm your new password",
+                    placeholder:
+                      locale.profile.passwordSecurity.resetForm.placeholders
+                        .confirmPassword,
                     required: true,
                     minLength: 4,
                   },
@@ -1082,12 +1151,12 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </motion.svg>
-                        Resetting Password...
+                        {locale.profile.passwordSecurity.resetForm.resetting}
                       </>
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        Reset Password
+                        {locale.profile.passwordSecurity.resetForm.reset}
                       </>
                     )}
                   </motion.button>
@@ -1100,7 +1169,7 @@ export default function ProfilePageClient({ user }: ProfilePageClientProps) {
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-4 h-4" />
-                    Cancel
+                    {locale.profile.profileInformation.cancel}
                   </motion.button>
                 </motion.div>
               </motion.form>
