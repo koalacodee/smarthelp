@@ -3,9 +3,11 @@
 import { motion } from "framer-motion";
 import { usePromotionsStore } from "../store/usePromotionsStore";
 import { AudienceType } from "@/lib/api/v2/services/promotion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function PromotionFilters() {
   const { filters, setFilters, clearFilters } = usePromotionsStore();
+  const { locale } = useLocaleStore();
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters({ [key]: value });
@@ -17,6 +19,8 @@ export default function PromotionFilters() {
       filters.sortBy === sortBy && filters.sortOrder === "asc" ? "desc" : "asc";
     setFilters({ sortBy, sortOrder: newOrder });
   };
+
+  if (!locale) return null;
 
   return (
     <motion.div
@@ -63,7 +67,7 @@ export default function PromotionFilters() {
               transition={{ duration: 0.3, delay: 0.5 }}
               className="text-lg font-semibold text-slate-800"
             >
-              Filters & Search
+              {locale.promotions.filters.title}
             </motion.h3>
             <motion.p
               initial={{ opacity: 0, x: -20 }}
@@ -71,7 +75,7 @@ export default function PromotionFilters() {
               transition={{ duration: 0.3, delay: 0.6 }}
               className="text-sm text-slate-500"
             >
-              Refine your promotion results
+              {locale.promotions.filters.description}
             </motion.p>
           </div>
         </div>
@@ -100,7 +104,7 @@ export default function PromotionFilters() {
                 d="M6 18L18 6M6 6l12 12"
               />
             </motion.svg>
-            Clear All
+            {locale.promotions.filters.clearAll}
           </span>
         </motion.button>
       </motion.div>
@@ -142,7 +146,7 @@ export default function PromotionFilters() {
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-slate-50/50"
-            placeholder="Search promotions by title..."
+            placeholder={locale.promotions.filters.searchPlaceholder}
           />
         </div>
       </motion.div>
@@ -166,7 +170,7 @@ export default function PromotionFilters() {
             transition={{ duration: 0.2, delay: 1.3 }}
             className="block text-sm font-medium text-slate-700"
           >
-            Audience
+            {locale.promotions.filters.audience.label}
           </motion.label>
           <div className="relative">
             <motion.select
@@ -178,11 +182,19 @@ export default function PromotionFilters() {
               onChange={(e) => handleFilterChange("audience", e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 appearance-none cursor-pointer"
             >
-              <option value="">All Audiences</option>
-              <option value={AudienceType.ALL}>All</option>
-              <option value={AudienceType.CUSTOMER}>Customer</option>
-              <option value={AudienceType.SUPERVISOR}>Supervisor</option>
-              <option value={AudienceType.EMPLOYEE}>Employee</option>
+              <option value="">{locale.promotions.filters.audience.all}</option>
+              <option value={AudienceType.ALL}>
+                {locale.promotions.filters.audience.allValue}
+              </option>
+              <option value={AudienceType.CUSTOMER}>
+                {locale.promotions.filters.audience.customer}
+              </option>
+              <option value={AudienceType.SUPERVISOR}>
+                {locale.promotions.filters.audience.supervisor}
+              </option>
+              <option value={AudienceType.EMPLOYEE}>
+                {locale.promotions.filters.audience.employee}
+              </option>
             </motion.select>
             <motion.div
               initial={{ opacity: 0 }}
@@ -220,7 +232,7 @@ export default function PromotionFilters() {
             transition={{ duration: 0.2, delay: 1.3 }}
             className="block text-sm font-medium text-slate-700"
           >
-            Status
+            {locale.promotions.filters.status.label}
           </motion.label>
           <div className="relative">
             <motion.select
@@ -232,9 +244,13 @@ export default function PromotionFilters() {
               onChange={(e) => handleFilterChange("status", e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 appearance-none cursor-pointer"
             >
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="">{locale.promotions.filters.status.all}</option>
+              <option value="active">
+                {locale.promotions.filters.status.active}
+              </option>
+              <option value="inactive">
+                {locale.promotions.filters.status.inactive}
+              </option>
             </motion.select>
             <motion.div
               initial={{ opacity: 0 }}
@@ -272,7 +288,7 @@ export default function PromotionFilters() {
             transition={{ duration: 0.2, delay: 1.3 }}
             className="block text-sm font-medium text-slate-700"
           >
-            Sort By
+            {locale.promotions.filters.sortBy.label}
           </motion.label>
           <div className="relative">
             <motion.select
@@ -284,11 +300,21 @@ export default function PromotionFilters() {
               onChange={(e) => handleFilterChange("sortBy", e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 appearance-none cursor-pointer"
             >
-              <option value="title">Title</option>
-              <option value="audience">Audience</option>
-              <option value="startDate">Start Date</option>
-              <option value="endDate">End Date</option>
-              <option value="createdAt">Created Date</option>
+              <option value="title">
+                {locale.promotions.filters.sortBy.title}
+              </option>
+              <option value="audience">
+                {locale.promotions.filters.sortBy.audience}
+              </option>
+              <option value="startDate">
+                {locale.promotions.filters.sortBy.startDate}
+              </option>
+              <option value="endDate">
+                {locale.promotions.filters.sortBy.endDate}
+              </option>
+              <option value="createdAt">
+                {locale.promotions.filters.sortBy.createdAt}
+              </option>
             </motion.select>
             <motion.div
               initial={{ opacity: 0 }}
@@ -327,7 +353,7 @@ export default function PromotionFilters() {
           transition={{ duration: 0.2, delay: 1.7 }}
           className="text-sm font-medium text-slate-700"
         >
-          Sort Order:
+          {locale.promotions.filters.sortOrder.label}
         </motion.span>
         <motion.button
           initial={{ opacity: 0, scale: 0.9 }}
@@ -377,7 +403,9 @@ export default function PromotionFilters() {
                 </svg>
               )}
             </motion.div>
-            {filters.sortOrder === "asc" ? "Ascending" : "Descending"}
+            {filters.sortOrder === "asc"
+              ? locale.promotions.filters.sortOrder.ascending
+              : locale.promotions.filters.sortOrder.descending}
           </span>
         </motion.button>
       </motion.div>

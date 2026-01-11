@@ -10,19 +10,30 @@ import PromotionFilters from "./PromotionFilters";
 import AnimatedPromotionsHeader from "./AnimatedPromotionsHeader";
 import AddNewPromotionButton from "./AddNewPromotionButton";
 import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface AnimatedPromotionsPageProps {
   promotions: PromotionDTO[];
   attachments: Record<string, string[]>;
   fileHubAttachments: FileHubAttachment[];
+  locale: Locale;
+  language: string;
 }
 
 export default function AnimatedPromotionsPage({
   promotions,
   attachments,
   fileHubAttachments,
+  locale,
+  language,
 }: AnimatedPromotionsPageProps) {
   const { setPromotions } = usePromotionsStore();
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   useEffect(() => {
     setPromotions(promotions);

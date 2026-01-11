@@ -2,8 +2,12 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AnimatedPromotionsHeader() {
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -31,7 +35,7 @@ export default function AnimatedPromotionsHeader() {
               transition={{ duration: 0.4, delay: 0.3 }}
               className="text-3xl font-bold bg-gradient-to-r from-slate-800 via-purple-800 to-indigo-800 bg-clip-text text-transparent"
             >
-              Promotions Management
+              {locale.promotions.pageHeader.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 5 }}
@@ -39,7 +43,7 @@ export default function AnimatedPromotionsHeader() {
               transition={{ duration: 0.3, delay: 0.4 }}
               className="text-slate-600 text-lg"
             >
-              Create and manage promotional campaigns for your customers
+              {locale.promotions.pageHeader.description}
             </motion.p>
           </div>
         </div>

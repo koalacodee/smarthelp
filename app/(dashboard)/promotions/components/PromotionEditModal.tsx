@@ -9,6 +9,7 @@ import { PromotionService } from "@/lib/api/v2";
 import { AudienceType } from "@/lib/api/v2/services/promotion";
 import useFormErrors from "@/hooks/useFormErrors";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function PromotionEditModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -38,6 +39,7 @@ export default function PromotionEditModal() {
     reset,
     confirmExistingAttachmentsDeletionForTarget,
   } = useAttachments();
+  const { locale } = useLocaleStore();
 
   // Effect to handle promotion changes and load initial data
   useEffect(() => {
@@ -75,7 +77,9 @@ export default function PromotionEditModal() {
     clearErrors();
 
     if (!title || !audience) {
-      setRootError("Please fill all required fields.");
+      setRootError(
+        locale?.promotions?.toasts?.fillAllFields || "Please fill all fields"
+      );
       return;
     }
 
@@ -100,7 +104,9 @@ export default function PromotionEditModal() {
             confirmExistingAttachmentsDeletionForTarget(promotion.id);
           }
           addToast({
-            message: "Promotion Updated Successfully!",
+            message:
+              locale?.promotions?.toasts?.updateSuccess ||
+              "Promotion updated successfully",
             type: "success",
           });
           // Update the promotion in the store
@@ -121,14 +127,16 @@ export default function PromotionEditModal() {
                 addToast({
                   message:
                     uploadErr?.message ||
-                    "Failed to upload new attachments. Please try again.",
+                    locale?.promotions?.toasts?.uploadFailed ||
+                    "Upload failed",
                   type: "error",
                 });
               }
             } else {
               addToast({
                 message:
-                  "Missing upload key for new attachments. Please retry the upload.",
+                  locale?.promotions?.toasts?.missingUploadKey ||
+                  "Missing upload key",
                 type: "error",
               });
             }
@@ -147,7 +155,8 @@ export default function PromotionEditModal() {
           } else {
             setRootError(
               error?.response?.data?.message ||
-                "Failed to update promotion. Please try again."
+                locale?.promotions?.toasts?.updateFailed ||
+                "Failed to update promotion"
             );
           }
         });
@@ -164,7 +173,9 @@ export default function PromotionEditModal() {
         .then(async (response) => {
           const { promotion: created } = response;
           addToast({
-            message: "Promotion Created Successfully!",
+            message:
+              locale?.promotions?.toasts?.createSuccess ||
+              "Promotion created successfully",
             type: "success",
           });
           // Add the new promotion to the store
@@ -185,14 +196,16 @@ export default function PromotionEditModal() {
                 addToast({
                   message:
                     uploadErr?.message ||
-                    "Failed to upload new attachments. Please try again.",
+                    locale?.promotions?.toasts?.uploadFailed ||
+                    "Upload failed",
                   type: "error",
                 });
               }
             } else {
               addToast({
                 message:
-                  "Missing upload key for new attachments. Please retry the upload.",
+                  locale?.promotions?.toasts?.missingUploadKey ||
+                  "Missing upload key",
                 type: "error",
               });
             }
@@ -211,14 +224,19 @@ export default function PromotionEditModal() {
           } else {
             setRootError(
               error?.response?.data?.message ||
-                "Failed to create promotion. Please try again."
+                locale?.promotions?.toasts?.createFailed ||
+                "Failed to create promotion"
             );
           }
         });
     }
   };
 
-  const modalTitle = promotion ? "Edit Promotion" : "Add New Promotion";
+  if (!locale) return null;
+
+  const modalTitle = promotion
+    ? locale.promotions.modal.editTitle
+    : locale.promotions.modal.createTitle;
 
   if (!isEditing) return null;
 
@@ -318,7 +336,7 @@ export default function PromotionEditModal() {
                   htmlFor="promotion-title"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Promotion Title *
+                  {locale.promotions.modal.fields.title}
                 </motion.label>
                 <motion.input
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -333,7 +351,7 @@ export default function PromotionEditModal() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-slate-50/50"
-                  placeholder="e.g., Summer Sale 2024"
+                  placeholder={locale.promotions.modal.fields.titlePlaceholder}
                   required
                 />
                 {errors.title && (
@@ -361,7 +379,7 @@ export default function PromotionEditModal() {
                   htmlFor="promotion-audience"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Target Audience *
+                  {locale.promotions.modal.fields.audience}
                 </motion.label>
                 <div className="relative">
                   <motion.select
@@ -380,10 +398,18 @@ export default function PromotionEditModal() {
                     className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-slate-50/50 transition-all duration-200 appearance-none cursor-pointer"
                     required
                   >
-                    <option value={AudienceType.ALL}>All</option>
-                    <option value={AudienceType.CUSTOMER}>Customer</option>
-                    <option value={AudienceType.SUPERVISOR}>Supervisor</option>
-                    <option value={AudienceType.EMPLOYEE}>Employee</option>
+                    <option value={AudienceType.ALL}>
+                      {locale.promotions.modal.audienceOptions.all}
+                    </option>
+                    <option value={AudienceType.CUSTOMER}>
+                      {locale.promotions.modal.audienceOptions.customer}
+                    </option>
+                    <option value={AudienceType.SUPERVISOR}>
+                      {locale.promotions.modal.audienceOptions.supervisor}
+                    </option>
+                    <option value={AudienceType.EMPLOYEE}>
+                      {locale.promotions.modal.audienceOptions.employee}
+                    </option>
                   </motion.select>
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -437,7 +463,7 @@ export default function PromotionEditModal() {
                     htmlFor="promotion-start-date"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Start Date (Optional)
+                    {locale.promotions.modal.fields.startDate}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -477,7 +503,7 @@ export default function PromotionEditModal() {
                     htmlFor="promotion-end-date"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    End Date (Optional)
+                    {locale.promotions.modal.fields.endDate}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -553,7 +579,7 @@ export default function PromotionEditModal() {
                 onClick={handleClose}
                 className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Cancel
+                {locale.promotions.modal.buttons.cancel}
               </motion.button>
               <motion.button
                 type="submit"
@@ -568,7 +594,7 @@ export default function PromotionEditModal() {
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Save Changes
+                {locale.promotions.modal.buttons.saveChanges}
               </motion.button>
             </motion.div>
           </form>

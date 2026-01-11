@@ -2,14 +2,18 @@
 
 import { motion } from "framer-motion";
 import { useCurrentEditingPromotionStore } from "../store/useCurrentEditingPromotion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AddNewPromotionButton() {
   const { setPromotion, setIsEditing } = useCurrentEditingPromotionStore();
+  const { locale } = useLocaleStore();
 
   const handleAddNew = () => {
     setPromotion(null); // null means we're creating a new promotion
     setIsEditing(true);
   };
+
+  if (!locale) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-10">
@@ -45,7 +49,7 @@ export default function AddNewPromotionButton() {
               />
             </svg>
           </motion.div>
-          Add New Promotion
+          {locale.promotions.addButton}
         </span>
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"

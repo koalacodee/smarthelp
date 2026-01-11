@@ -10,6 +10,9 @@ import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 import { PromotionService } from "@/lib/api/v2";
 import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export default function PromotionsTable({
   promotions,
@@ -30,6 +33,9 @@ export default function PromotionsTable({
   const { addToast } = useToastStore();
   const { clearExistingAttachmentsForTarget, addExistingAttachmentToTarget } =
     useAttachments();
+  const { locale } = useLocaleStore();
+  const language = useLocaleStore((state) => state.language);
+  const { openModal: openConfirmation } = useConfirmationModalStore();
 
   const setData = (props: {
     promotions: PromotionDTO[];
@@ -81,7 +87,8 @@ export default function PromotionsTable({
       });
     } catch (error) {
       addToast({
-        message: "Failed to load promotions",
+        message:
+          locale?.promotions?.toasts?.loadFailed || "Failed to load promotions",
         type: "error",
       });
     }
@@ -97,66 +104,70 @@ export default function PromotionsTable({
       await PromotionService.togglePromotionActive(promotion.id);
       togglePromotionActive(promotion.id);
       addToast({
-        message: `Promotion ${
-          promotion.isActive ? "deactivated" : "activated"
-        } successfully`,
+        message: promotion.isActive
+          ? locale?.promotions?.toasts?.deactivateSuccess ||
+            "Promotion deactivated"
+          : locale?.promotions?.toasts?.activateSuccess ||
+            "Promotion activated",
         type: "success",
       });
     } catch (error: any) {
       addToast({
-        message: "Failed to update promotion status",
+        message:
+          locale?.promotions?.toasts?.statusUpdateFailed ||
+          "Failed to update status",
         type: "error",
       });
     }
   };
 
   const handleDelete = async (promotion: PromotionDTO) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this promotion? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await PromotionService.deletePromotion(promotion.id);
-      removePromotion(promotion.id);
-      addToast({
-        message: "Promotion deleted successfully",
-        type: "success",
-      });
-    } catch (error: any) {
-      addToast({
-        message: "Failed to delete promotion",
-        type: "error",
-      });
-    }
+    openConfirmation({
+      title:
+        locale?.promotions?.confirmations?.deleteTitle || "Delete Promotion",
+      message:
+        locale?.promotions?.confirmations?.deleteMessage ||
+        "Are you sure you want to delete this promotion?",
+      confirmText: locale?.promotions?.confirmations?.confirmText || "Confirm",
+      cancelText: locale?.promotions?.confirmations?.cancelText || "Cancel",
+      onConfirm: async () => {
+        try {
+          await PromotionService.deletePromotion(promotion.id);
+          removePromotion(promotion.id);
+          addToast({
+            message:
+              locale?.promotions?.toasts?.deleteSuccess ||
+              "Promotion deleted successfully",
+            type: "success",
+          });
+        } catch (error: any) {
+          addToast({
+            message:
+              locale?.promotions?.toasts?.deleteFailed ||
+              "Failed to delete promotion",
+            type: "error",
+          });
+        }
+      },
+    });
   };
 
   const getAudienceLabel = (audience?: string) => {
     switch (audience) {
       case "ALL":
-        return "All";
+        return locale?.promotions?.table?.audience?.all || "All";
       case "CUSTOMER":
-        return "Customer";
+        return locale?.promotions?.table?.audience?.customer || "Customer";
       case "SUPERVISOR":
-        return "Supervisor";
+        return locale?.promotions?.table?.audience?.supervisor || "Supervisor";
       case "EMPLOYEE":
-        return "Employee";
+        return locale?.promotions?.table?.audience?.employee || "Employee";
       default:
-        return "All";
+        return locale?.promotions?.table?.audience?.all || "All";
     }
   };
 
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "Not set";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  if (!locale) return null;
 
   const getStatusColor = (isActive?: boolean) => {
     return isActive
@@ -202,7 +213,7 @@ export default function PromotionsTable({
                 transition={{ duration: 0.3, delay: 0.6 }}
                 className="text-lg font-semibold text-slate-800"
               >
-                Promotions Database
+                {locale.promotions.table.title}
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, x: -15 }}
@@ -210,8 +221,12 @@ export default function PromotionsTable({
                 transition={{ duration: 0.3, delay: 0.7 }}
                 className="text-sm text-slate-600"
               >
-                {filteredPromotions.length} promotion
-                {filteredPromotions.length !== 1 ? "s" : ""} available
+                {locale.promotions.table.count
+                  .replace("{count}", filteredPromotions.length.toString())
+                  .replace(
+                    "{plural}",
+                    filteredPromotions.length !== 1 ? "s" : ""
+                  )}
               </motion.p>
             </div>
           </div>
@@ -281,10 +296,10 @@ export default function PromotionsTable({
                         className="text-slate-500"
                       >
                         <p className="text-lg font-medium mb-2">
-                          No promotions found
+                          {locale.promotions.table.empty.title}
                         </p>
                         <p className="text-sm">
-                          Try adjusting your search or filter criteria
+                          {locale.promotions.table.empty.hint}
                         </p>
                       </motion.div>
                     </motion.div>
@@ -348,7 +363,9 @@ export default function PromotionsTable({
                           promotion.isActive
                         )}`}
                       >
-                        {promotion.isActive ? "Active" : "Inactive"}
+                        {promotion.isActive
+                          ? locale.promotions.table.status.active
+                          : locale.promotions.table.status.inactive}
                       </motion.span>
                     </td>
 
@@ -392,7 +409,7 @@ export default function PromotionsTable({
                           />
                         </svg>
                         <span className="text-sm font-medium text-slate-600">
-                          {formatDate(promotion.startDate)}
+                          {formatDateWithHijri(promotion.startDate, language)}
                         </span>
                       </motion.div>
                     </td>
@@ -422,7 +439,18 @@ export default function PromotionsTable({
                           />
                         </svg>
                         <span className="text-sm font-medium text-slate-600">
-                          {formatDate(promotion.endDate)}
+                          {promotion.endDate
+                            ? formatDateWithHijri(
+                                promotion.endDate,
+                                language,
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                                locale.promotions.table.notSet
+                              )
+                            : locale.promotions.table.notSet}
                         </span>
                       </motion.div>
                     </td>
@@ -439,19 +467,19 @@ export default function PromotionsTable({
                         <ThreeDotMenu
                           options={[
                             {
-                              label: "Edit",
+                              label: locale.promotions.table.actions.edit,
                               onClick: () => handleEdit(promotion),
                               color: "blue",
                             },
                             {
                               label: promotion.isActive
-                                ? "Deactivate"
-                                : "Activate",
+                                ? locale.promotions.table.actions.deactivate
+                                : locale.promotions.table.actions.activate,
                               onClick: () => handleToggleActive(promotion),
                               color: promotion.isActive ? "gray" : "green",
                             },
                             {
-                              label: "Delete",
+                              label: locale.promotions.table.actions.delete,
                               onClick: () => handleDelete(promotion),
                               color: "red",
                             },

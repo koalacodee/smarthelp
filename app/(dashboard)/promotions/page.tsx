@@ -5,6 +5,7 @@ import { createPromotionService } from "@/lib/api/v2/services/promotion";
 import axios from "axios";
 import { PromotionService } from "@/lib/api/v2";
 import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
+import { getLocale, getLanguage } from "@/locales/helpers";
 
 export const metadata: Metadata = {
   title: "Promotions | Campaign Management",
@@ -26,11 +27,18 @@ export default async function Page() {
     // Continue with empty arrays - the component will handle empty state
   }
 
+  const [locale, language] = await Promise.all([
+    getLocale(),
+    getLanguage(),
+  ]);
+
   return (
     <AnimatedPromotionsPage
       promotions={promotions}
       attachments={attachments}
       fileHubAttachments={fileHubAttachments}
+      locale={locale}
+      language={language}
     />
   );
 }

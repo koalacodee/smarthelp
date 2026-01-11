@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function CreatePromotionForm() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -26,6 +27,7 @@ export default function CreatePromotionForm() {
   const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
   const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
   const addToast = useToastStore((state) => state.addToast);
+  const { locale } = useLocaleStore();
 
   const handleSelectedAttachmentsChange = (attachmentIds: Set<string>) => {
     setSelectedAttachments(Array.from(attachmentIds));
@@ -75,7 +77,9 @@ export default function CreatePromotionForm() {
       }
 
       addToast({
-        message: "Promotion Created Successfully",
+        message:
+          locale?.promotions?.toasts?.createSuccess ||
+          "Promotion created successfully",
         type: "success",
       });
 
@@ -90,7 +94,8 @@ export default function CreatePromotionForm() {
             addToast({
               message:
                 uploadErr?.message ||
-                "Failed to upload new attachments. Please try again.",
+                locale?.promotions?.toasts?.uploadFailed ||
+                "Upload failed",
               type: "error",
             });
             // Clear form even if upload key setting fails
@@ -99,7 +104,8 @@ export default function CreatePromotionForm() {
         } else {
           addToast({
             message:
-              "Missing upload key for new attachments. Please retry the upload.",
+              locale?.promotions?.toasts?.missingUploadKey ||
+              "Missing upload key",
             type: "error",
           });
           // Clear form even if upload key is missing
@@ -115,11 +121,14 @@ export default function CreatePromotionForm() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to create promotion. Please try again."
+            locale?.promotions?.toasts?.createFailed ||
+            "Failed to create promotion"
         );
       }
     }
   };
+
+  if (!locale) return null;
 
   return (
     <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
@@ -148,11 +157,14 @@ export default function CreatePromotionForm() {
           htmlFor="promo-title"
           className="block text-sm font-medium text-slate-700 mb-1"
         >
-          Promotion Title
+          {locale?.promotions?.modal?.fields?.title || "Title"}
         </label>
         <input
           id="promo-title"
-          placeholder="e.g., Summer Sale"
+          placeholder={
+            locale?.promotions?.modal?.fields?.titlePlaceholder ||
+            "Enter promotion title"
+          }
           className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
           required
           type="text"
@@ -169,7 +181,7 @@ export default function CreatePromotionForm() {
           htmlFor="promo-audience"
           className="block text-sm font-medium text-slate-700 mb-1"
         >
-          Target Audience
+          {locale?.promotions?.modal?.fields?.audience || "Audience"}
         </label>
         <select
           id="promo-audience"
@@ -178,10 +190,19 @@ export default function CreatePromotionForm() {
           value={audience}
           onChange={(e) => setAudience(e.target.value as AudienceType)}
         >
-          <option value={AudienceType.ALL}>All</option>
-          <option value={AudienceType.CUSTOMER}>Customer</option>
-          <option value={AudienceType.SUPERVISOR}>Supervisor</option>
-          <option value={AudienceType.EMPLOYEE}>Employee</option>
+          <option value={AudienceType.ALL}>
+            {locale?.promotions?.modal?.audienceOptions?.all || "All"}
+          </option>
+          <option value={AudienceType.CUSTOMER}>
+            {locale?.promotions?.modal?.audienceOptions?.customer || "Customer"}
+          </option>
+          <option value={AudienceType.SUPERVISOR}>
+            {locale?.promotions?.modal?.audienceOptions?.supervisor ||
+              "Supervisor"}
+          </option>
+          <option value={AudienceType.EMPLOYEE}>
+            {locale?.promotions?.modal?.audienceOptions?.employee || "Employee"}
+          </option>
         </select>
         {errors.audience && (
           <p className="mt-1 text-sm text-red-700">{errors.audience}</p>
@@ -193,7 +214,7 @@ export default function CreatePromotionForm() {
             htmlFor="promo-start-date"
             className="block text-sm font-medium text-slate-700 mb-1"
           >
-            Start Date (Optional)
+            {locale?.promotions?.modal?.fields?.startDate || "Start Date"}
           </label>
           <input
             id="promo-start-date"
@@ -211,7 +232,7 @@ export default function CreatePromotionForm() {
             htmlFor="promo-end-date"
             className="block text-sm font-medium text-slate-700 mb-1"
           >
-            End Date (Optional)
+            {locale?.promotions?.modal?.fields?.endDate || "End Date"}
           </label>
           <input
             id="promo-end-date"
@@ -243,7 +264,7 @@ export default function CreatePromotionForm() {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          Create Promotion
+          {locale?.promotions?.modal?.buttons?.create || "Create"}
         </button>
       </div>
     </form>
