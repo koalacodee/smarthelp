@@ -5,6 +5,8 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useRejectionModalStore } from "@/app/(dashboard)/store/useRejectionModalStore";
 import RejectionModal from "./RejectionModal";
 import { Datum } from "@/lib/api/employee-requests";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export default function AdminPage() {
   const [user, setUser] = useState<UserResponse | null>(null);
@@ -52,14 +54,8 @@ export default function AdminPage() {
   };
 
   const rejectionModal = useRejectionModalStore();
+  const language = useLocaleStore((state) => state.language);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   return (
     <>
@@ -123,7 +119,15 @@ export default function AdminPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                             {request?.createdAt &&
-                              formatDate(request.createdAt)}
+                              formatDateWithHijri(
+                                request.createdAt,
+                                language,
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
@@ -221,7 +225,15 @@ export default function AdminPage() {
                             {request?.rejectionReason
                               ? request?.rejectionReason
                               : request?.resolvedAt
-                              ? formatDate(request.resolvedAt)
+                              ? formatDateWithHijri(
+                                  request.resolvedAt,
+                                  language,
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
                               : null}
                           </td>
                         </tr>
