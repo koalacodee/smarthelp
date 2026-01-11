@@ -45,9 +45,7 @@ export default function QuickActionsPanel() {
 
   const visibleActions = useMemo(() => {
     if (!user || !locale) return [];
-    return actions.filter((action) =>
-      action.allowed(user.role, user.permissions ?? [])
-    );
+    return actions.filter((action) => action.allowed(user.role));
   }, [user, actions, locale]);
   return (
     <motion.div
