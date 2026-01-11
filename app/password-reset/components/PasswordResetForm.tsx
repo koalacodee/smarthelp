@@ -4,12 +4,27 @@ import Ticket from "@/icons/Ticket";
 import { PasswordResetService } from "@/lib/api/v2";
 import { setCookie } from "@/lib/api/cookies";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import Link from "next/link";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
-export default function PasswordResetForm() {
+interface PasswordResetFormProps {
+  locale: Locale;
+  language: string;
+}
+
+export default function PasswordResetForm({ locale, language }: PasswordResetFormProps) {
+  const { setLocale } = useLocaleStore();
+  const storeLocale = useLocaleStore((state) => state.locale);
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
+
+  if (!storeLocale) return null;
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -43,9 +58,7 @@ export default function PasswordResetForm() {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
       } else {
-        setRootError(
-          "Failed to send reset code. Please check your email and try again."
-        );
+        setRootError(storeLocale.passwordReset.errors.sendCodeFailed);
       }
     } finally {
       setIsLoading(false);
@@ -59,7 +72,7 @@ export default function PasswordResetForm() {
     // Validate password confirmation
     if (newPassword !== confirmPassword) {
       setErrors([
-        { field: "confirmPassword", message: "Passwords do not match" },
+        { field: "confirmPassword", message: storeLocale.passwordReset.errors.passwordsDoNotMatch },
       ]);
       return;
     }
@@ -73,7 +86,7 @@ export default function PasswordResetForm() {
       });
 
       setCookie("accessToken", response.accessToken);
-      setSuccessMessage("Password reset successfully! Redirecting...");
+      setSuccessMessage(storeLocale.passwordReset.success.resetSuccess);
 
       // Redirect after a short delay
 
@@ -82,9 +95,7 @@ export default function PasswordResetForm() {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
       } else {
-        setRootError(
-          "Failed to reset password. Please check your code and try again."
-        );
+        setRootError(storeLocale.passwordReset.errors.resetFailed);
       }
     } finally {
       setIsLoading(false);
@@ -138,7 +149,7 @@ export default function PasswordResetForm() {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className="text-2xl font-bold text-slate-800"
               >
-                Password Reset
+                {storeLocale.passwordReset.header.title}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, x: -20 }}
@@ -147,8 +158,8 @@ export default function PasswordResetForm() {
                 className="text-sm text-slate-600"
               >
                 {step === "email"
-                  ? "Enter your email to receive a reset code"
-                  : "Enter the code and your new password"}
+                  ? storeLocale.passwordReset.header.description.email
+                  : storeLocale.passwordReset.header.description.reset}
               </motion.p>
             </div>
           </div>
@@ -248,7 +259,7 @@ export default function PasswordResetForm() {
               transition={{ duration: 0.4, delay: 0.7 }}
               className="text-lg font-semibold text-slate-800"
             >
-              {step === "email" ? "Enter Email" : "Reset Password"}
+              {step === "email" ? storeLocale.passwordReset.form.emailStep.title : storeLocale.passwordReset.form.resetStep.title}
             </motion.h2>
           </motion.div>
 
@@ -322,7 +333,7 @@ export default function PasswordResetForm() {
                     htmlFor="email"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Email Address *
+                    {storeLocale.passwordReset.form.emailStep.fields.email.label} *
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -338,7 +349,7 @@ export default function PasswordResetForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                    placeholder="Enter your email address"
+                    placeholder={storeLocale.passwordReset.form.emailStep.fields.email.placeholder}
                     required
                     autoComplete="email"
                   />
@@ -375,7 +386,7 @@ export default function PasswordResetForm() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {isLoading ? "Sending Code..." : "Send Reset Code"}
+                      {isLoading ? storeLocale.passwordReset.form.emailStep.buttons.sending : storeLocale.passwordReset.form.emailStep.buttons.send}
                     </motion.span>
                   </motion.button>
                 </motion.div>
@@ -541,7 +552,7 @@ export default function PasswordResetForm() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {isLoading ? "Resetting Password..." : "Reset Password"}
+                      {isLoading ? storeLocale.passwordReset.form.resetStep.buttons.resetting : storeLocale.passwordReset.form.resetStep.buttons.reset}
                     </motion.span>
                   </motion.button>
 
@@ -557,7 +568,7 @@ export default function PasswordResetForm() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Back to Email
+                      {storeLocale.passwordReset.form.resetStep.buttons.backToEmail}
                     </motion.span>
                   </motion.button>
                 </motion.div>
@@ -583,7 +594,7 @@ export default function PasswordResetForm() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.7 }}
               >
-                Back to Login
+                {storeLocale.passwordReset.backToLogin}
               </motion.span>
             </Link>
           </motion.div>
