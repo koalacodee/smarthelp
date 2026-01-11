@@ -5,6 +5,7 @@ import BellIcon from "@/icons/Bell";
 import BriefcaseIcon from "@/icons/Briefcase";
 import UserPlusIcon from "@/icons/UserPlus";
 import { NotificationService, UserResponse } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 // Notification types from the backend
 type NotificationType =
@@ -36,6 +37,7 @@ interface NotificationSystemProps {
 // Message generation based on notification type and title
 const generateNotificationMessage = (
   notification: AppNotification,
+  locale: any,
   count?: number
 ): string => {
   const { type, title } = notification;
@@ -43,33 +45,66 @@ const generateNotificationMessage = (
   switch (type) {
     // Staff Request notifications
     case "staff_request_created":
-      return `A new staff request has been created: "${title}".`;
+      return locale.components.notifications.messages.staffRequestCreated.replace(
+        "{title}",
+        title
+      );
     case "staff_request_resolved":
-      return `Staff request "${title}" has been resolved.`;
+      return locale.components.notifications.messages.staffRequestResolved.replace(
+        "{title}",
+        title
+      );
 
     // Task notifications
     case "task_created":
-      return `A new task has been created: "${title}".`;
+      return locale.components.notifications.messages.taskCreated.replace(
+        "{title}",
+        title
+      );
     case "task_approved":
-      return `Your task "${title}" has been approved and completed.`;
+      return locale.components.notifications.messages.taskApproved.replace(
+        "{title}",
+        title
+      );
     case "task_rejected":
-      return `Your task "${title}" was rejected and requires changes.`;
+      return locale.components.notifications.messages.taskRejected.replace(
+        "{title}",
+        title
+      );
     case "task_submitted":
-      return `Task "${title}" has been submitted for review.`;
+      return locale.components.notifications.messages.taskSubmitted.replace(
+        "{title}",
+        title
+      );
     case "task_delegation_created":
-      return `A new task has been delegated: "${title}".`;
+      return locale.components.notifications.messages.taskDelegationCreated.replace(
+        "{title}",
+        title
+      );
 
     // Ticket notifications
     case "ticket_assigned":
-      return `Ticket "${title}" has been assigned to you.`;
+      return locale.components.notifications.messages.ticketAssigned.replace(
+        "{title}",
+        title
+      );
     case "ticket_created":
     case "ticket_opened":
-      return `A new ticket has been created: "${title}".`;
+      return locale.components.notifications.messages.ticketCreated.replace(
+        "{title}",
+        title
+      );
     case "ticket_reopened":
-      return `Ticket "${title}" has been reopened for review.`;
+      return locale.components.notifications.messages.ticketReopened.replace(
+        "{title}",
+        title
+      );
 
     default:
-      return `New notification: ${title}`;
+      return locale.components.notifications.messages.default.replace(
+        "{title}",
+        title
+      );
   }
 };
 
@@ -108,6 +143,7 @@ const getNotificationHref = (
 // Notification configuration based on type
 const getNotificationConfig = (
   type: NotificationType,
+  locale: any,
   isSupervisor: boolean = false
 ) => {
   // Group types by category for consistent styling
@@ -117,7 +153,7 @@ const getNotificationConfig = (
         icon: <BriefcaseIcon className="w-10 h-10 text-red-500" />,
         iconBg: "bg-red-100",
         buttonClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
-        buttonText: "Go to Tasks",
+        buttonText: locale.components.notifications.buttons.goToTasks,
         borderClass: "border-t-4 border-red-500",
         href: getNotificationHref(notificationType, isSupervisor),
       };
@@ -128,7 +164,7 @@ const getNotificationConfig = (
         icon: <BellIcon className="w-10 h-10 text-blue-500" />,
         iconBg: "bg-blue-100",
         buttonClass: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
-        buttonText: "Go to Tickets",
+        buttonText: locale.components.notifications.buttons.goToTickets,
         borderClass: "border-t-4 border-blue-500",
         href: getNotificationHref(notificationType, isSupervisor),
       };
@@ -139,7 +175,7 @@ const getNotificationConfig = (
         icon: <UserPlusIcon className="w-10 h-10 text-green-500" />,
         iconBg: "bg-green-100",
         buttonClass: "bg-green-600 hover:bg-green-700 focus:ring-green-500",
-        buttonText: "Go to Team",
+        buttonText: locale.components.notifications.buttons.goToTeam,
         borderClass: "border-t-4 border-green-500",
         href: getNotificationHref(notificationType, isSupervisor),
       };
@@ -150,7 +186,7 @@ const getNotificationConfig = (
       icon: <BellIcon className="w-10 h-10 text-gray-500" />,
       iconBg: "bg-gray-100",
       buttonClass: "bg-gray-600 hover:bg-gray-700 focus:ring-gray-500",
-      buttonText: "View Details",
+      buttonText: locale.components.notifications.buttons.viewDetails,
       borderClass: "border-t-4 border-gray-500",
       href: "/",
     };
@@ -165,10 +201,11 @@ const NotificationModal: React.FC<{
   onDismiss: () => void;
   onNavigate: () => void;
   isSupervisor: boolean;
-}> = ({ notification, count, onDismiss, onNavigate, isSupervisor }) => {
+  locale: any;
+}> = ({ notification, count, onDismiss, onNavigate, isSupervisor, locale }) => {
   const { type, title } = notification;
-  const config = getNotificationConfig(type, isSupervisor);
-  const message = generateNotificationMessage(notification, count);
+  const config = getNotificationConfig(type, locale, isSupervisor);
+  const message = generateNotificationMessage(notification, locale, count);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -208,7 +245,10 @@ const NotificationModal: React.FC<{
             <p className="text-md text-slate-600">{message}</p>
             {count !== undefined && count > 1 && (
               <p className="text-sm text-slate-500 mt-1">
-                Total: {count} items
+                {locale.components.notifications.totalItems.replace(
+                  "{count}",
+                  count.toString()
+                )}
               </p>
             )}
           </div>
@@ -219,7 +259,7 @@ const NotificationModal: React.FC<{
             className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-1 sm:text-sm"
             onClick={onDismiss}
           >
-            Dismiss
+            {locale.components.notifications.buttons.dismiss}
           </button>
           <Link
             href={config.href}
@@ -245,6 +285,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
     []
   );
   const [user, setUser] = useState<UserResponse | null>(null);
+  const { locale } = useLocaleStore();
 
   useEffect(() => {
     fetch("/server/me")
@@ -316,6 +357,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       onDismiss={handleNotificationDismiss}
       onNavigate={handleNotificationNavigate}
       isSupervisor={user?.role === "SUPERVISOR"}
+      locale={locale}
     />
   );
 };
