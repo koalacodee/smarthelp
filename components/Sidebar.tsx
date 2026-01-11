@@ -3,6 +3,8 @@ import React, { JSX, useMemo, Suspense, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { EmployeePermissions } from "@/lib/api/types";
 import { SupervisorPermissions } from "@/lib/api/supervisors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { isRTL } from "@/locales/isRTL";
 
 /* --- ICONS -------------------------------------------------------------- */
 import CheckCircle from "@/icons/CheckCircle";
@@ -19,6 +21,7 @@ import Burger from "@/icons/Burger";
 import User from "@/icons/User";
 import UserInfo from "./UserInfo";
 import { UserResponse } from "@/lib/api";
+import { Locale } from "@/locales/type";
 
 /* --- CONFIG ------------------------------------------------------------- */
 const ICON_SIZE = "w-5 h-5";
@@ -36,10 +39,10 @@ type Tab = {
   }[];
 };
 
-const tabs: Tab[] = [
+const getTabs = (locale: any): Tab[] => [
   {
     id: "analytics",
-    label: "Analytics And Insights",
+    label: locale.components.sidebar.tabs.analytics,
     icon: <AnalyticsInsights className={ICON_SIZE} />,
     href: "/",
     allowed: (r, p) =>
@@ -47,7 +50,7 @@ const tabs: Tab[] = [
   },
   {
     id: "faqsAndCategories",
-    label: "FAQs & Categories",
+    label: locale.components.sidebar.tabs.faqsAndCategories,
     icon: <ClipboardList className={ICON_SIZE} />,
     href: "/faqs",
     allowed: (r, p) =>
@@ -56,18 +59,18 @@ const tabs: Tab[] = [
       (r === "EMPLOYEE" && p.includes(EmployeePermissions.ADD_FAQS)),
     subLinks: [
       {
-        label: "FAQs",
+        label: locale.components.sidebar.tabs.faqs,
         href: "/faqs",
       },
       {
-        label: "Categories",
+        label: locale.components.sidebar.tabs.categories,
         href: "/categories",
       },
     ],
   },
   {
     id: "tickets",
-    label: "Tickets",
+    label: locale.components.sidebar.tabs.tickets,
     icon: <Ticket className={ICON_SIZE} />,
     href: "/tickets",
     allowed: (r, p) =>
@@ -75,7 +78,7 @@ const tabs: Tab[] = [
   },
   {
     id: "tasks",
-    label: "Tasks",
+    label: locale.components.sidebar.tabs.tasks,
     icon: <CheckCircle className={ICON_SIZE} />,
     href: "/tasks",
     allowed: (r, p) =>
@@ -84,11 +87,11 @@ const tabs: Tab[] = [
       (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
     subLinks: [
       {
-        label: "Team Tasks",
+        label: locale.components.sidebar.tabs.teamTasks,
         href: "/tasks",
       },
       {
-        label: "My Tasks",
+        label: locale.components.sidebar.tabs.myTasks,
         href: "/tasks/my-tasks",
       },
     ],
@@ -96,14 +99,14 @@ const tabs: Tab[] = [
 
   {
     id: "manageTeam",
-    label: "Manage Team",
+    label: locale.components.sidebar.tabs.manageTeam,
     icon: <Team className={ICON_SIZE} />,
     href: "/manage-team",
     allowed: (r) => r !== "EMPLOYEE",
   },
   {
     id: "promotions",
-    label: "Promotions",
+    label: locale.components.sidebar.tabs.promotions,
     icon: <Megaphone className={ICON_SIZE} />,
     href: "/promotions",
     allowed: (r, p) =>
@@ -111,14 +114,14 @@ const tabs: Tab[] = [
   },
   {
     id: "supervisors",
-    label: "Supervisors",
+    label: locale.components.sidebar.tabs.supervisors,
     icon: <Supervisors className={ICON_SIZE} />,
     href: "/supervisors",
     allowed: (r) => r === "ADMIN",
   },
   {
     id: "userActivity",
-    label: "User Activity",
+    label: locale.components.sidebar.tabs.userActivity,
     icon: <Eye className={ICON_SIZE} />,
     href: "/user-activity",
     allowed: (r, p) =>
@@ -126,27 +129,55 @@ const tabs: Tab[] = [
   },
   {
     id: "files",
-    label: "My Files",
+    label: locale.components.sidebar.tabs.myFiles,
     icon: <DocumentDuplicate className={ICON_SIZE} />,
     href: "/files",
     allowed: (r, p) => true, // Allow all users to access their files
     subLinks: [
       {
-        label: "Attachments",
+        label: locale.components.sidebar.tabs.attachments,
         href: "/my-files/filehub",
       },
       {
-        label: "TV Content",
+        label: locale.components.sidebar.tabs.tvContent,
         href: "/my-files/filehub/groups",
       },
     ],
   },
   {
     id: "profile",
-    label: "My Profile",
+    label: locale.components.sidebar.tabs.myProfile,
     icon: <User className={ICON_SIZE} />,
     href: "/profile",
     allowed: (r, p) => true, // Allow all users to access their profile
+  },
+  {
+    id: "settings",
+    label: locale.components.sidebar.tabs.settings,
+    icon: (
+      <svg
+        className={ICON_SIZE}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+      </svg>
+    ),
+    href: "/settings",
+    allowed: (r, p) => true, // Allow all users to access settings
   },
 ];
 
@@ -175,35 +206,47 @@ function SidebarContent({
   isOpen,
   onClose,
   user,
+  locale,
 }: {
   tabs: Tab[];
   pathname: string;
   isOpen: boolean;
   onClose: () => void;
   user: any;
+  locale: Locale;
 }) {
+  const language = useLocaleStore((state) => state.language);
+  const rtl = isRTL(language || "en");
+
   return (
     <aside
-      className={`fixed left-0 top-0 h-full w-64 z-40 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+      className={`fixed ${
+        rtl ? "right-0" : "left-0"
+      } top-0 h-full w-64 z-40 transform transition-transform duration-300 ease-in-out ${
+        isOpen
+          ? "translate-x-0"
+          : rtl
+          ? "translate-x-full"
+          : "-translate-x-full"
+      }`}
     >
       <div className="h-full pt-8 pb-0 overflow-y-auto bg-white shadow-xl flex flex-col">
         {/* Header with Logo and Title */}
         <div className="px-4 pb-6 border-b border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+          <div className={`flex items-center gap-3 ${rtl ? "flex-row-reverse justify-end" : ""}`}>
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
               <img
                 src="/icons/smarthelp.png"
                 alt="SmartHelp Logo"
                 className="w-8 h-8 object-contain"
               />
             </div>
-            <div>
+            <div className={rtl ? "text-right" : "text-left"}>
               <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-                SmartHelp
+                {locale.components.sidebar.header.title}
               </h1>
               <p className="text-xs text-slate-500 font-medium">
-                Support Dashboard
+                {locale.components.sidebar.header.subtitle}
               </p>
             </div>
           </div>
@@ -277,14 +320,19 @@ function SidebarContent({
 }
 
 export default function Sidebar() {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const pathname = usePathname();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const rtl = isRTL(language || "en");
+
+  const tabs = locale ? getTabs(locale) : [];
 
   const visibleTabs = useMemo(() => {
-    if (!user) return [];
+    if (!user || !locale) return [];
     return tabs.filter((tab) => tab.allowed(user.role, user.permissions ?? []));
-  }, [user]);
+  }, [user, locale, tabs]);
 
   // Auto-close sidebar when pathname changes (navigation)
 
@@ -315,7 +363,9 @@ export default function Sidebar() {
       {/* Burger Button */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-10 p-2 rounded-md bg-white shadow-md hover:bg-gray-50 transition-colors duration-200"
+        className={`fixed top-4 ${
+          rtl ? "right-4" : "left-4"
+        } z-10 p-2 rounded-md bg-white shadow-md hover:bg-gray-50 transition-colors duration-200`}
         aria-label="Toggle sidebar"
       >
         <Burger className="w-6 h-6" />
@@ -333,6 +383,7 @@ export default function Sidebar() {
             isOpen={isOpen}
             onClose={closeSidebar}
             user={user}
+            locale={locale || ({} as Locale)}
           />
         </Suspense>
       )}
