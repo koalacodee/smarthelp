@@ -11,6 +11,7 @@ import { Department } from "@/lib/api/departments";
 import { SupervisorService } from "@/lib/api/v2";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface SupervisorEditModalProps {
   onSuccess?: () => void;
@@ -36,6 +37,9 @@ export default function SupervisorEditModal({
   const { addSupervisor, updateSupervisor } = useSupervisorsStore();
   const { addInvitation } = useSupervisorInvitationsStore();
   const [departments, setDepartments] = useState<Department[]>([]);
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   const permissionOptions = Object.values(SupervisorPermissions);
 
@@ -72,7 +76,7 @@ export default function SupervisorEditModal({
     clearErrors();
 
     if (!name || !email || !jobTitle) {
-      setRootError("Please fill all required fields");
+      setRootError(locale.supervisors.toasts.fillAllFields);
       return;
     }
 
@@ -97,14 +101,14 @@ export default function SupervisorEditModal({
         });
         updateSupervisor(supervisor.id, response);
         addToast({
-          message: "Invitation details updated successfully",
+          message: locale.supervisors.toasts.updateSuccess,
           type: "success",
         });
       } else {
         const response = await SupervisorService.addByAdmin(supervisorData);
         addInvitation(response.invitation);
         addToast({
-          message: "Supervisor invitation sent successfully",
+          message: locale.supervisors.toasts.inviteSuccess,
           type: "success",
         });
       }
@@ -116,7 +120,7 @@ export default function SupervisorEditModal({
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Operation failed. Please try again."
+            locale.supervisors.toasts.operationFailed
         );
       }
     }
@@ -139,8 +143,8 @@ export default function SupervisorEditModal({
   };
 
   const modalTitle = supervisor
-    ? "Edit Supervisor Invitation"
-    : "Invite New Supervisor via Email";
+    ? locale.supervisors.editModal.editTitle
+    : locale.supervisors.editModal.createTitle;
 
   if (!isEditing) return null;
 
@@ -215,7 +219,7 @@ export default function SupervisorEditModal({
                     htmlFor="user-name"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Full Name *
+                    {locale.supervisors.editModal.fields.fullName}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -244,7 +248,7 @@ export default function SupervisorEditModal({
                     htmlFor="user-email"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Email to Invite *
+                    {locale.supervisors.editModal.fields.email}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -281,7 +285,7 @@ export default function SupervisorEditModal({
                     htmlFor="user-employee-id"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Employee ID (Optional)
+                    {locale.supervisors.editModal.fields.employeeId}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -292,7 +296,7 @@ export default function SupervisorEditModal({
                       boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
                     }}
                     id="user-employee-id"
-                    placeholder="e.g., A123"
+                    placeholder={locale.supervisors.editModal.fields.employeeIdPlaceholder}
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     type="text"
                     value={employeeId}
@@ -307,7 +311,7 @@ export default function SupervisorEditModal({
                     htmlFor="user-designation"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Job Title / Designation *
+                    {locale.supervisors.editModal.fields.jobTitle}
                   </motion.label>
                   <motion.input
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -318,7 +322,7 @@ export default function SupervisorEditModal({
                       boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
                     }}
                     id="user-designation"
-                    placeholder="e.g., Shipping Supervisor"
+                    placeholder={locale.supervisors.editModal.fields.jobTitlePlaceholder}
                     className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                     type="text"
                     required
@@ -345,10 +349,13 @@ export default function SupervisorEditModal({
                   className="flex items-center gap-2 mb-4"
                 >
                   <label className="text-sm font-medium text-slate-700">
-                    Assign Departments
+                    {locale.supervisors.editModal.fields.assignDepartments}
                   </label>
                   <InfoTooltip
-                    content="Select departments that this supervisor will manage. Multiple selections allowed for cross-departmental supervision."
+                    content={
+                      locale.supervisors.editModal.fields
+                        .assignDepartmentsTooltip
+                    }
                     position="top"
                     maxWidth="300px"
                     delay={100}
@@ -450,7 +457,7 @@ export default function SupervisorEditModal({
                   transition={{ duration: 0.3, delay: 0.7 }}
                   className="block text-sm font-medium text-slate-700 mb-4"
                 >
-                  Choose Permissions
+                  {locale.supervisors.editModal.fields.choosePermissions}
                 </motion.label>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -462,7 +469,7 @@ export default function SupervisorEditModal({
                     const isSelected = permissions.includes(permission);
                     const permissionLabel =
                       permission == "MANAGE_ATTACHMENT_GROUPS"
-                        ? "Manage TV Content"
+                        ? locale.supervisors.editModal.permissions.manageTvContent
                         : permission
                             .replace(/_/g, " ")
                             .toLowerCase()
@@ -562,7 +569,7 @@ export default function SupervisorEditModal({
                 onClick={() => setIsEditing(false)}
                 className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Cancel
+                {locale.supervisors.editModal.buttons.cancel}
               </motion.button>
               <motion.button
                 type="submit"
@@ -577,7 +584,9 @@ export default function SupervisorEditModal({
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                {supervisor ? "Save Changes" : "Send Invitation"}
+                {supervisor
+                  ? locale.supervisors.editModal.buttons.saveChanges
+                  : locale.supervisors.editModal.buttons.sendInvitation}
               </motion.button>
             </motion.div>
           </form>

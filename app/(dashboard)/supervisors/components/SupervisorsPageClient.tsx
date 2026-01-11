@@ -15,11 +15,16 @@ import { env } from "next-runtime-env";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { SupervisorInvitationStatus } from "@/lib/api/v2/services/supervisor";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 interface SupervisorsPageClientProps {
   initialSupervisors: any[];
   initialInvitations: SupervisorInvitationStatus[];
   departments: any[];
+  locale: Locale;
+  language: string;
 }
 
 // Utility function to get profile picture URL
@@ -35,6 +40,8 @@ export default function SupervisorsPageClient({
   initialSupervisors,
   initialInvitations,
   departments,
+  locale,
+  language,
 }: SupervisorsPageClientProps) {
   const { entities: supervisors, setEntities: setSupervisors } =
     useSupervisorStore();
@@ -47,6 +54,11 @@ export default function SupervisorsPageClient({
     setIsDelegating,
   } = useCurrentEditingSupervisorStore();
   const { addToast } = useToastStore();
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
@@ -79,15 +91,22 @@ export default function SupervisorsPageClient({
 
       setInvitations(updatedInvitations);
 
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
         type: "success",
-        message: `Invitation for ${name} has been deleted successfully!`,
+        message:
+          storeLocale?.supervisors?.toasts?.invitationDeleted?.replace(
+            "{name}",
+            name
+          ) || `Invitation for ${name} has been deleted successfully!`,
       });
     } catch (error: any) {
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
+          storeLocale?.supervisors?.toasts?.deleteInvitationFailed ||
           "Failed to delete invitation. Please try again.",
       });
     } finally {
@@ -212,7 +231,7 @@ export default function SupervisorsPageClient({
               }}
               className="text-4xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent"
             >
-              Supervisor Management
+              {locale.supervisors.pageHeader.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -220,8 +239,7 @@ export default function SupervisorsPageClient({
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Manage your team supervisors, permissions, and assignments with
-              precision and ease
+              {locale.supervisors.pageHeader.description}
             </motion.p>
           </motion.div>
 
@@ -274,7 +292,9 @@ export default function SupervisorsPageClient({
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </motion.svg>
-                <span className="relative z-10">Invite New Supervisor</span>
+                <span className="relative z-10">
+                  {locale.supervisors.inviteButton}
+                </span>
               </motion.button>
             </div>
 
@@ -291,7 +311,12 @@ export default function SupervisorsPageClient({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>{supervisors.length} Active Supervisors</span>
+                <span>
+                  {locale.supervisors.stats.activeSupervisors.replace(
+                    "{count}",
+                    supervisors.length.toString()
+                  )}
+                </span>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -300,7 +325,12 @@ export default function SupervisorsPageClient({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                <span>{invitations.length} Pending Invitations</span>
+                <span>
+                  {locale.supervisors.stats.pendingInvitations.replace(
+                    "{count}",
+                    invitations.length.toString()
+                  )}
+                </span>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -404,7 +434,7 @@ export default function SupervisorsPageClient({
                 transition={{ duration: 0.5, delay: 0.8 }}
                 className="text-xl font-bold text-slate-800 flex items-center gap-2"
               >
-                Pending Invitations
+                {locale.supervisors.invitations.title}
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -496,11 +526,15 @@ export default function SupervisorsPageClient({
                           className="mt-2 text-sm text-slate-500 space-y-1"
                         >
                           <p>
-                            <span className="font-semibold">Job Title:</span>{" "}
+                            <span className="font-semibold">
+                              {locale.supervisors.invitations.jobTitle}
+                            </span>{" "}
                             {invitation.jobTitle}
                           </p>
                           <p>
-                            <span className="font-semibold">Departments:</span>{" "}
+                            <span className="font-semibold">
+                              {locale.supervisors.invitations.departments}
+                            </span>{" "}
                             {invitation.departmentNames.join(", ")}
                           </p>
                         </motion.div>
@@ -524,7 +558,11 @@ export default function SupervisorsPageClient({
                           : "bg-gradient-to-r from-red-400 to-pink-500 text-white"
                       }`}
                     >
-                      {invitation.status.toUpperCase()}
+                      {invitation.status === "pending"
+                        ? locale.supervisors.invitations.status.pending
+                        : invitation.status === "completed"
+                        ? locale.supervisors.invitations.status.completed
+                        : locale.supervisors.invitations.status.rejected}
                     </motion.span>
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -533,16 +571,16 @@ export default function SupervisorsPageClient({
                       className="text-right"
                     >
                       <p className="text-xs text-slate-500 font-medium">
-                        Expires:
+                        {locale.supervisors.invitations.expires}
                       </p>
                       <p className="text-sm font-bold text-slate-700">
-                        {new Date(invitation.expiresAt).toLocaleDateString()}
+                        {formatDateWithHijri(invitation.expiresAt, language)}
                       </p>
                     </motion.div>
                     <ThreeDotMenu
                       options={[
                         {
-                          label: "Delete Invitation",
+                          label: locale.supervisors.invitations.actions.delete,
                           onClick: () =>
                             handleDeleteInvitation(
                               invitation.token,

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useImageCropStore } from "../store/useImageCropStore";
 import X from "@/icons/X";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface CropArea {
   x: number;
@@ -28,6 +29,9 @@ export default function ImageCropModal({
     setCropArea,
     setCroppedImage,
   } = useImageCropStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({
@@ -416,7 +420,7 @@ export default function ImageCropModal({
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              Crop Your Profile Picture
+              {locale.supervisors.imageCropModal.title}
             </h2>
             <button
               onClick={closeCropModal}
@@ -580,20 +584,19 @@ export default function ImageCropModal({
 
             {/* Instructions and Size Info */}
             <div className="mt-4 text-center text-sm text-gray-600">
-              <p>Drag to move the crop area or use the handles to resize</p>
+              <p>{locale.supervisors.imageCropModal.instructions.dragMove}</p>
               <p className="mt-1">
-                A square will be cropped from the center of your selection
+                {locale.supervisors.imageCropModal.instructions.squareCrop}
               </p>
               <p className="mt-1 text-xs text-blue-600">
-                💡 Tip: For wide images, position your crop area to center the
-                most important part
+                {locale.supervisors.imageCropModal.instructions.tip}
               </p>
               {cropArea && (
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-center gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-blue-800">
-                        Crop Area:
+                        {locale.supervisors.imageCropModal.cropArea}
                       </span>
                       <span className="px-2 py-1 bg-blue-100 text-blue-900 rounded">
                         {Math.round(cropArea.width)} ×{" "}
@@ -601,7 +604,9 @@ export default function ImageCropModal({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-blue-800">Output:</span>
+                      <span className="font-medium text-blue-800">
+                        {locale.supervisors.imageCropModal.output}:
+                      </span>
                       <span className="px-2 py-1 bg-green-100 text-green-900 rounded">
                         {Math.round(
                           cropArea.width *
@@ -627,14 +632,14 @@ export default function ImageCropModal({
               onClick={closeCropModal}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
-              Cancel
+              {locale.supervisors.imageCropModal.buttons.cancel}
             </button>
             <button
               onClick={cropImage}
               disabled={!cropArea || !imageLoaded}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Crop Image
+              {locale.supervisors.imageCropModal.buttons.cropImage}
             </button>
           </div>
         </motion.div>

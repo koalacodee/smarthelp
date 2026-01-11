@@ -8,6 +8,7 @@ import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmati
 import { env } from "next-runtime-env";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface SupervisorsTableProps {
   supervisors: Supervisor[];
@@ -30,6 +31,9 @@ export default function SupervisorsTable({
   const { removeSupervisor } = useSupervisorsStore();
   const { addToast } = useToastStore();
   const { openModal } = useConfirmationModalStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   const handleEdit = (supervisor: Supervisor) => {
     setSupervisor(supervisor);
@@ -41,19 +45,24 @@ export default function SupervisorsTable({
       const canDelete = await SupervisorsService.canDelete(supervisor.id);
       if (!canDelete) {
         addToast({
-          message: "Cannot delete supervisor with active assignments",
+          message: locale.supervisors.toasts.cannotDelete,
           type: "error",
         });
         return;
       }
       openModal({
-        title: "Delete Supervisor",
-        message: `Are you sure you want to delete supervisor ${supervisor.username}? This action cannot be undone.`,
+        title: locale.supervisors.confirmations.deleteTitle,
+        message: locale.supervisors.confirmations.deleteMessage.replace(
+          "{username}",
+          supervisor.username
+        ),
+        confirmText: locale.supervisors.confirmations.confirmText,
+        cancelText: locale.supervisors.confirmations.cancelText,
         onConfirm: () => confirmDelete(supervisor.id),
       });
     } catch (error) {
       addToast({
-        message: "Failed to check delete permissions",
+        message: locale.supervisors.toasts.checkPermissionsFailed,
         type: "error",
       });
     }
@@ -61,8 +70,13 @@ export default function SupervisorsTable({
 
   const handleForceDelete = (supervisor: Supervisor) => {
     openModal({
-      title: "Force Delete Supervisor",
-      message: `Are you sure you want to force delete supervisor ${supervisor.username}? This will delete them regardless of active assignments and cannot be undone.`,
+      title: locale.supervisors.confirmations.forceDeleteTitle,
+      message: locale.supervisors.confirmations.forceDeleteMessage.replace(
+        "{username}",
+        supervisor.username
+      ),
+      confirmText: locale.supervisors.confirmations.confirmText,
+      cancelText: locale.supervisors.confirmations.cancelText,
       onConfirm: () => confirmDelete(supervisor.id),
     });
   };
@@ -77,13 +91,14 @@ export default function SupervisorsTable({
       await SupervisorsService.delete(supervisorId);
       removeSupervisor(supervisorId);
       addToast({
-        message: "Supervisor deleted successfully",
+        message: locale.supervisors.toasts.deleteSuccess,
         type: "success",
       });
     } catch (error: any) {
       addToast({
         message:
-          error?.response?.data?.message || "Failed to delete supervisor",
+          error?.response?.data?.message ||
+          locale.supervisors.toasts.deleteFailed,
         type: "error",
       });
     }
@@ -100,26 +115,34 @@ export default function SupervisorsTable({
             className="bg-gradient-to-r from-slate-50 to-blue-50/30"
           >
             <tr>
-              {["Name", "Designation", "Department", "Email", "Actions"].map(
-                (header, index) => (
-                  <motion.th
-                    key={header}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
-                    scope="col"
-                    className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
-                      header === "Actions" ? "relative" : ""
-                    }`}
-                  >
-                    {header === "Actions" ? (
-                      <span className="sr-only">Actions</span>
-                    ) : (
-                      header
-                    )}
-                  </motion.th>
-                )
-              )}
+              {[
+                locale.supervisors.table.headers.name,
+                locale.supervisors.table.headers.designation,
+                locale.supervisors.table.headers.department,
+                locale.supervisors.table.headers.email,
+                locale.supervisors.table.headers.actions,
+              ].map((header, index) => (
+                <motion.th
+                  key={header}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
+                  scope="col"
+                  className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
+                    header === locale.supervisors.table.headers.actions
+                      ? "relative"
+                      : ""
+                  }`}
+                >
+                  {header === locale.supervisors.table.headers.actions ? (
+                    <span className="sr-only">
+                      {locale.supervisors.table.headers.actions}
+                    </span>
+                  ) : (
+                    header
+                  )}
+                </motion.th>
+              ))}
             </tr>
           </motion.thead>
           <tbody className="bg-white divide-y divide-slate-200">
@@ -260,7 +283,8 @@ export default function SupervisorsTable({
                     transition={{ duration: 0.3, delay: 0.6 + index * 0.08 }}
                     className="font-medium"
                   >
-                    {supervisor.user?.jobTitle || "Not specified"}
+                    {supervisor.user?.jobTitle ||
+                      locale.supervisors.table.notSpecified}
                   </motion.span>
                 </motion.td>
                 <motion.td
@@ -315,7 +339,7 @@ export default function SupervisorsTable({
                       transition={{ duration: 0.3, delay: 0.7 + index * 0.08 }}
                       className="text-sm text-slate-400 italic"
                     >
-                      None
+                      {locale.supervisors.table.none}
                     </motion.span>
                   )}
                 </motion.td>
@@ -348,22 +372,22 @@ export default function SupervisorsTable({
                     <ThreeDotMenu
                       options={[
                         {
-                          label: "Edit",
+                          label: locale.supervisors.table.actions.edit,
                           onClick: () => handleEdit(supervisor),
                           color: "blue",
                         },
                         {
-                          label: "Delegate",
+                          label: locale.supervisors.table.actions.delegate,
                           onClick: () => handleDelegate(supervisor),
                           color: "green",
                         },
                         {
-                          label: "Delete",
+                          label: locale.supervisors.table.actions.delete,
                           onClick: () => handleDelete(supervisor),
                           color: "red",
                         },
                         {
-                          label: "Force Delete",
+                          label: locale.supervisors.table.actions.forceDelete,
                           onClick: () => handleForceDelete(supervisor),
                           color: "red",
                         },
@@ -414,7 +438,7 @@ export default function SupervisorsTable({
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-xl font-bold text-slate-900 mb-2"
           >
-            No supervisors found
+            {locale.supervisors.table.empty.title}
           </motion.h3>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -422,7 +446,7 @@ export default function SupervisorsTable({
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-slate-500 max-w-md mx-auto"
           >
-            Get started by inviting a new supervisor to manage your team.
+            {locale.supervisors.table.empty.hint}
           </motion.p>
         </motion.div>
       )}

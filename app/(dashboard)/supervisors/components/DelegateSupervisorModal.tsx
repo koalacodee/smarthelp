@@ -7,6 +7,7 @@ import { SupervisorService } from "@/lib/api/v2";
 import { SupervisorSummary } from "@/lib/api/v2/services/supervisor";
 import { env } from "next-runtime-env";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface DelegateSupervisorModalProps {
   isOpen: boolean;
@@ -41,6 +42,9 @@ export default function DelegateSupervisorModal({
 
   const { addToast } = useToastStore();
   const { supervisor: currentSupervisor } = useCurrentEditingSupervisorStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   useEffect(() => {
     if (isOpen && currentSupervisor) {
@@ -55,7 +59,7 @@ export default function DelegateSupervisorModal({
           setSupervisors(filteredSupervisors);
         } catch (error) {
           addToast({
-            message: "Failed to load supervisors",
+            message: locale.supervisors.toasts.loadSupervisorsFailed,
             type: "error",
           });
         }
@@ -140,7 +144,7 @@ export default function DelegateSupervisorModal({
 
   const handleDelegate = async () => {
     if (!currentSupervisor || !selectedSupervisor) {
-      setRootError("Please select a supervisor to delegate to.");
+      setRootError(locale.supervisors.toasts.selectSupervisor);
       return;
     }
 
@@ -153,7 +157,9 @@ export default function DelegateSupervisorModal({
       });
 
       addToast({
-        message: `Successfully delegated supervisor responsibilities from ${currentSupervisor.user.username} to ${selectedSupervisor.username}`,
+        message: locale.supervisors.toasts.delegateSuccess
+          .replace("{from}", currentSupervisor.user.username)
+          .replace("{to}", selectedSupervisor.username),
         type: "success",
       });
 
@@ -162,7 +168,7 @@ export default function DelegateSupervisorModal({
     } catch (error: any) {
       setRootError(
         error?.response?.data?.message ||
-          "Failed to delegate supervisor. Please try again."
+          locale.supervisors.toasts.delegateFailed
       );
     } finally {
       setIsSubmitting(false);
@@ -197,7 +203,7 @@ export default function DelegateSupervisorModal({
             transition={{ duration: 0.4, delay: 0.1 }}
             className="text-2xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent"
           >
-            Delegate Supervisor
+            {locale.supervisors.delegateModal.title}
           </motion.h3>
 
           {errors.root && (
@@ -411,7 +417,7 @@ export default function DelegateSupervisorModal({
                     boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
                   }}
                   type="text"
-                  placeholder="Type @ to search for a supervisor..."
+                  placeholder={locale.supervisors.delegateModal.searchPlaceholder}
                   onChange={handleSupervisorInputChange}
                   className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                 />
@@ -491,7 +497,7 @@ export default function DelegateSupervisorModal({
               disabled={isSubmitting}
               className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {locale.supervisors.delegateModal.buttons.cancel}
             </motion.button>
             <motion.button
               type="button"
@@ -508,7 +514,9 @@ export default function DelegateSupervisorModal({
               disabled={!selectedSupervisor || isSubmitting}
               className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Delegating..." : "Delegate"}
+              {isSubmitting
+                ? locale.supervisors.delegateModal.buttons.delegating
+                : locale.supervisors.delegateModal.buttons.delegate}
             </motion.button>
           </motion.div>
         </motion.div>

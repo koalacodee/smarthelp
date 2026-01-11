@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useSupervisorsStore } from "../store/useSupervisorsStore";
 import { Datum as Supervisor } from "@/lib/api/supervisors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface SupervisorsFiltersProps {
   searchTerm: string;
@@ -20,10 +21,14 @@ export default function SupervisorsFilters({
   setSelectedDepartment,
   departments,
 }: SupervisorsFiltersProps) {
+  const { locale } = useLocaleStore();
+
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedDepartment("");
   };
+
+  if (!locale) return null;
 
   return (
     <motion.div
@@ -69,7 +74,7 @@ export default function SupervisorsFilters({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-            placeholder="Search..."
+            placeholder={locale.supervisors.filters.searchPlaceholder}
           />
         </motion.div>
 
@@ -89,7 +94,9 @@ export default function SupervisorsFilters({
             onChange={(e) => setSelectedDepartment(e.target.value)}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer pr-8"
           >
-            <option value="">Select Department</option>
+            <option value="">
+              {locale.supervisors.filters.departmentPlaceholder}
+            </option>
             {departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name}
@@ -142,7 +149,7 @@ export default function SupervisorsFilters({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            Clear
+            {locale.supervisors.filters.clear}
           </motion.button>
         )}
       </div>
