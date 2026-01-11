@@ -8,8 +8,10 @@ import EditTaskModal from "./EditTaskModal";
 import { useTasksStore } from "../../store/useTasksStore";
 import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskAttachments } from "@/lib/store/useAttachmentsStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function TasksPage() {
+  const locale = useLocaleStore((state) => state.locale);
   const [user, setUser] = useState<UserResponse | null>(null);
   const { tasks, setTasks, isLoading, setLoading, error } = useTasksStore();
   const { setSubDepartments, setDepartments } = useTaskModalStore();
@@ -53,6 +55,8 @@ export default function TasksPage() {
     fetch();
   }, [user]);
 
+  if (!locale) return null;
+
   return (
     <>
       {isLoading ? (
@@ -63,7 +67,7 @@ export default function TasksPage() {
         <div className="text-center py-8 text-destructive">{error}</div>
       ) : tasks.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          No tasks found
+          {locale.tasks.teamTasks.empty.title}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">

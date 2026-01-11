@@ -14,6 +14,8 @@ import ThreeDotMenu from "./ThreeDotMenu";
 import { useTaskStore } from "@/lib/store";
 import InlineAttachments from "./InlineAttachments";
 import { useTaskSubmissionModalStore } from "../store/useTaskSubmissionModalStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateTimeWithHijri } from "@/locales/dateFormatter";
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
@@ -61,6 +63,8 @@ interface TeamTaskCardProps {
 }
 
 export default function TeamTaskCard({ task }: TeamTaskCardProps) {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isSubmissionsExpanded, setIsSubmissionsExpanded] = useState(false);
   const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(
@@ -79,28 +83,42 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
   const { openApprovalModal, openRejectionModal } =
     useTaskSubmissionModalStore();
 
+  if (!locale) return null;
+
   const handleApprove = async () => {
     try {
       await api.TasksService.approveTask(task.id!).then((val) =>
         updateTask(val.id, val)
       );
-      addToast({ message: "Task approved", type: "success" });
+      addToast({
+        message: locale.tasks.teamTasks.toasts.taskApproved,
+        type: "success",
+      });
     } catch {
-      addToast({ message: "Failed to approve task", type: "error" });
+      addToast({
+        message: locale.tasks.teamTasks.toasts.approveFailed,
+        type: "error",
+      });
     }
   };
 
   const handleDelete = async () => {
     openModal({
-      title: "Delete Task",
-      message: "Are you sure you want to delete this task?",
+      title: locale.tasks.teamTasks.confirmations.deleteTitle,
+      message: locale.tasks.teamTasks.confirmations.deleteMessage,
       onConfirm: async () => {
         try {
           await api.TasksService.deleteTask(task.id!);
-          addToast({ message: "Task deleted", type: "success" });
+          addToast({
+            message: locale.tasks.teamTasks.toasts.taskDeleted,
+            type: "success",
+          });
           deleteTask(task.id);
         } catch {
-          addToast({ message: "Failed to delete task", type: "error" });
+          addToast({
+            message: locale.tasks.teamTasks.toasts.deleteFailed,
+            type: "error",
+          });
         }
       },
     });
@@ -176,12 +194,12 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
               <ThreeDotMenu
                 options={[
                   {
-                    label: "Preview",
+                    label: locale.tasks.teamTasks.card.actions.viewDetails,
                     onClick: handlePreviewClick,
                     color: "blue",
                   },
                   {
-                    label: "Edit",
+                    label: locale.tasks.teamTasks.card.actions.edit,
                     onClick: () => {
                       setTask(task);
                       setIsEditing(true);
@@ -189,7 +207,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                     color: "blue",
                   },
                   {
-                    label: "Delete",
+                    label: locale.tasks.teamTasks.card.actions.delete,
                     onClick: handleDelete,
                     color: "red",
                   },
@@ -205,7 +223,13 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                 task.status || "TODO"
               )}`}
             >
-              {task.status?.replace("_", " ") || "TODO"}
+              {task.status === "PENDING_REVIEW"
+                ? locale.tasks.teamTasks.card.status.pendingReview
+                : task.status === "SEEN"
+                ? locale.tasks.teamTasks.card.status.seen
+                : task.status === "COMPLETED"
+                ? locale.tasks.teamTasks.card.status.completed
+                : locale.tasks.teamTasks.card.status.todo}
             </span>
             <span
               className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -216,20 +240,23 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                   : "bg-green-100 text-green-800"
               }`}
             >
-              {task.priority || "MEDIUM"}
+              {task.priority === "HIGH"
+                ? locale?.tasks?.modals?.addTask?.priorityOptions?.high || "HIGH"
+                : task.priority === "MEDIUM"
+                ? locale?.tasks?.modals?.addTask?.priorityOptions?.medium || "MEDIUM"
+                : locale?.tasks?.modals?.addTask?.priorityOptions?.low || "LOW"}
             </span>
             {task.dueDate && (
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <Clock className="w-3 h-3" />
                 <span>
-                  Due:{" "}
-                  {new Date(task.dueDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {locale.tasks.teamTasks.card.dueDate}{" "}
+                  {formatDateTimeWithHijri(
+                    task.dueDate,
+                    language,
+                    { month: "short", day: "numeric" },
+                    { hour: "numeric", minute: "2-digit", hour12: true }
+                  )}
                 </span>
               </div>
             )}
@@ -237,12 +264,14 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
 
           {/* Assignee info */}
           <div className="flex items-center gap-2 text-sm text-slate-600 mb-4">
-            <span className="font-medium">Assigned to:</span>
+            <span className="font-medium">
+              {locale.tasks.teamTasks.card.assignedTo}
+            </span>
             <span className="px-2 py-1 bg-slate-100 rounded-full text-xs">
               {task.assignee?.user?.name ||
                 task.targetSubDepartment?.name ||
                 task.targetDepartment?.name ||
-                "Unassigned"}
+                locale.tasks.teamTasks.card.unassigned}
             </span>
           </div>
 
@@ -272,7 +301,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                     />
                   </svg>
                   <span className="text-xs font-medium text-gray-700">
-                    Submissions ({allSubmissionsCount})
+                    {locale.tasks.teamTasks.card.submissions} (
+                    {allSubmissionsCount})
                   </span>
                 </div>
               </button>
@@ -342,13 +372,17 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                                 <ThreeDotMenu
                                   options={[
                                     {
-                                      label: "Approve",
+                                      label:
+                                        locale.tasks.teamTasks.card.actions
+                                          .approve,
                                       onClick: () =>
                                         handleApproveSubmission(submission.id),
                                       color: "green",
                                     },
                                     {
-                                      label: "Reject",
+                                      label:
+                                        locale.tasks.teamTasks.card.actions
+                                          .reject,
                                       onClick: () =>
                                         handleRejectSubmission(submission.id),
                                       color: "red",
@@ -362,15 +396,12 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                         <div className="flex items-center gap-1 text-xs text-gray-400 pl-7">
                           <Clock className="w-3 h-3" />
                           <span>
-                            {new Date(
-                              submission.submittedAt
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
+                            {formatDateTimeWithHijri(
+                              submission.submittedAt,
+                              language,
+                              { month: "short", day: "numeric" },
+                              { hour: "numeric", minute: "2-digit", hour12: true }
+                            )}
                           </span>
                         </div>
 
@@ -464,15 +495,12 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                         <div className="flex items-center gap-1 text-xs text-gray-400 pl-7">
                           <Clock className="w-3 h-3" />
                           <span>
-                            {new Date(
-                              submission.submittedAt
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
+                            {formatDateTimeWithHijri(
+                              submission.submittedAt,
+                              language,
+                              { month: "short", day: "numeric" },
+                              { hour: "numeric", minute: "2-digit", hour12: true }
+                            )}
                           </span>
                         </div>
 

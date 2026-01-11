@@ -15,6 +15,7 @@ import { useMediaMetadataStore } from "@/lib/store/useMediaMetadataStore";
 import { FileService } from "@/lib/api";
 import { FileHubAttachment } from "@/lib/api/v2/services/shared/filehub";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface MyDelegationsPageClientProps {
   initialDelegations: TaskDelegationDTO[];
@@ -33,6 +34,7 @@ export default function MyDelegationsPageClient({
   initialTotal,
   initialFileHubAttachments,
 }: MyDelegationsPageClientProps) {
+  const locale = useLocaleStore((state) => state.locale);
   const {
     delegations,
     filteredDelegations,
@@ -46,6 +48,8 @@ export default function MyDelegationsPageClient({
   const { setMetadata } = useMediaMetadataStore();
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
+
+  if (!locale) return null;
 
   useEffect(() => {
     if (initialFileHubAttachments) {
@@ -172,7 +176,7 @@ export default function MyDelegationsPageClient({
                       transition={{ duration: 0.4, delay: 0.2 }}
                       className="text-lg font-semibold text-slate-800"
                     >
-                      My Delegations
+                      {locale.tasks.delegations.pageHeader.title}
                     </motion.h2>
                     <motion.p
                       initial={{ opacity: 0, x: -20 }}
@@ -180,8 +184,9 @@ export default function MyDelegationsPageClient({
                       transition={{ duration: 0.4, delay: 0.3 }}
                       className="text-sm text-slate-600"
                     >
-                      {filteredDelegations.length} delegation
-                      {filteredDelegations.length !== 1 ? "s" : ""} available
+                      {locale.tasks.delegations.pageHeader.count
+                        .replace("{count}", filteredDelegations.length.toString())
+                        .replace("{plural}", filteredDelegations.length !== 1 ? "s" : "")}
                     </motion.p>
                   </div>
                 </div>
@@ -285,10 +290,10 @@ export default function MyDelegationsPageClient({
                         className="text-slate-500"
                       >
                         <p className="text-lg font-medium mb-2">
-                          No delegations found
+                          {locale.tasks.delegations.empty.title}
                         </p>
                         <p className="text-sm">
-                          Try adjusting your search or filter criteria
+                          {locale.tasks.delegations.empty.hint}
                         </p>
                       </motion.div>
                     </motion.div>

@@ -10,6 +10,7 @@ import { useTaskStore } from "@/lib/store";
 import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 type EditTaskModalProps = {
   role: "admin" | "supervisor";
@@ -48,6 +49,7 @@ const convertMillisecondsToTime = (milliseconds?: number) => {
 };
 
 export default function EditTaskModal({ role }: EditTaskModalProps) {
+  const locale = useLocaleStore((state) => state.locale);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "title",
     "description",
@@ -80,6 +82,8 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const { addToast } = useToastStore();
   const { task, setIsEditing, isEditing } = useCurrentEditingTaskStore();
   const { updateTask } = useTaskStore();
+
+  if (!locale) return null;
   const {
     moveCurrentNewTargetSelectionsToExisting,
     moveSelectedFormMyAttachmentsToExisting,
@@ -179,17 +183,17 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     clearErrors();
 
     if (!title || !description) {
-      setRootError("Please fill all required fields.");
+      setRootError(locale.supervisors.toasts.fillAllFields);
       return;
     }
 
     if (role === "admin" && !departmentId) {
-      setRootError("Please select a department.");
+      setRootError(locale.tasks.modals.addTask.fields.departmentPlaceholder);
       return;
     }
 
     if (role === "supervisor" && !targetSubDepartmentId) {
-      setRootError("Please select a sub-department.");
+      setRootError(locale.tasks.modals.addTask.fields.subDepartmentPlaceholder);
       return;
     }
 
@@ -238,7 +242,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       updateTask(task.id, updated as any);
 
       addToast({
-        message: "Task updated successfully!",
+        message: locale.tasks.teamTasks.toasts.updateSuccess,
         type: "success",
       });
 
@@ -250,14 +254,13 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
             addToast({
               message:
                 (uploadErr as any)?.message ||
-                "Failed to upload new attachments. Please try again.",
+                locale.tasks.teamTasks.toasts.uploadFailed,
               type: "error",
             });
           }
         } else {
           addToast({
-            message:
-              "Missing upload key for new attachments. Please retry the upload.",
+            message: locale.tasks.teamTasks.toasts.missingUploadKey,
             type: "error",
           });
         }
@@ -271,15 +274,18 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to update task. Please try again."
+            locale.tasks.teamTasks.toasts.updateFailed
         );
       }
     }
   };
 
-  const modalTitle = task ? "Edit Task" : "Add New Task";
+  const modalTitle = task
+    ? locale.tasks.modals.editTask.title
+    : locale.tasks.modals.addTask.title;
   const selectedDepartmentName =
-    departments.find((d) => d.id === departmentId)?.name || "Department";
+    departments.find((d) => d.id === departmentId)?.name ||
+    locale.tasks.modals.addTask.fields.department;
 
   if (!isEditing) return null;
 
@@ -326,7 +332,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 htmlFor="task-title"
                 className="block text-sm font-medium text-slate-700 mb-1"
               >
-                Title
+                {locale.tasks.modals.addTask.fields.title}
               </label>
               <input
                 id="task-title"
@@ -335,6 +341,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
                 required
+                placeholder={
+                  locale.tasks.modals.addTask.fields.titlePlaceholder
+                }
               />
               {errors.title && (
                 <p className="mt-1 text-sm text-red-700">{errors.title}</p>
@@ -346,7 +355,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 htmlFor="task-description"
                 className="block text-sm font-medium text-slate-700 mb-1"
               >
-                Description
+                {locale.tasks.modals.addTask.fields.description}
               </label>
               <textarea
                 id="task-description"
@@ -355,7 +364,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 rows={3}
                 className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
                 required
-                placeholder="Provide a detailed description of the task."
+                placeholder={
+                  locale.tasks.modals.addTask.fields.descriptionPlaceholder
+                }
               />
               {errors.description && (
                 <p className="mt-1 text-sm text-red-700">
@@ -370,7 +381,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   htmlFor="task-department"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Department
+                  {locale.tasks.modals.addTask.fields.department}
                 </label>
                 <select
                   id="task-department"
@@ -379,7 +390,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                   required
                 >
-                  <option value="">Select Department</option>
+                  <option value="">
+                    {locale.tasks.modals.addTask.fields.departmentPlaceholder}
+                  </option>
                   {departments.map((dept) => (
                     <option key={dept.id} value={dept.id}>
                       {dept.name}
@@ -399,7 +412,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     htmlFor="task-subdepartment"
                     className="block text-sm font-medium text-slate-700 mb-1"
                   >
-                    Sub-department
+                    {locale.tasks.modals.addTask.fields.subDepartment}
                   </label>
                   <select
                     id="task-subdepartment"
@@ -411,7 +424,12 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                     required
                   >
-                    <option value="">Select Sub-department</option>
+                    <option value="">
+                      {
+                        locale.tasks.modals.addTask.fields
+                          .subDepartmentPlaceholder
+                      }
+                    </option>
                     {subDepartments.map((dept) => (
                       <option key={dept.id} value={dept.id}>
                         {dept.name}
@@ -430,7 +448,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     htmlFor="task-assignee"
                     className="block text-sm font-medium text-slate-700 mb-1"
                   >
-                    Assign To
+                    {locale.tasks.modals.addTask.fields.assignee}
                   </label>
                   <select
                     id="task-assignee"
@@ -439,7 +457,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-slate-50 disabled:opacity-50"
                     disabled={!targetSubDepartmentId}
                   >
-                    <option value="">(Entire Sub-department)</option>
+                    <option value="">
+                      {locale.tasks.modals.addTask.fields.assigneePlaceholder}
+                    </option>
                     {subDepartmentEmployees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
                         {employee.user.name}
@@ -456,7 +476,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   htmlFor="task-priority"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Priority
+                  {locale.tasks.modals.addTask.fields.priority}
                 </label>
                 <select
                   id="task-priority"
@@ -466,9 +486,15 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   }
                   className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                 >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
+                  <option value="LOW">
+                    {locale.tasks.modals.addTask.priorityOptions.low}
+                  </option>
+                  <option value="MEDIUM">
+                    {locale.tasks.modals.addTask.priorityOptions.medium}
+                  </option>
+                  <option value="HIGH">
+                    {locale.tasks.modals.addTask.priorityOptions.high}
+                  </option>
                 </select>
               </div>
 
@@ -477,7 +503,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                   htmlFor="task-due-date"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Due Date
+                  {locale.tasks.modals.addTask.fields.dueDate}
                 </label>
                 <input
                   id="task-due-date"
@@ -491,7 +517,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Reminder Interval (Optional)
+                {locale.tasks.modals.addTask.fields.reminder}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -499,7 +525,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     htmlFor="reminder-days"
                     className="block text-xs text-slate-500 mb-1"
                   >
-                    Days
+                    {locale.tasks.modals.addTask.fields.days}
                   </label>
                   <input
                     id="reminder-days"
@@ -518,7 +544,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     htmlFor="reminder-hours"
                     className="block text-xs text-slate-500 mb-1"
                   >
-                    Hours
+                    {locale.tasks.modals.addTask.fields.hours}
                   </label>
                   <input
                     id="reminder-hours"
@@ -538,7 +564,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                     htmlFor="reminder-minutes"
                     className="block text-xs text-slate-500 mb-1"
                   >
-                    Minutes
+                    {locale.tasks.modals.addTask.fields.minutes}
                   </label>
                   <input
                     id="reminder-minutes"
@@ -583,13 +609,16 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
               onClick={handleClose}
               className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
             >
-              Cancel
+              {locale.tasks.modals.editTask.buttons.cancel}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              disabled={isUploading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              Save Changes
+              {isUploading
+                ? locale.tasks.modals.editTask.buttons.saving
+                : locale.tasks.modals.editTask.buttons.save}
             </button>
           </div>
         </form>

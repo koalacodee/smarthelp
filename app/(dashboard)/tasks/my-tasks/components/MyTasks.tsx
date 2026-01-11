@@ -22,6 +22,9 @@ import { useSubmitDelegationModalStore } from "@/app/(dashboard)/store/useSubmit
 import { FileHubAttachment } from "@/lib/api/v2/models/faq";
 import { useAttachments } from "@/hooks/useAttachments";
 import InlineAttachments from "../../components/InlineAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { Locale } from "@/locales/type";
+import { formatDateTimeWithHijri } from "@/locales/dateFormatter";
 
 // Delegation icon component
 const DelegationIcon = ({ className }: { className?: string }) => (
@@ -55,6 +58,8 @@ const getPriorityColor = (priority: string) => {
 export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openModal } = useSubmitWorkModalStore();
   const { openDetails } = useTaskDetailsStore();
+  const { locale } = useLocaleStore();
+  const language = useLocaleStore((state) => state.language);
   const { filteredTasks, total, metrics, setTasks } = useMyTasksStore();
   const { addToast } = useToastStore();
   const { openModal: openSubmitDelegationModal } =
@@ -142,13 +147,19 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const handleMarkAsSeen = async (taskId: string) => {
     try {
       await TasksService.markTaskAsSeen(taskId);
-      addToast({ message: "Task marked as seen", type: "success" });
+      addToast({
+        message: locale?.tasks?.myTasks?.toasts?.markSeenSuccess || "",
+        type: "success",
+      });
       // Optimistically update store to reflect new status and reapply filters/metrics
       useMyTasksStore
         .getState()
         .updateTask(taskId, { status: TaskStatus.SEEN });
     } catch (error) {
-      addToast({ message: "Failed to mark task as seen", type: "error" });
+      addToast({
+        message: locale?.tasks?.myTasks?.toasts?.markSeenFailed || "",
+        type: "error",
+      });
     }
   };
 
@@ -186,11 +197,11 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                       {/* Checkbox */}
                       {(task.status === TaskStatus.TODO ||
                         task.status === TaskStatus.SEEN) && (
-                          <button
-                            onClick={() => onTaskClick(task)}
-                            className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
-                          ></button>
-                        )}
+                        <button
+                          onClick={() => onTaskClick(task)}
+                          className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
+                        ></button>
+                      )}
 
                       {/* Task content */}
                       <div className="flex-1 min-w-0">
@@ -203,7 +214,10 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                             <button
                               onClick={() => handlePreviewClick(task)}
                               className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="Preview Task"
+                              title={
+                                locale?.tasks?.myTasks?.actions?.viewDetails ||
+                                ""
+                              }
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -215,6 +229,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                               setIsDelegationModalOpen={
                                 setIsDelegationModalOpen
                               }
+                              locale={locale || ({} as Locale)}
                             />
                           </div>
                         </div>
@@ -227,26 +242,43 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.status === "PENDING_REVIEW"
                                 ? "bg-blue-100 text-blue-800"
                                 : task.status === "SEEN"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : task.status === "COMPLETED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                              }`}
+                                ? "bg-amber-100 text-amber-800"
+                                : task.status === "COMPLETED"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
                           >
-                            {task.status?.replace("_", " ") || "TODO"}
+                            {task.status === "PENDING_REVIEW"
+                              ? locale?.tasks?.myTasks?.filters?.status
+                                  .pendingReview
+                              : task.status === "SEEN"
+                              ? locale?.tasks?.myTasks?.filters?.status?.seen
+                              : task.status === "COMPLETED"
+                              ? locale?.tasks?.myTasks?.filters?.status
+                                  ?.completed
+                              : locale?.tasks?.myTasks?.filters?.status?.todo}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.priority === "HIGH"
                                 ? "bg-red-100 text-red-800"
                                 : task.priority === "MEDIUM"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-green-100 text-green-800"
-                              }`}
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
                           >
-                            {task.priority}
+                            {task.priority === "HIGH"
+                              ? locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.high
+                              : task.priority === "MEDIUM"
+                              ? locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.medium
+                              : locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.low}
                           </span>
                         </div>
 
@@ -255,7 +287,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                           <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
                             <Clock className="w-3 h-3" />
                             <span>
-                              Starts:{" "}
+                              {locale?.tasks?.teamTasks?.card?.dueDate || ""}{" "}
                               {new Date(task.dueDate).toLocaleDateString(
                                 "en-US",
                                 {
@@ -288,13 +320,17 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                               className="w-full flex items-center justify-between px-3 py-2 bg-red-50 hover:bg-red-100 transition-colors"
                             >
                               <span className="text-sm font-medium text-red-800">
-                                Rejection Reason
+                                {
+                                  locale?.tasks?.modals?.taskRejection?.fields
+                                    .reason
+                                }
                               </span>
                               <svg
-                                className={`w-4 h-4 text-red-600 transition-transform ${expandedFeedback[task.id]?.rejection
+                                className={`w-4 h-4 text-red-600 transition-transform ${
+                                  expandedFeedback[task.id]?.rejection
                                     ? "rotate-180"
                                     : ""
-                                  }`}
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -333,13 +369,14 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                               className="w-full flex items-center justify-between px-3 py-2 bg-green-50 hover:bg-green-100 transition-colors"
                             >
                               <span className="text-sm font-medium text-green-800">
-                                Approval Feedback
+                                {locale?.tasks?.modals?.approval?.title || ""}
                               </span>
                               <svg
-                                className={`w-4 h-4 text-green-600 transition-transform ${expandedFeedback[task.id]?.approval
+                                className={`w-4 h-4 text-green-600 transition-transform ${
+                                  expandedFeedback[task.id]?.approval
                                     ? "rotate-180"
                                     : ""
-                                  }`}
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -410,7 +447,9 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                             <ThreeDotMenu
                               options={[
                                 {
-                                  label: "Submit for Review",
+                                  label:
+                                    locale?.tasks?.delegations?.actions
+                                      ?.submitWork || "",
                                   onClick: () => onDelegationClick(delegation),
                                   color: "blue",
                                 },
@@ -428,29 +467,48 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 flex items-center gap-1">
                             <DelegationIcon className="w-3 h-3" />
-                            Delegated
+                            {locale?.tasks?.delegations?.delegated || ""}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.status === "PENDING_REVIEW"
                                 ? "bg-blue-100 text-blue-800"
                                 : task.status === "SEEN"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : task.status === "COMPLETED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                              }`}
+                                ? "bg-amber-100 text-amber-800"
+                                : task.status === "COMPLETED"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
                           >
-                            {task.status?.replace("_", " ") || "TODO"}
+                            {task.status === "PENDING_REVIEW"
+                              ? locale?.tasks?.delegations?.filters?.status
+                                  .pendingReview
+                              : task.status === "SEEN"
+                              ? locale?.tasks?.delegations?.filters?.status
+                                  ?.seen
+                              : task.status === "COMPLETED"
+                              ? locale?.tasks?.delegations?.filters?.status
+                                  ?.completed
+                              : locale?.tasks?.delegations?.filters?.status
+                                  ?.todo}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.priority === "HIGH"
                                 ? "bg-red-100 text-red-800"
                                 : task.priority === "MEDIUM"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-green-100 text-green-800"
-                              }`}
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
                           >
-                            {task.priority}
+                            {task.priority === "HIGH"
+                              ? locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.high
+                              : task.priority === "MEDIUM"
+                              ? locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.medium
+                              : locale?.tasks?.modals?.addTask?.priorityOptions
+                                  ?.low}
                           </span>
                         </div>
 
@@ -460,15 +518,11 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
                             <Clock className="w-3 h-3" />
                             <span>
                               Starts:{" "}
-                              {new Date(task.dueDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                }
+                              {formatDateTimeWithHijri(
+                                task.dueDate,
+                                language,
+                                { month: "short", day: "numeric" },
+                                { hour: "numeric", minute: "2-digit", hour12: true }
                               )}
                             </span>
                           </div>
@@ -511,12 +565,14 @@ function MyTasksActions({
   handleMarkAsSeen,
   setTaskId,
   setIsDelegationModalOpen,
+  locale,
 }: {
   task: Task;
   userRole: string;
   handleMarkAsSeen: (taskId: string) => void;
   setTaskId: (taskId: string) => void;
   setIsDelegationModalOpen: (isOpen: boolean) => void;
+  locale: Locale;
 }) {
   if (task.status !== TaskStatus.TODO && task.status !== TaskStatus.SEEN) {
     return null;
@@ -532,20 +588,20 @@ function MyTasksActions({
         [
           task.status === TaskStatus.TODO
             ? {
-              label: "Mark As Seen",
-              onClick: () => handleMarkAsSeen(String(task.id)),
-              color: "blue",
-            }
+                label: locale?.tasks?.myTasks?.actions?.markAsSeen || "",
+                onClick: () => handleMarkAsSeen(String(task.id)),
+                color: "blue",
+              }
             : null,
           userRole == "SUPERVISOR"
             ? {
-              label: "Assign to Employee/Sub-Department",
-              onClick: () => {
-                setTaskId(String(task.id));
-                setIsDelegationModalOpen(true);
-              },
-              color: "green",
-            }
+                label: locale?.tasks?.modals?.delegation?.title || "",
+                onClick: () => {
+                  setTaskId(String(task.id));
+                  setIsDelegationModalOpen(true);
+                },
+                color: "green",
+              }
             : null,
         ].filter(Boolean) as MenuOption[]
       }

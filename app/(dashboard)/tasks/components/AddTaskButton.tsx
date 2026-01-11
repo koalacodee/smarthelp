@@ -5,8 +5,10 @@ import { useTaskModalStore } from "../store/useTaskModalStore";
 import { useTaskPresetsStore } from "../store/useTaskPresetsStore";
 import Plus from "@/icons/Plus";
 import CheckCircle from "@/icons/CheckCircle";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AddTaskButton() {
+  const locale = useLocaleStore((state) => state.locale);
   const setOpen = useTaskModalStore((state) => state.setOpen);
   const { setPresetsModalOpen } = useTaskPresetsStore();
   const [isDropupOpen, setIsDropupOpen] = useState(false);
@@ -29,6 +31,8 @@ export default function AddTaskButton() {
     };
   }, []);
 
+  if (!locale) return null;
+
   return (
     <div className="fixed bottom-6 right-6 z-10" ref={dropupRef}>
       {isDropupOpen && (
@@ -41,7 +45,7 @@ export default function AddTaskButton() {
             className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2"
           >
             <Plus className="w-5 h-5 text-primary" />
-            <span>Create New Task</span>
+            <span>{locale.tasks.modals.addTask.buttons.create}</span>
           </button>
           <button
             onClick={() => {
@@ -51,12 +55,12 @@ export default function AddTaskButton() {
             className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2"
           >
             <CheckCircle className="w-5 h-5 text-primary" />
-            <span>Create From Preset</span>
+            <span>{locale.tasks.modals.createFromPreset.title}</span>
           </button>
         </div>
       )}
       <Button onClick={() => setIsDropupOpen(!isDropupOpen)}>
-        Add New Task
+        {locale.tasks.modals.addTask.buttons.create}
       </Button>
     </div>
   );

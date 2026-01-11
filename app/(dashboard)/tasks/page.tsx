@@ -10,6 +10,7 @@ import SubmitWorkModal from "./components/SubmitWorkModal";
 import TasksPageClient from "./components/TasksPageClient";
 import { env } from "next-runtime-env";
 import { FileHubAttachment } from "@/lib/api/v2/models/faq";
+import { getLocale, getLanguage } from "@/locales/helpers";
 
 // Add the button back to the JSX
 export const metadata: Metadata = {
@@ -30,6 +31,12 @@ export default async function Page() {
   if (userRole === "EMPLOYEE") {
     return redirect("/tasks/my-tasks");
   }
+
+  // Fetch locale and language
+  const [locale, language] = await Promise.all([
+    getLocale(),
+    getLanguage(),
+  ]);
 
   // Fetch data based on user role
   let tasks: any[] = [];
@@ -152,6 +159,8 @@ export default async function Page() {
           initialSubmissionAttachments={submissionAttachments}
           userRole={userRole}
           initialFileHubAttachments={fileHubAttachments}
+          locale={locale}
+          language={language}
         />
 
         <AddTaskModal role={userRole === "ADMIN" ? "admin" : "supervisor"} />

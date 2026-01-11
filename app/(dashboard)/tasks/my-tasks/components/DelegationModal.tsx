@@ -7,6 +7,7 @@ import { EmployeeResponse } from "@/lib/api/v2/services/employee";
 import { Department } from "@/lib/api/departments";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { env } from "next-runtime-env";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface DelegationModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function DelegationModal({
   onClose,
   taskId,
 }: DelegationModalProps) {
+  const locale = useLocaleStore((state) => state.locale);
   const [searchQuery, setSearchQuery] = useState("");
   const [employees, setEmployees] = useState<EmployeeResponse[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
@@ -28,6 +30,8 @@ export default function DelegationModal({
   const { addToast } = useToastStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  if (!locale) return null;
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -57,7 +61,7 @@ export default function DelegationModal({
           } catch (error) {
             console.error("Error fetching delegables:", error);
             addToast({
-              message: "Failed to load employees and departments",
+              message: locale.tasks.toasts.delegationFailed,
               type: "error",
             });
           } finally {
@@ -101,9 +105,7 @@ export default function DelegationModal({
       }
 
       addToast({
-        message: `Task successfully assigned to ${
-          type === "employee" ? "employee" : "sub-department"
-        }`,
+        message: locale.tasks.toasts.delegationSuccess,
         type: "success",
       });
 
@@ -116,7 +118,7 @@ export default function DelegationModal({
     } catch (error) {
       console.error("Error delegating task:", error);
       addToast({
-        message: "Failed to assign task",
+        message: locale.tasks.toasts.delegationFailed,
         type: "error",
       });
     } finally {
@@ -160,7 +162,7 @@ export default function DelegationModal({
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
-              Assign to Employee/Sub-Department
+              {locale.tasks.modals.delegation.title}
             </h2>
             <button
               onClick={handleClose}
@@ -188,7 +190,7 @@ export default function DelegationModal({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Type @ to search for employees or sub-departments"
+              placeholder={locale.tasks.modals.delegation.fields.supervisorPlaceholder}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {isLoading && (
@@ -211,7 +213,7 @@ export default function DelegationModal({
                   {employees.length > 0 && (
                     <div className="p-2">
                       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1">
-                        Employees
+                        {locale.tasks.modals.delegation.fields.employees}
                       </div>
                       {employees.map((employee) => (
                         <motion.button
@@ -296,7 +298,7 @@ export default function DelegationModal({
                               {dept.name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Sub-Department
+                              {locale.tasks.modals.addTask.fields.subDepartment}
                             </div>
                           </div>
                         </motion.button>
@@ -312,7 +314,7 @@ export default function DelegationModal({
             subDepartments.length === 0 &&
             !isLoading && (
               <div className="text-center py-8 text-gray-500">
-                No results found
+                {locale.tasks.delegations.empty.title}
               </div>
             )}
         </div>

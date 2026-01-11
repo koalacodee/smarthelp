@@ -12,6 +12,8 @@ import { TaskDelegationService } from "@/lib/api/v2";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useMyDelegationsStore } from "../store/useMyDelegationsStore";
 import InlineAttachments from "../../components/InlineAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateTimeWithHijri, formatDateWithHijri } from "@/locales/dateFormatter";
 
 // Delegation icon component
 const DelegationIcon = ({ className }: { className?: string }) => (
@@ -79,9 +81,13 @@ export default function DelegationCard({
   delegation,
   submissions,
 }: DelegationCardProps) {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const [isSubmissionsExpanded, setIsSubmissionsExpanded] = useState(false);
   const { addToast } = useToastStore();
   const { updateDelegation } = useMyDelegationsStore();
+
+  if (!locale) return null;
 
   // Get the latest submission (the one with the biggest submittedAt)
   const latestSubmission = useMemo(() => {
@@ -95,7 +101,7 @@ export default function DelegationCard({
 
   const handleApprove = async () => {
     if (!latestSubmission) {
-      addToast({ message: "No submission to approve", type: "error" });
+      addToast({ message: locale.tasks.toasts.approvalFailed, type: "error" });
       return;
     }
 
@@ -106,13 +112,13 @@ export default function DelegationCard({
       );
       updateDelegation(delegation.id.toString(), response.delegation);
       addToast({
-        message: "Submission approved successfully",
+        message: locale.tasks.toasts.approvalSuccess,
         type: "success",
       });
     } catch (error: any) {
       addToast({
         message:
-          error?.response?.data?.message || "Failed to approve submission",
+          error?.response?.data?.message || locale.tasks.toasts.approvalFailed,
         type: "error",
       });
     }
@@ -120,7 +126,7 @@ export default function DelegationCard({
 
   const handleReject = async () => {
     if (!latestSubmission) {
-      addToast({ message: "No submission to reject", type: "error" });
+      addToast({ message: locale.tasks.toasts.rejectionFailed, type: "error" });
       return;
     }
 
@@ -131,13 +137,13 @@ export default function DelegationCard({
       );
       updateDelegation(delegation.id.toString(), response.delegation);
       addToast({
-        message: "Submission rejected successfully",
+        message: locale.tasks.toasts.rejectionSuccess,
         type: "success",
       });
     } catch (error: any) {
       addToast({
         message:
-          error?.response?.data?.message || "Failed to reject submission",
+          error?.response?.data?.message || locale.tasks.toasts.rejectionFailed,
         type: "error",
       });
     }
@@ -145,7 +151,7 @@ export default function DelegationCard({
 
   const handleForward = async () => {
     if (!latestSubmission) {
-      addToast({ message: "No submission to forward", type: "error" });
+      addToast({ message: locale.tasks.toasts.approvalFailed, type: "error" });
       return;
     }
 
@@ -187,7 +193,7 @@ export default function DelegationCard({
             <div className="flex items-center gap-1">
               <button
                 className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
-                title="View Details"
+                title={locale.tasks.delegations.actions.viewDetails}
               >
                 <Eye className="w-4 h-4" />
               </button>
@@ -195,17 +201,17 @@ export default function DelegationCard({
                 <ThreeDotMenu
                   options={[
                     {
-                      label: "Approve",
+                      label: locale.tasks.teamTasks.card.actions.approve,
                       onClick: handleApprove,
                       color: "green",
                     },
                     {
-                      label: "Reject",
+                      label: locale.tasks.teamTasks.card.actions.reject,
                       onClick: handleReject,
                       color: "red",
                     },
                     {
-                      label: "Forward",
+                      label: locale.tasks.delegations.card.forward,
                       onClick: handleForward,
                       color: "blue",
                     },
@@ -222,14 +228,18 @@ export default function DelegationCard({
           <div className="flex flex-wrap gap-2 mb-3">
             <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 flex items-center gap-1">
               <DelegationIcon className="w-3 h-3" />
-              Delegated
+              {locale.tasks.delegations.delegated}
             </span>
             <span
               className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
                 delegation.status
               )}`}
             >
-              {delegation.status?.replace("_", " ") || "TODO"}
+              {delegation.status === "PENDING_REVIEW"
+                ? locale.tasks.delegations.filters.status.pendingReview
+                : delegation.status === "COMPLETED"
+                ? locale.tasks.delegations.filters.status.completed
+                : locale.tasks.delegations.filters.status.todo}
             </span>
             <span
               className={`px-2 py-1 rounded text-xs font-medium ${
@@ -240,13 +250,17 @@ export default function DelegationCard({
                   : "bg-green-100 text-green-800"
               }`}
             >
-              {task.priority}
+              {task.priority === "HIGH"
+                ? locale.tasks.modals.addTask.priorityOptions.high
+                : task.priority === "MEDIUM"
+                ? locale.tasks.modals.addTask.priorityOptions.medium
+                : locale.tasks.modals.addTask.priorityOptions.low}
             </span>
             {delegation.assignmentType && (
               <span className="px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
                 {delegation.assignmentType === "INDIVIDUAL"
-                  ? "Individual"
-                  : "Sub-Department"}
+                  ? locale.tasks.delegations.card.individual
+                  : locale.tasks.delegations.card.subDepartment}
               </span>
             )}
           </div>
@@ -256,14 +270,14 @@ export default function DelegationCard({
             {delegation.assignmentType === "INDIVIDUAL" &&
             delegation.assignee ? (
               <p>
-                Assigned to:{" "}
+                {locale.tasks.teamTasks.card.assignedTo}{" "}
                 <span className="font-medium">
                   {delegation.assignee.user?.name || "Employee"}
                 </span>
               </p>
             ) : delegation.targetSubDepartment ? (
               <p>
-                Assigned to:{" "}
+                {locale.tasks.teamTasks.card.assignedTo}{" "}
                 <span className="font-medium">
                   {delegation.targetSubDepartment.name}
                 </span>
@@ -276,14 +290,13 @@ export default function DelegationCard({
             <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
               <Clock className="w-3 h-3" />
               <span>
-                Due:{" "}
-                {new Date(task.dueDate).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
+                {locale.tasks.teamTasks.card.dueDate}{" "}
+                {formatDateTimeWithHijri(
+                  task.dueDate,
+                  language,
+                  { month: "short", day: "numeric" },
+                  { hour: "numeric", minute: "2-digit", hour12: true }
+                )}
               </span>
             </div>
           )}
@@ -298,8 +311,10 @@ export default function DelegationCard({
                 onClick={() => setIsSubmissionsExpanded(!isSubmissionsExpanded)}
                 className="text-xs font-medium text-gray-700 hover:text-purple-600 transition-colors mb-2"
               >
-                {isSubmissionsExpanded ? "Hide" : "Show"} Submissions (
-                {submissions.length})
+                {isSubmissionsExpanded
+                  ? locale.tasks.delegations.card.hideSubmissions
+                  : locale.tasks.delegations.card.showSubmissions}{" "}
+                {locale.tasks.teamTasks.card.submissions} ({submissions.length})
               </button>
               {isSubmissionsExpanded && (
                 <div className="space-y-2 mt-2">
@@ -329,17 +344,16 @@ export default function DelegationCard({
                         )}
                         {submission.feedback && (
                           <p className="text-gray-500 mt-1 italic">
-                            Feedback: {submission.feedback}
+                            {locale.tasks.delegations.card.feedback}{" "}
+                            {submission.feedback}
                           </p>
                         )}
                         <InlineAttachments
                           targetId={submission.id.toString()}
                         />
                         <p className="text-gray-400 mt-1">
-                          Submitted:{" "}
-                          {new Date(
-                            submission.submittedAt
-                          ).toLocaleDateString()}
+                          {locale.tasks.delegations.card.submitted}{" "}
+                          {formatDateWithHijri(submission.submittedAt, language)}
                         </p>
                       </div>
                     );

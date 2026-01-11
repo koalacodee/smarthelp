@@ -4,6 +4,7 @@ import MyTasks from "./components/MyTasks";
 import { cookies } from "next/headers";
 import { env } from "next-runtime-env";
 import TasksPageWrapper from "./components/TasksPageWrapper";
+import { getLocale, getLanguage } from "@/locales/helpers";
 
 export default async function Page() {
   const response = await TasksService.getMyTasks();
@@ -22,6 +23,12 @@ export default async function Page() {
     delegationsData = await TaskDelegationService.getMyDelegations({});
   }
 
+  // Fetch locale and language
+  const [locale, language] = await Promise.all([
+    getLocale(),
+    getLanguage(),
+  ]);
+
   // Pass the new response structure directly
   // Note: attachments are available in response.attachments if needed
   return (
@@ -29,6 +36,8 @@ export default async function Page() {
       tasksData={response}
       delegationsData={delegationsData}
       userRole={user.user.role}
+      locale={locale}
+      language={language}
     />
   );
 }

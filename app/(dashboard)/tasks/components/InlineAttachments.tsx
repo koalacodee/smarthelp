@@ -5,6 +5,8 @@ import { useAttachments } from "@/hooks/useAttachments";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
 import Clock from "@/icons/Clock";
 import TeamTaskCard from "./TeamTaskCard";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateShort } from "@/locales/dateFormatter";
 
 // Reuse the inline PaperClip icon defined in TeamTaskCard
 const PaperClipIcon =
@@ -29,25 +31,23 @@ interface TaskInlineAttachmentsProps {
   targetId: string;
 }
 
-const formatDate = (value?: string | Date | null) => {
-  if (!value) return "";
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
-
 export default function InlineAttachments({
   targetId,
 }: TaskInlineAttachmentsProps) {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const { existingAttachments } = useAttachments(targetId);
   const { openPreview } = useMediaPreviewStore();
   const [noPreviewFile, setNoPreviewFile] = useState<string | null>(null);
 
   const attachments = existingAttachments;
-  if (!attachments.length) return null;
+  if (!attachments.length || !locale) return null;
 
   const handleClick = (attachment: (typeof attachments)[number]) => {
-    const name = attachment.originalName ?? attachment.filename ?? "Attachment";
+    const name =
+      attachment.originalName ??
+      attachment.filename ??
+      locale.tasks.teamTasks.card.attachment;
 
     if (attachment.signedUrl) {
       openPreview({
@@ -70,7 +70,7 @@ export default function InlineAttachments({
             const name =
               attachment.originalName ??
               attachment.filename ??
-              `Attachment ${index + 1}`;
+              `${locale.tasks.teamTasks.card.attachment} ${index + 1}`;
             const createdAt = attachment.createdAt ?? null;
 
             return (
@@ -85,7 +85,7 @@ export default function InlineAttachments({
                 </span>
                 <Clock className="w-3 h-3 text-gray-400" />
                 {createdAt && (
-                  <span className="text-gray-400">{formatDate(createdAt)}</span>
+                  <span className="text-gray-400">{formatDateShort(createdAt, language)}</span>
                 )}
                 <button
                   className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
@@ -135,7 +135,7 @@ export default function InlineAttachments({
                 onClick={() => setNoPreviewFile(null)}
                 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
-                Got it
+                {locale.tasks.modals.editTask.buttons.cancel}
               </button>
             </div>
           </div>

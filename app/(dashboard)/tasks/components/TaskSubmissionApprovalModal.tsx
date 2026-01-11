@@ -12,8 +12,10 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
 import useFormErrors from "@/hooks/useFormErrors";
 import { useTaskSubmissionModalStore } from "../store/useTaskSubmissionModalStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function TaskSubmissionApprovalModal() {
+  const locale = useLocaleStore((state) => state.locale);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "feedback",
   ]);
@@ -22,6 +24,8 @@ export default function TaskSubmissionApprovalModal() {
   const { addToast } = useToastStore();
   const { isApprovalModalOpen, approvalSubmissionId, closeApprovalModal } =
     useTaskSubmissionModalStore();
+
+  if (!locale) return null;
 
   const handleSubmit = async () => {
     clearErrors();
@@ -37,7 +41,7 @@ export default function TaskSubmissionApprovalModal() {
         feedback: feedback.trim() || undefined,
       });
       addToast({
-        message: "Submission approved successfully",
+        message: locale.tasks.toasts.approvalSuccess,
         type: "success",
       });
       setFeedback("");
@@ -48,7 +52,7 @@ export default function TaskSubmissionApprovalModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to approve submission. Please try again."
+            locale.tasks.toasts.approvalFailed
         );
       }
     } finally {
@@ -93,7 +97,7 @@ export default function TaskSubmissionApprovalModal() {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  Approve Submission
+                  {locale.tasks.modals.approval.title}
                 </DialogTitle>
 
                 {errors.root && (
@@ -146,7 +150,7 @@ export default function TaskSubmissionApprovalModal() {
                       onClick={handleClose}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                     >
-                      Cancel
+                      {locale.tasks.modals.approval.buttons.cancel}
                     </button>
                     <button
                       type="button"
@@ -154,7 +158,7 @@ export default function TaskSubmissionApprovalModal() {
                       disabled={isSubmitting}
                       className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isSubmitting ? "Approving..." : "Approve Submission"}
+                      {isSubmitting ? locale.tasks.modals.approval.buttons.approving : locale.tasks.modals.approval.buttons.approve}
                     </button>
                   </div>
                 </div>

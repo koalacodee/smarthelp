@@ -25,6 +25,8 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import api from "@/lib/api";
 import { useAttachments } from "@/hooks/useAttachments";
 import { FileHubAttachment } from "@/lib/api/v2/models/faq";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TasksPageClientProps {
   initialTasks: any[];
@@ -41,6 +43,8 @@ interface TasksPageClientProps {
   initialDelegationSubmissions?: Record<string, any[]>;
   initialSubmissionAttachments?: Record<string, string[]>;
   userRole?: string;
+  locale: Locale;
+  language: string;
 }
 
 export default function TasksPageClient({
@@ -54,7 +58,10 @@ export default function TasksPageClient({
   initialDelegationSubmissions,
   initialSubmissionAttachments,
   userRole,
+  locale,
+  language,
 }: TasksPageClientProps) {
+  const { setLocale } = useLocaleStore();
   const {
     tasks,
     filteredTasks,
@@ -64,6 +71,11 @@ export default function TasksPageClient({
     isLoading,
     error,
   } = useTaskStore();
+  const storeLocale = useLocaleStore((state) => state.locale);
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
   const { setSubDepartments, setDepartments } = useTaskModalStore();
   const { setTaskAttachments } = useTaskAttachments();
   const { setAttachments } = useAttachmentsStore();
@@ -141,8 +153,9 @@ export default function TasksPageClient({
       setEndDate(null);
     } catch (error) {
       console.error("Export failed:", error);
+      if (!storeLocale) return;
       addToast({
-        message: "Failed to export tasks. Please try again.",
+        message: storeLocale.tasks.teamTasks.toasts.exportFailed,
         type: "error",
       });
     } finally {
@@ -311,9 +324,9 @@ export default function TasksPageClient({
           );
         }
       } catch (error) {
+        if (!storeLocale) return;
         addToast({
-          message:
-            "Failed to fetch tasks for the selected filters. Please try again.",
+          message: storeLocale.tasks.teamTasks.toasts.fetchFailed,
           type: "error",
         });
       } finally {
@@ -363,6 +376,8 @@ export default function TasksPageClient({
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
+
+  if (!storeLocale) return null;
 
   return (
     <>
@@ -416,7 +431,7 @@ export default function TasksPageClient({
                       transition={{ duration: 0.4, delay: 0.2 }}
                       className="text-lg font-semibold text-slate-800"
                     >
-                      Team Tasks
+                      {storeLocale?.tasks.teamTasks.pageHeader.title || "Team Tasks"}
                     </motion.h2>
                     <motion.p
                       initial={{ opacity: 0, x: -20 }}
@@ -424,8 +439,9 @@ export default function TasksPageClient({
                       transition={{ duration: 0.4, delay: 0.3 }}
                       className="text-sm text-slate-600"
                     >
-                      {tasks.length} task
-                      {tasks.length !== 1 ? "s" : ""} available
+                      {storeLocale?.tasks.teamTasks.pageHeader.count
+                        .replace("{count}", tasks.length.toString())
+                        .replace("{plural}", tasks.length !== 1 ? "s" : "") || `${tasks.length} task${tasks.length !== 1 ? "s" : ""} available`}
                     </motion.p>
                   </div>
                 </div>
@@ -439,7 +455,7 @@ export default function TasksPageClient({
                       >
                         <div className="flex flex-col">
                           <label className="text-xs text-slate-500 mb-1">
-                            Start Date (Optional)
+                            {storeLocale?.tasks.teamTasks.export.startDate || "Start Date (Optional)"}
                           </label>
                           <input
                             type="date"
@@ -450,7 +466,7 @@ export default function TasksPageClient({
                         </div>
                         <div className="flex flex-col">
                           <label className="text-xs text-slate-500 mb-1">
-                            End Date (Optional)
+                            {storeLocale?.tasks.teamTasks.export.endDate || "End Date (Optional)"}
                           </label>
                           <input
                             type="date"
@@ -464,7 +480,9 @@ export default function TasksPageClient({
                           disabled={isExporting}
                           className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isExporting ? "Exporting..." : "Export"}
+                          {isExporting
+                            ? storeLocale?.tasks.teamTasks.export.exporting || "Exporting..."
+                            : storeLocale?.tasks.teamTasks.export.export || "Export"}
                         </button>
                         <button
                           onClick={() => {
@@ -474,7 +492,7 @@ export default function TasksPageClient({
                           }}
                           className="px-3 py-1.5 text-slate-600 text-sm font-medium rounded-md hover:bg-slate-100 transition-colors"
                         >
-                          Cancel
+                          {storeLocale?.tasks.teamTasks.export.cancel || "Cancel"}
                         </button>
                       </motion.div>
                     )}
@@ -496,7 +514,7 @@ export default function TasksPageClient({
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        Export Tasks
+                        {storeLocale?.tasks.teamTasks.export.button || "Export Tasks"}
                       </button>
                     )}
                   </div>
@@ -574,7 +592,7 @@ export default function TasksPageClient({
                   <div className="flex flex-col items-center justify-center py-24">
                     <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
                     <p className="mt-4 text-sm text-slate-500">
-                      Loading tasks...
+                      {storeLocale?.tasks.teamTasks.loading || "Loading tasks..."}
                     </p>
                   </div>
                 ) : tasks.length === 0 ? (
@@ -621,10 +639,10 @@ export default function TasksPageClient({
                         className="text-slate-500"
                       >
                         <p className="text-lg font-medium mb-2">
-                          No tasks found
+                          {storeLocale?.tasks.teamTasks.empty.title || "No tasks found"}
                         </p>
                         <p className="text-sm">
-                          Try adjusting your search or filter criteria
+                          {storeLocale?.tasks.teamTasks.empty.hint || "Try adjusting your search or filter criteria"}
                         </p>
                       </motion.div>
                     </motion.div>

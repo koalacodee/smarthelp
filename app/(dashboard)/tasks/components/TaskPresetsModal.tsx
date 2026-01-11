@@ -12,8 +12,12 @@ import { useTaskPresetsStore } from "../store/useTaskPresetsStore";
 import { TaskService } from "@/lib/api/v2";
 import { TaskPresetDTO } from "@/lib/api/v2/models/task";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export default function TaskPresetsModal() {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const {
     isPresetsModalOpen,
     setPresetsModalOpen,
@@ -40,7 +44,7 @@ export default function TaskPresetsModal() {
       setPresets(response.presets);
     } catch (error) {
       addToast({
-        message: "Failed to load task presets. Please try again.",
+        message: locale?.tasks?.modals?.presets?.empty || "No presets found.",
         type: "error",
       });
     } finally {
@@ -64,6 +68,8 @@ export default function TaskPresetsModal() {
       preset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       preset.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (!locale) return null;
 
   return (
     <Transition appear show={isPresetsModalOpen} as={Fragment}>
@@ -100,13 +106,13 @@ export default function TaskPresetsModal() {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 flex items-center gap-2"
                 >
-                  Select Task Preset
+                  {locale.tasks.modals.presets.title}
                 </DialogTitle>
 
                 <div className="mt-4">
                   <input
                     type="text"
-                    placeholder="Search presets..."
+                    placeholder={locale.tasks.modals.presets.searchPlaceholder}
                     className="w-full border border-border rounded-md p-2 bg-background mb-4"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -115,13 +121,13 @@ export default function TaskPresetsModal() {
                   <div className="max-h-60 overflow-y-auto">
                     {isLoading ? (
                       <div className="py-4 text-center text-muted-foreground">
-                        Loading presets...
+                        {locale.tasks.modals.presets.loading}
                       </div>
                     ) : filteredPresets.length === 0 ? (
                       <div className="py-4 text-center text-muted-foreground">
                         {searchTerm
-                          ? "No presets match your search"
-                          : "No presets available"}
+                          ? locale.tasks.modals.presets.noMatch
+                          : locale.tasks.modals.presets.empty}
                       </div>
                     ) : (
                       <ul className="space-y-2">
@@ -137,7 +143,7 @@ export default function TaskPresetsModal() {
                             </div>
                             <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                               <span>
-                                Priority:{" "}
+                                {locale.tasks.modals.presets.priority}{" "}
                                 <span
                                   className={`font-medium ${
                                     preset.priority === "HIGH"
@@ -147,13 +153,21 @@ export default function TaskPresetsModal() {
                                       : "text-green-600"
                                   }`}
                                 >
-                                  {preset.priority}
+                                  {preset.priority === "HIGH"
+                                    ? locale.tasks.modals.addTask
+                                        .priorityOptions.high
+                                    : preset.priority === "MEDIUM"
+                                    ? locale.tasks.modals.addTask
+                                        .priorityOptions.medium
+                                    : locale.tasks.modals.addTask
+                                        .priorityOptions.low}
                                 </span>
                               </span>
                               <span>
-                                {new Date(
-                                  preset.createdAt
-                                ).toLocaleDateString()}
+                                {formatDateWithHijri(
+                                  preset.createdAt,
+                                  language
+                                )}
                               </span>
                             </div>
                           </li>
@@ -169,7 +183,7 @@ export default function TaskPresetsModal() {
                     onClick={handleClose}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                   >
-                    Cancel
+                    {locale.tasks.modals.presets.buttons.close}
                   </button>
                 </div>
               </DialogPanel>

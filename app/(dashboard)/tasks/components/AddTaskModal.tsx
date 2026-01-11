@@ -22,6 +22,7 @@ import { useTaskStore } from "@/lib/store";
 import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -76,6 +77,7 @@ const calculateReminderMilliseconds = (
 };
 
 export default function AddTaskModal({ role }: AddTaskModalProps) {
+  const locale = useLocaleStore((state) => state.locale);
   const {
     clearErrors,
     setErrors,
@@ -88,6 +90,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     "targetSubDepartmentId",
   ]);
   const { addToast } = useToastStore();
+
   const [uploadKeyV3, setUploadKeyV3] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isWaitingToClose, setIsWaitingToClose] = useState(false);
@@ -213,7 +216,9 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       }
 
       addToast({
-        message: "Task created successfully!",
+        message:
+          locale?.tasks?.teamTasks?.toasts?.createSuccess ||
+          "Task created successfully.",
         type: "success",
       });
 
@@ -225,14 +230,16 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
             addToast({
               message:
                 uploadErr?.message ||
-                "Failed to upload new attachments. Please try again.",
+                locale?.tasks?.teamTasks?.toasts?.uploadFailed ||
+                "Failed to upload attachments. Please try again.",
               type: "error",
             });
           }
         } else {
           addToast({
             message:
-              "Missing upload key for new attachments. Please retry the upload.",
+              locale?.tasks?.teamTasks?.toasts?.missingUploadKey ||
+              "Missing upload key. Please try again.",
             type: "error",
           });
         }
@@ -246,11 +253,14 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       } else {
         setRootError(
           error?.response?.data?.message ||
+            locale?.tasks?.teamTasks?.toasts?.createFailed ||
             "Failed to create task. Please try again."
         );
       }
     }
   };
+
+  if (!locale) return null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -288,7 +298,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   className="text-lg font-medium leading-6 text-gray-900 flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5 text-primary" />
-                  Assign New Task
+                  {locale.tasks.modals.addTask.title}
                 </DialogTitle>
 
                 {formErrors.root && (
@@ -317,10 +327,15 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   className="mt-4 space-y-4"
                 >
                   <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      {locale.tasks.modals.addTask.fields.title}
+                    </label>
                     <input
                       {...register("title")}
                       className="w-full border border-border rounded-md p-2 bg-background"
-                      placeholder="Task Title"
+                      placeholder={
+                        locale.tasks.modals.addTask.fields.titlePlaceholder
+                      }
                       type="text"
                     />
                     {errors.title && (
@@ -341,14 +356,19 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         htmlFor="team-task-dept"
                         className="block text-sm font-medium text-muted-foreground mb-1"
                       >
-                        Department
+                        {locale.tasks.modals.addTask.fields.department}
                       </label>
                       <select
                         {...register("departmentId")}
                         id="team-task-dept"
                         className="w-full border border-border rounded-md p-2 bg-background"
                       >
-                        <option value="">Select Department</option>
+                        <option value="">
+                          {
+                            locale.tasks.modals.addTask.fields
+                              .departmentPlaceholder
+                          }
+                        </option>
                         {departments?.map((dept) => (
                           <option key={dept.id} value={dept.id}>
                             {dept.name}
@@ -373,14 +393,19 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           htmlFor="team-task-subdept"
                           className="block text-sm font-medium text-muted-foreground mb-1"
                         >
-                          Sub-department
+                          {locale.tasks.modals.addTask.fields.subDepartment}
                         </label>
                         <select
                           {...register("targetSubDepartmentId")}
                           id="team-task-subdept"
                           className="w-full border border-border rounded-md p-2 bg-background"
                         >
-                          <option value="">Select Sub-department</option>
+                          <option value="">
+                            {
+                              locale.tasks.modals.addTask.fields
+                                .subDepartmentPlaceholder
+                            }
+                          </option>
                           {subDepartments.map((dept) => (
                             <option key={dept.id} value={dept.id}>
                               {dept.name}
@@ -404,7 +429,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           htmlFor="team-task-employee"
                           className="block text-sm font-medium text-muted-foreground mb-1"
                         >
-                          Assign To
+                          {locale.tasks.modals.addTask.fields.assignee}
                         </label>
                         <select
                           {...register("assigneeId")}
@@ -412,7 +437,12 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           className="w-full border border-border rounded-md p-2 bg-background"
                           disabled={!selectedSubDepartmentId}
                         >
-                          <option value="">(Entire Sub-department)</option>
+                          <option value="">
+                            {
+                              locale.tasks.modals.addTask.fields
+                                .assigneePlaceholder
+                            }
+                          </option>
                           {subDepartmentEmployees.map((employee) => (
                             <option key={employee.id} value={employee.id}>
                               {employee.user.name}
@@ -429,16 +459,22 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         htmlFor="team-task-priority"
                         className="block text-sm font-medium text-muted-foreground mb-1"
                       >
-                        Priority
+                        {locale.tasks.modals.addTask.fields.priority}
                       </label>
                       <select
                         {...register("priority")}
                         id="team-task-priority"
                         className="w-full border border-border rounded-md p-2 bg-background"
                       >
-                        <option value="LOW">Low</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="HIGH">High</option>
+                        <option value="LOW">
+                          {locale.tasks.modals.addTask.priorityOptions.low}
+                        </option>
+                        <option value="MEDIUM">
+                          {locale.tasks.modals.addTask.priorityOptions.medium}
+                        </option>
+                        <option value="HIGH">
+                          {locale.tasks.modals.addTask.priorityOptions.high}
+                        </option>
                       </select>
                     </div>
 
@@ -447,7 +483,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         htmlFor="team-task-due-date"
                         className="block text-sm font-medium text-muted-foreground mb-1"
                       >
-                        Due Date
+                        {locale.tasks.modals.addTask.fields.dueDate}
                       </label>
                       <input
                         {...register("dueDate")}
@@ -460,7 +496,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
 
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">
-                      Reminder Interval (Optional)
+                      {locale.tasks.modals.addTask.fields.reminder}
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
@@ -468,7 +504,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           htmlFor="reminder-days"
                           className="block text-xs text-muted-foreground mb-1"
                         >
-                          Days
+                          {locale.tasks.modals.addTask.fields.days}
                         </label>
                         <input
                           {...register("reminderDays", { valueAsNumber: true })}
@@ -485,7 +521,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           htmlFor="reminder-hours"
                           className="block text-xs text-muted-foreground mb-1"
                         >
-                          Hours
+                          {locale.tasks.modals.addTask.fields.hours}
                         </label>
                         <input
                           {...register("reminderHours", {
@@ -505,7 +541,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                           htmlFor="reminder-minutes"
                           className="block text-xs text-muted-foreground mb-1"
                         >
-                          Minutes
+                          {locale.tasks.modals.addTask.fields.minutes}
                         </label>
                         <input
                           {...register("reminderMinutes", {
@@ -527,11 +563,17 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      {locale.tasks.modals.addTask.fields.description}
+                    </label>
                     <textarea
                       {...register("description")}
                       rows={3}
                       className="w-full border border-border rounded-md p-2"
-                      placeholder="Description"
+                      placeholder={
+                        locale.tasks.modals.addTask.fields
+                          .descriptionPlaceholder
+                      }
                     />
                     {errors.description && (
                       <p className="text-red-500 text-xs mt-1">
@@ -568,17 +610,9 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                         {...register("saveAsPreset")}
                       />
                       <span className="font-medium text-primary select-none">
-                        Save Task As Preset
+                        {locale.tasks.modals.addTask.fields.saveAsPreset}
                       </span>
                     </label>
-                    <p className="text-xs mt-2 text-muted-foreground max-w-xl">
-                      <span className="block">
-                        <b>What is a Preset?</b> Save this task as a reusable
-                        template to quickly create similar tasks in the future.
-                        Presets let you predefine task fields, so you can assign
-                        recurring or standardized tasks with just a few clicks.
-                      </span>
-                    </p>
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -587,7 +621,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                       onClick={handleClose}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
-                      Cancel
+                      {locale.tasks.modals.addTask.buttons.cancel}
                     </button>
                     <button
                       type="submit"
@@ -595,7 +629,9 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                       className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      {isSubmitting ? "Creating..." : "Create Task"}
+                      {isSubmitting
+                        ? locale.tasks.modals.createFromPreset.buttons.creating
+                        : locale.tasks.modals.addTask.buttons.create}
                     </button>
                   </div>
                 </form>

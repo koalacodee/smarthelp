@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function MyDelegationsDashboard({
   total,
@@ -12,6 +13,10 @@ export default function MyDelegationsDashboard({
   pendingCount: number;
   completionPercentage: number;
 }) {
+  const locale = useLocaleStore((state) => state.locale);
+
+  if (!locale) return null;
+
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
       <motion.h3
@@ -53,19 +58,19 @@ export default function MyDelegationsDashboard({
         {[
           {
             icon: "📋",
-            label: "Total Delegations",
+            label: locale.tasks.delegations.dashboard.totalDelegations,
             value: total,
             color: "text-[#9333ea]",
           },
           {
             icon: "✅",
-            label: "Completed",
+            label: locale.tasks.delegations.dashboard.completed,
             value: completedCount,
             color: "text-[#48bb78]",
           },
           {
             icon: "🟡",
-            label: "In Progress",
+            label: locale.tasks.delegations.dashboard.inProgress,
             value: pendingCount,
             color: "text-[#f59e0b]",
           },

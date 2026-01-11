@@ -6,8 +6,10 @@ import { TaskDelegationService } from "@/lib/api/v2";
 import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function SubmitDelegationModal() {
+  const locale = useLocaleStore((state) => state.locale);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "notes",
   ]);
@@ -29,6 +31,8 @@ export default function SubmitDelegationModal() {
   const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
   const { reset } = useAttachments();
   const { addToast } = useToastStore();
+
+  if (!locale) return null;
 
   const handleClose = () => {
     closeModal();
@@ -54,7 +58,7 @@ export default function SubmitDelegationModal() {
     clearErrors();
 
     if (!notes?.trim()) {
-      setRootError("Please add completion notes");
+      setRootError(locale.tasks.delegations.toasts.addNotes);
       return;
     }
 
@@ -74,7 +78,7 @@ export default function SubmitDelegationModal() {
       const fileHubUploadKey = response.fileHubUploadKey;
 
       addToast({
-        message: "Delegation submitted for review successfully!",
+        message: locale.tasks.delegations.toasts.submitSuccess,
         type: "success",
       });
 
@@ -86,14 +90,13 @@ export default function SubmitDelegationModal() {
             addToast({
               message:
                 uploadErr?.message ||
-                "Failed to upload new attachments. Please try again.",
+                locale.tasks.delegations.toasts.uploadFailed,
               type: "error",
             });
           }
         } else {
           addToast({
-            message:
-              "Missing upload key for new attachments. Please retry the upload.",
+            message: locale.tasks.delegations.toasts.missingUploadKey,
             type: "error",
           });
         }
@@ -107,7 +110,7 @@ export default function SubmitDelegationModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to submit delegation for review. Please try again."
+            locale.tasks.delegations.toasts.submitFailed
         );
       }
     } finally {
@@ -121,7 +124,7 @@ export default function SubmitDelegationModal() {
     <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4 text-slate-800">
-          Submit Delegation for Review: {taskTitle}
+          {locale.tasks.modals.submitDelegation.title}: {taskTitle}
         </h3>
 
         {errors.root && (
@@ -147,15 +150,18 @@ export default function SubmitDelegationModal() {
 
         <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
           <div>
-            <p className="font-semibold text-sm text-slate-600">Description:</p>
+            <p className="font-semibold text-sm text-slate-600">
+              {locale.tasks.modals.submitWork.fields.description}
+            </p>
             <p className="text-slate-800 whitespace-pre-wrap">
-              {delegation.task?.description || "No description provided"}
+              {delegation.task?.description ||
+                locale.tasks.modals.submitWork.fields.noDescription}
             </p>
           </div>
           {delegation.targetSubDepartment && (
             <div>
               <p className="font-semibold text-sm text-slate-600">
-                Assigned to:
+                {locale.tasks.teamTasks.card.assignedTo}
               </p>
               <p className="text-slate-800">
                 {delegation.assignmentType === "INDIVIDUAL" &&
@@ -173,13 +179,16 @@ export default function SubmitDelegationModal() {
               htmlFor="delegation-notes"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
-              Completion Notes <span className="text-red-500">*</span>
+              {locale.tasks.modals.submitDelegation.fields.notes}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <textarea
               id="delegation-notes"
               rows={3}
               className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Add any comments or details about the delegation completion..."
+              placeholder={
+                locale.tasks.modals.submitDelegation.fields.notesPlaceholder
+              }
               value={notes || ""}
               onChange={(e) => setNotes(e.target.value)}
               required
@@ -209,7 +218,7 @@ export default function SubmitDelegationModal() {
               onClick={closeModal}
               className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
             >
-              Cancel
+              {locale.tasks.modals.submitDelegation.buttons.cancel}
             </button>
             <button
               type="submit"
@@ -230,7 +239,9 @@ export default function SubmitDelegationModal() {
                   d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                 />
               </svg>
-              {isSubmitting ? "Submitting..." : "Submit for Review"}
+              {isSubmitting
+                ? locale.tasks.modals.submitDelegation.buttons.submitting
+                : locale.tasks.modals.submitDelegation.buttons.submit}
             </button>
           </div>
         </form>

@@ -18,6 +18,8 @@ import { useCurrentEditingTaskStore } from "../store/useCurrentEditingTaskStore"
 import { useAttachmentsStore } from "@/lib/store/useAttachmentsStore";
 import SquareArrow from "@/icons/SquareArrow";
 import Pencil from "@/icons/Pencil";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 // Custom PaperClip icon component
 const PaperClipIcon = ({ className }: { className?: string }) => (
   <svg
@@ -53,6 +55,8 @@ const formatReminderInterval = (milliseconds?: number): string => {
 };
 
 export default function TaskCard({ task }: { task: Task }) {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const { addToast } = useToastStore();
   const { openModal } = useConfirmationModalStore();
@@ -61,28 +65,30 @@ export default function TaskCard({ task }: { task: Task }) {
   const { setTask, setIsEditing } = useCurrentEditingTaskStore();
   const { getAttachments } = useAttachmentsStore();
 
+  if (!locale) return null;
+
   const handleApprove = async () => {
     try {
       await api.TasksService.approveTask(task.id!).then((val) =>
         updateTask(val.id, val)
       );
-      addToast({ message: "Task approved", type: "success" });
+      addToast({ message: locale.tasks.teamTasks.toasts.taskApproved, type: "success" });
     } catch {
-      addToast({ message: "Failed to approve task", type: "error" });
+      addToast({ message: locale.tasks.teamTasks.toasts.approveFailed, type: "error" });
     }
   };
 
   const handleDelete = async () => {
     openModal({
-      title: "Delete Task",
-      message: "Are you sure you want to delete this task?",
+      title: locale.tasks.teamTasks.confirmations.deleteTitle,
+      message: locale.tasks.teamTasks.confirmations.deleteMessage,
       onConfirm: async () => {
         try {
           await api.TasksService.deleteTask(task.id!);
-          addToast({ message: "Task deleted", type: "success" });
+          addToast({ message: locale.tasks.teamTasks.toasts.taskDeleted, type: "success" });
           deleteTask(task.id);
         } catch {
-          addToast({ message: "Failed to delete task", type: "error" });
+          addToast({ message: locale.tasks.teamTasks.toasts.deleteFailed, type: "error" });
         }
       },
     });
@@ -132,7 +138,7 @@ export default function TaskCard({ task }: { task: Task }) {
           <button
             onClick={handleDetailsClick}
             className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="View details"
+            title={locale.tasks.teamTasks.card.actions.viewDetails}
           >
             <SquareArrow className="w-5 h-5" />
           </button>
@@ -151,7 +157,13 @@ export default function TaskCard({ task }: { task: Task }) {
                 : "bg-gray-50 text-gray-700 border border-gray-200"
             }`}
           >
-            {task?.status?.replace("_", " ") || "TODO"}
+            {task.status === "PENDING_REVIEW"
+              ? locale.tasks.teamTasks.card.status.pendingReview
+              : task.status === "SEEN"
+              ? locale.tasks.teamTasks.card.status.seen
+              : task.status === "COMPLETED"
+              ? locale.tasks.teamTasks.card.status.completed
+              : locale.tasks.teamTasks.card.status.todo}
           </span>
 
           <span
@@ -163,14 +175,20 @@ export default function TaskCard({ task }: { task: Task }) {
                 : "bg-green-50 text-green-700 border border-green-200"
             }`}
           >
-            {task.priority || "MEDIUM"}
+            {task.priority === "HIGH"
+              ? locale?.tasks?.modals?.addTask?.priorityOptions?.high || "HIGH"
+              : task.priority === "MEDIUM"
+              ? locale?.tasks?.modals?.addTask?.priorityOptions?.medium || "MEDIUM"
+              : locale?.tasks?.modals?.addTask?.priorityOptions?.low || "LOW"}
           </span>
 
           {getAttachments("task", task.id).length > 0 && (
             <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5">
               <PaperClipIcon className="w-3 h-3" />
-              {getAttachments("task", task.id).length} attachment
-              {getAttachments("task", task.id).length !== 1 ? "s" : ""}
+              {getAttachments("task", task.id).length}{" "}
+              {getAttachments("task", task.id).length !== 1
+                ? locale.tasks.teamTasks.card.attachments
+                : locale.tasks.teamTasks.card.attachment}
             </span>
           )}
         </div>
@@ -184,7 +202,7 @@ export default function TaskCard({ task }: { task: Task }) {
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Assigned To
+                  {locale.tasks.modals.addTask.fields.assignee}
                 </p>
                 <p className="text-sm font-semibold text-gray-900">
                   {task.assignee?.user?.name ||
@@ -200,12 +218,12 @@ export default function TaskCard({ task }: { task: Task }) {
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Due Date
+                  {locale.tasks.modals.addTask.fields.dueDate}
                 </p>
                 <p className="text-sm font-semibold text-gray-900">
                   {task.dueDate
-                    ? new Date(task.dueDate).toLocaleDateString()
-                    : "Not set"}
+                    ? formatDateWithHijri(task.dueDate, language)
+                    : locale.tasks.teamTasks.card.noDueDate}
                 </p>
               </div>
             </div>
@@ -230,10 +248,10 @@ export default function TaskCard({ task }: { task: Task }) {
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Last Updated
+                  {locale.tasks.teamTasks.card.lastUpdated}
                 </p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {new Date(task.updatedAt || new Date()).toLocaleDateString()}
+                  {formatDateWithHijri(task.updatedAt || new Date(), language)}
                 </p>
               </div>
             </div>
@@ -256,11 +274,12 @@ export default function TaskCard({ task }: { task: Task }) {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                    Reminder
-                  </p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {locale.tasks.modals.addTask.fields.reminder}
+                </p>
                   <p className="text-sm font-semibold text-blue-600">
-                    Every {formatReminderInterval(task.reminderInterval)}
+                    {locale.tasks.teamTasks.card.every}{" "}
+                    {formatReminderInterval(task.reminderInterval)}
                   </p>
                 </div>
               </div>
@@ -276,7 +295,7 @@ export default function TaskCard({ task }: { task: Task }) {
               setIsEditing(true);
             }}
             className="p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Edit Task"
+            title={locale.tasks.teamTasks.card.actions.edit}
           >
             <Pencil className="w-4 h-4" />
           </button>
@@ -288,14 +307,14 @@ export default function TaskCard({ task }: { task: Task }) {
                 <button
                   onClick={handleApprove}
                   className="p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                  title="Approve"
+                  title={locale.tasks.teamTasks.card.actions.approve}
                 >
                   <Check className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setIsRejectModalOpen(true)}
                   className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Reject"
+                  title={locale.tasks.teamTasks.card.actions.reject}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -304,7 +323,7 @@ export default function TaskCard({ task }: { task: Task }) {
           <button
             onClick={handleDelete}
             className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete"
+            title={locale.tasks.teamTasks.card.actions.delete}
           >
             <Trash className="w-4 h-4" />
           </button>

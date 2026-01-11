@@ -12,6 +12,7 @@ import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { TasksService } from "@/lib/api";
 import { useTasksStore } from "../../store/useTasksStore";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function TaskRejectionModal({
   taskId,
@@ -22,6 +23,7 @@ export default function TaskRejectionModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const locale = useLocaleStore((state) => state.locale);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "feedback",
   ]);
@@ -29,6 +31,8 @@ export default function TaskRejectionModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addToast } = useToastStore();
   const { updateTask } = useTasksStore();
+
+  if (!locale) return null;
 
   const handleSubmit = async () => {
     clearErrors();
@@ -38,7 +42,7 @@ export default function TaskRejectionModal({
         updateTask(val.id, val)
       );
       addToast({
-        message: "Task rejected successfully",
+        message: locale.tasks.toasts.taskRejectionSuccess,
         type: "success",
       });
       onClose();
@@ -48,7 +52,7 @@ export default function TaskRejectionModal({
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to reject task. Please try again."
+            locale.tasks.toasts.taskRejectionFailed
         );
       }
     } finally {
@@ -87,7 +91,7 @@ export default function TaskRejectionModal({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  Reject Task
+                  {locale.tasks.modals.taskRejection.title}
                 </DialogTitle>
 
                 {errors.root && (
@@ -117,7 +121,7 @@ export default function TaskRejectionModal({
                       htmlFor="feedback"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Feedback (Optional)
+                      {locale.tasks.modals.taskRejection.fields.reason}
                     </label>
                     <textarea
                       id="feedback"
@@ -125,6 +129,7 @@ export default function TaskRejectionModal({
                       className="w-full border border-gray-300 rounded-md p-2"
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
+                      placeholder={locale.tasks.modals.taskRejection.fields.reasonPlaceholder}
                     />
                     {errors.feedback && (
                       <p className="mt-1 text-sm text-red-700">
@@ -139,7 +144,7 @@ export default function TaskRejectionModal({
                       onClick={onClose}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
-                      Cancel
+                      {locale.tasks.modals.taskRejection.buttons.cancel}
                     </button>
                     <button
                       type="button"
@@ -147,7 +152,7 @@ export default function TaskRejectionModal({
                       disabled={isSubmitting}
                       className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50"
                     >
-                      {isSubmitting ? "Rejecting..." : "Reject Task"}
+                      {isSubmitting ? locale.tasks.modals.taskRejection.buttons.rejecting : locale.tasks.modals.taskRejection.buttons.reject}
                     </button>
                   </div>
                 </div>

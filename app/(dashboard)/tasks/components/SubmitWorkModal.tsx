@@ -9,8 +9,10 @@ import { useMyTasksStore } from "../my-tasks/store/useMyTasksStore";
 import { useAdminTasksStore } from "../store/useAdminTasksStore";
 import { TaskStatus } from "@/lib/api/tasks";
 import useFormErrors from "@/hooks/useFormErrors";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function SubmitWorkModal() {
+  const locale = useLocaleStore((state) => state.locale);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "notes",
   ]);
@@ -51,7 +53,10 @@ export default function SubmitWorkModal() {
     clearErrors();
 
     if (!task.notes?.trim()) {
-      setRootError("Please add completion notes");
+      setRootError(
+        locale?.tasks?.myTasks?.toasts?.addNotes ||
+          "Please add completion notes"
+      );
       return;
     }
 
@@ -90,6 +95,7 @@ export default function SubmitWorkModal() {
             addToast({
               message:
                 uploadErr?.message ||
+                locale?.tasks?.myTasks?.toasts?.uploadFailed ||
                 "Failed to upload new attachments. Please try again.",
               type: "error",
             });
@@ -97,7 +103,8 @@ export default function SubmitWorkModal() {
         } else {
           addToast({
             message:
-              "Missing upload key for new attachments. Please retry the upload.",
+              locale?.tasks?.myTasks?.toasts?.missingUploadKey ||
+              "Missing upload key. Please try again.",
             type: "error",
           });
         }
@@ -111,7 +118,8 @@ export default function SubmitWorkModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            "Failed to submit task for review. Please try again."
+            locale?.tasks?.myTasks?.toasts?.submitFailed ||
+            "Failed to submit task. Please try again."
         );
       }
     } finally {
@@ -119,11 +127,13 @@ export default function SubmitWorkModal() {
     }
   };
 
+  if (!locale) return null;
+
   return (
     <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4 text-slate-800">
-          Submit Task for Review: {task.title}
+          {locale.tasks.modals.submitWork.title}: {task.title}
         </h3>
 
         {errors.root && (
@@ -149,9 +159,12 @@ export default function SubmitWorkModal() {
 
         <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
           <div>
-            <p className="font-semibold text-sm text-slate-600">Description:</p>
+            <p className="font-semibold text-sm text-slate-600">
+              {locale.tasks.modals.submitWork.fields.description}
+            </p>
             <p className="text-slate-800 whitespace-pre-wrap">
-              {task.description || "No description provided"}
+              {task.description ||
+                locale.tasks.modals.submitWork.fields.noDescription}
             </p>
           </div>
         </div>
@@ -162,13 +175,16 @@ export default function SubmitWorkModal() {
               htmlFor="supervisor-notes"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
-              Completion Notes <span className="text-red-500">*</span>
+              {locale.tasks.modals.submitWork.fields.notes}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <textarea
               id="supervisor-notes"
               rows={3}
               className="w-full border border-slate-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Add any comments or details about the task completion..."
+              placeholder={
+                locale.tasks.modals.submitWork.fields.notesPlaceholder
+              }
               value={task.notes}
               onChange={(e) => setNotes(e.target.value)}
               required
@@ -198,7 +214,7 @@ export default function SubmitWorkModal() {
               onClick={handleClose}
               className="px-4 py-2 bg-slate-200 rounded-md text-sm font-medium hover:bg-slate-300 transition-colors"
             >
-              Cancel
+              {locale.tasks.modals.submitWork.buttons.cancel}
             </button>
             <button
               type="submit"
@@ -219,7 +235,9 @@ export default function SubmitWorkModal() {
                   d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                 />
               </svg>
-              {isSubmitting ? "Submitting..." : "Submit for Review"}
+              {isSubmitting
+                ? locale.tasks.modals.submitWork.buttons.submitting
+                : locale.tasks.modals.submitWork.buttons.submit}
             </button>
           </div>
         </form>
