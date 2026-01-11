@@ -143,6 +143,13 @@ export async function middleware(request: NextRequest) {
   // Inject custom header in all requests
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
+  
+  // Check for SMARTHELP_LANG cookie first, then fall back to accept-language header
+  const cookieLang = request.cookies.get("SMARTHELP_LANG")?.value;
+  const acceptLang = headers.get("accept-language")?.split(",")[0]?.split("-")[0];
+  const lang = cookieLang || acceptLang || "en";
+  
+  headers.set("x-lang", lang);
   console.log("pathname", pathname);
 
   // Skip auth check for excluded pages or attachment pages
@@ -165,7 +172,7 @@ export async function middleware(request: NextRequest) {
 
       if (!apiResponse.ok) {
         // If refresh fails, redirect to login
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/login", request.url), { headers });
       }
 
       // Parse response to get new token
@@ -204,7 +211,10 @@ export async function middleware(request: NextRequest) {
         }
 
         if (notAllowed) {
-          return NextResponse.redirect(new URL("/access-denied", request.url));
+          return NextResponse.redirect(
+            new URL("/access-denied", request.url),
+            { headers }
+          );
         }
       }
 
@@ -212,7 +222,7 @@ export async function middleware(request: NextRequest) {
     } catch (error) {
       console.log(error);
 
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login", request.url), { headers });
     }
   }
 

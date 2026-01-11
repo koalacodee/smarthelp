@@ -6,6 +6,8 @@ import ToastContainer from "@/components/Toasts/ToastContainer";
 import ProgressBar from "@/components/ProgressBar";
 import { PublicEnvScript } from "next-runtime-env";
 import AttachmentsResetter from "@/components/AttachmentsResetter";
+import { getLanguage } from "@/locales/helpers";
+import { isRTL } from "@/locales/isRTL";
 
 const roboto = localFont({
   src: "../public/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf",
@@ -30,8 +32,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLanguage();
   return (
-    <html lang="en">
+    <html lang={lang} dir={isRTL(lang) ? "rtl" : "ltr"}>
       <head>
         <PublicEnvScript />
       </head>
