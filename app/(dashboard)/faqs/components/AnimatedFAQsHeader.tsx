@@ -1,6 +1,13 @@
+"use client";
+
 import React from "react";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AnimatedFAQsHeader() {
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl animate-fade-in-down"
@@ -31,7 +38,7 @@ export default function AnimatedFAQsHeader() {
                 animationFillMode: "both",
               }}
             >
-              Knowledge Base
+              {locale.faqs.pageHeader.title}
             </h1>
             <p
               className="text-slate-600 text-lg animate-fade-in-up"
@@ -40,8 +47,7 @@ export default function AnimatedFAQsHeader() {
                 animationFillMode: "both",
               }}
             >
-              Manage frequently asked questions and build a comprehensive
-              knowledge base
+              {locale.faqs.pageHeader.description}
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Question } from "@/lib/api/types";
 import { FAQService } from "@/lib/api/v2";
+import { getLocale, getLanguage } from "@/locales/helpers";
 import AnimatedFAQsHeader from "./components/AnimatedFAQsHeader";
 import FaqsFilters from "./components/FaqsFilters";
 import FaqsTable from "./components/FaqsTable";
@@ -24,7 +25,11 @@ export interface GroupedFAQsQuestion extends Question {
 }
 
 export default async function Page() {
-  const res = await FAQService.getAllGroupedByDepartment();
+  const [res, locale, language] = await Promise.all([
+    FAQService.getAllGroupedByDepartment(),
+    getLocale(),
+    getLanguage(),
+  ]);
 
   console.log(res);
 
@@ -46,6 +51,8 @@ export default async function Page() {
               questions={res.questions}
               attachments={res.attachments}
               fileHubAttachments={res.fileHubAttachments}
+              locale={locale}
+              language={language}
             />
           </div>
         </div>

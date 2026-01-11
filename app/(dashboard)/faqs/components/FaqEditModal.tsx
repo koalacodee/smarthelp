@@ -14,6 +14,7 @@ import { TRANSLATION_MAP } from "@/constants/translation";
 import type { SupportedLanguage } from "@/types/translation";
 import AttachmentInputV3 from "../../files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function FaqEditModal() {
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
@@ -41,6 +42,7 @@ export default function FaqEditModal() {
   const { addToast } = useToastStore();
   const { faq, setIsEditing, isEditing } = useCurrentEditingFAQStore();
   const { addFAQ, updateFAQ } = useGroupedFAQsStore();
+  const { locale } = useLocaleStore();
 
   useEffect(() => {
     Promise.all([
@@ -162,7 +164,7 @@ export default function FaqEditModal() {
             confirmExistingAttachmentsDeletionForTarget(updated.id);
           }
           addToast({
-            message: "FAQ Updated Successfully!",
+            message: locale?.faqs?.toasts?.faqUpdated || "FAQ updated",
             type: "success",
           });
           // Simply update the FAQ in the store
@@ -184,14 +186,16 @@ export default function FaqEditModal() {
                 addToast({
                   message:
                     uploadErr?.message ||
-                    "Failed to upload new attachments. Please try again.",
+                    locale?.faqs?.toasts?.uploadError ||
+                    "Upload error",
                   type: "error",
                 });
               }
             } else {
               addToast({
                 message:
-                  "Missing upload key for new attachments. Please retry the upload.",
+                  locale?.faqs?.toasts?.missingUploadKey ||
+                  "Missing upload key",
                 type: "error",
               });
             }
@@ -210,7 +214,8 @@ export default function FaqEditModal() {
           } else {
             setRootError(
               error?.response?.data?.message ||
-                "Failed to update FAQ. Please try again."
+                locale?.faqs?.toasts?.updateError ||
+                "Update error"
             );
           }
         });
@@ -226,7 +231,7 @@ export default function FaqEditModal() {
         .then(async (response: CreateQuestionResponse) => {
           const { question: created } = response;
           addToast({
-            message: "FAQ Added Successfully!",
+            message: locale?.faqs?.toasts?.faqAdded || "FAQ added",
             type: "success",
           });
           // Add the new FAQ to the store
@@ -255,14 +260,16 @@ export default function FaqEditModal() {
                 addToast({
                   message:
                     uploadErr?.message ||
-                    "Failed to upload new attachments. Please try again.",
+                    locale?.faqs?.toasts?.uploadError ||
+                    "Upload error",
                   type: "error",
                 });
               }
             } else {
               addToast({
                 message:
-                  "Missing upload key for new attachments. Please retry the upload.",
+                  locale?.faqs?.toasts?.missingUploadKey ||
+                  "Missing upload key",
                 type: "error",
               });
             }
@@ -281,7 +288,8 @@ export default function FaqEditModal() {
           } else {
             setRootError(
               error?.response?.data?.message ||
-                "Failed to add FAQ. Please try again."
+                locale?.faqs?.toasts?.addError ||
+                "Add error"
             );
           }
         });
@@ -290,11 +298,14 @@ export default function FaqEditModal() {
     setTranslateTo([]);
   };
 
-  const modalTitle = faq && faq.answer ? "Edit FAQ" : "Add New FAQ";
+  const modalTitle =
+    faq && faq.answer
+      ? locale?.faqs?.modal?.editTitle
+      : locale?.faqs?.modal?.addTitle;
   const selectedCategoryName =
     departments.find((c) => c.id === departmentId)?.name || "Category";
 
-  if (!isEditing) return null;
+  if (!isEditing || !locale) return null;
 
   return (
     <AnimatePresence>
@@ -391,7 +402,7 @@ export default function FaqEditModal() {
                   htmlFor="faq-question"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Question
+                  {locale.faqs.modal.questionLabel}
                 </motion.label>
                 <motion.input
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -431,7 +442,7 @@ export default function FaqEditModal() {
                   htmlFor="faq-answer"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Answer
+                  {locale.faqs.modal.answerLabel}
                 </motion.label>
                 <motion.textarea
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -447,7 +458,7 @@ export default function FaqEditModal() {
                   rows={4}
                   className="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50 resize-none"
                   required
-                  placeholder="Provide a detailed answer to the question."
+                  placeholder={locale.faqs.modal.answerPlaceholder}
                 />
                 {errors.answer && (
                   <motion.p
@@ -478,7 +489,7 @@ export default function FaqEditModal() {
                     htmlFor="faq-category-modal"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Main Category
+                    {locale.faqs.modal.mainCategoryLabel}
                   </motion.label>
                   <motion.select
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -523,7 +534,7 @@ export default function FaqEditModal() {
                     htmlFor="faq-subdepartment-modal"
                     className="block text-sm font-medium text-slate-700 mb-2"
                   >
-                    Sub-department (Optional)
+                    {locale.faqs.modal.subDepartmentLabel}
                   </motion.label>
                   <motion.select
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -541,8 +552,11 @@ export default function FaqEditModal() {
                   >
                     <option value="">
                       {subDepartmentsForCategory.length !== 0
-                        ? `All of ${selectedCategoryName}`
-                        : "No Sub-Departments"}
+                        ? locale.faqs.modal.allOfCategory.replace(
+                            "{category}",
+                            selectedCategoryName
+                          )
+                        : locale.faqs.modal.noSubDepartments}
                     </option>
                     {subDepartmentsForCategory.map((sd) => (
                       <option key={sd.id} value={sd.id}>
@@ -589,7 +603,7 @@ export default function FaqEditModal() {
                   className="flex items-center gap-2 mb-4"
                 >
                   <label className="text-sm font-medium text-slate-700">
-                    Translate To (Optional)
+                    {locale.faqs.modal.translateToLabel}
                   </label>
                 </motion.div>
                 <motion.div
@@ -697,7 +711,7 @@ export default function FaqEditModal() {
                 onClick={handleClose}
                 className="px-6 py-3 bg-slate-200 rounded-xl text-sm font-medium hover:bg-slate-300 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Cancel
+                {locale.faqs.modal.cancel}
               </motion.button>
               <motion.button
                 type="submit"
@@ -713,7 +727,7 @@ export default function FaqEditModal() {
                 onClick={handleSave}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                Save Changes
+                {locale.faqs.modal.saveChanges}
               </motion.button>
             </motion.div>
           </form>

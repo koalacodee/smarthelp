@@ -9,20 +9,31 @@ import RefreshButton from "@/components/ui/RefreshButton";
 import { useFAQAttachments } from "@/lib/store/useAttachmentsStore";
 import { FileHubAttachment } from "@/lib/api/v2/models/faq";
 import { useAttachments } from "@/hooks/useAttachments";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function FaqsTable({
   questions,
   attachments,
   fileHubAttachments,
+  locale,
+  language,
 }: {
   questions: GroupedFAQs[];
   attachments: Record<string, string[]>;
   fileHubAttachments?: FileHubAttachment[];
+  locale: Locale;
+  language: string;
 }) {
   const { filteredFaqs, setFAQs } = useGroupedFAQsStore();
   const { setFAQAttachments } = useFAQAttachments();
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   useEffect(() => {
     setFAQs(questions);
@@ -77,6 +88,9 @@ export default function FaqsTable({
     0
   );
 
+  const { locale: storeLocale } = useLocaleStore();
+  if (!storeLocale) return null;
+
   return (
     <>
       {/* Header */}
@@ -115,7 +129,7 @@ export default function FaqsTable({
                 transition={{ duration: 0.3, delay: 0.6 }}
                 className="text-lg font-semibold text-slate-800"
               >
-                FAQ Database
+                {storeLocale.faqs.table.title}
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, x: -15 }}
@@ -123,7 +137,9 @@ export default function FaqsTable({
                 transition={{ duration: 0.3, delay: 0.7 }}
                 className="text-sm text-slate-600"
               >
-                {totalQuestions} FAQ{totalQuestions !== 1 ? "s" : ""} available
+                {storeLocale.faqs.table.faqsAvailable
+                  .replace("{count}", totalQuestions.toString())
+                  .replace("{plural}", totalQuestions !== 1 ? "s" : "")}
               </motion.p>
             </div>
           </div>
@@ -193,10 +209,10 @@ export default function FaqsTable({
                         className="text-slate-500"
                       >
                         <p className="text-lg font-medium mb-2">
-                          No FAQs found
+                          {storeLocale.faqs.table.noFaqsFound}
                         </p>
                         <p className="text-sm">
-                          Try adjusting your search or filter criteria
+                          {storeLocale.faqs.table.noFaqsHint}
                         </p>
                       </motion.div>
                     </motion.div>
@@ -245,8 +261,10 @@ export default function FaqsTable({
                                 {faq.departmentName}
                               </h3>
                               <p className="text-xs text-slate-500">
-                                {faq.questions.length} question
-                                {faq.questions.length !== 1 ? "s" : ""}
+                                {faq.questions.length}{" "}
+                                {faq.questions.length !== 1
+                                  ? storeLocale.faqs.table.questions
+                                  : storeLocale.faqs.table.question}
                               </p>
                             </div>
                           </motion.div>
@@ -311,7 +329,8 @@ export default function FaqsTable({
                               }}
                               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800"
                             >
-                              {question.departmentName ?? "Main Category"}
+                              {question.departmentName ??
+                                storeLocale.faqs.table.mainCategory}
                             </motion.span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">

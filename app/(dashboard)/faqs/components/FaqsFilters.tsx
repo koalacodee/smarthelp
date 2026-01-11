@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useMemo } from "react";
 
 export default function FaqsFilters() {
   const { filters, setFilters, clearFilters, faqs } = useGroupedFAQsStore();
+  const { locale } = useLocaleStore();
 
   // Get unique departments for filter dropdown
   const departments = useMemo(() => {
@@ -25,6 +27,8 @@ export default function FaqsFilters() {
       filters.sortBy === sortBy && filters.sortOrder === "asc" ? "desc" : "asc";
     setFilters({ sortBy, sortOrder: newOrder });
   };
+
+  if (!locale) return null;
 
   return (
     <motion.div
@@ -71,7 +75,7 @@ export default function FaqsFilters() {
               transition={{ duration: 0.3, delay: 0.5 }}
               className="text-lg font-semibold text-slate-800"
             >
-              Filters & Search
+              {locale.faqs.filters.title}
             </motion.h3>
             <motion.p
               initial={{ opacity: 0, x: -20 }}
@@ -79,7 +83,7 @@ export default function FaqsFilters() {
               transition={{ duration: 0.3, delay: 0.6 }}
               className="text-sm text-slate-500"
             >
-              Refine your search results
+              {locale.faqs.filters.description}
             </motion.p>
           </div>
         </div>
@@ -108,7 +112,7 @@ export default function FaqsFilters() {
                 d="M6 18L18 6M6 6l12 12"
               />
             </motion.svg>
-            Clear All
+            {locale.faqs.filters.clearAll}
           </span>
         </motion.button>
       </motion.div>
@@ -150,7 +154,7 @@ export default function FaqsFilters() {
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-            placeholder="Search FAQs by question or department..."
+            placeholder={locale.faqs.filters.searchPlaceholder}
           />
         </div>
       </motion.div>
@@ -174,7 +178,7 @@ export default function FaqsFilters() {
             transition={{ duration: 0.2, delay: 1.3 }}
             className="block text-sm font-medium text-slate-700"
           >
-            Department
+            {locale.faqs.filters.departmentLabel}
           </motion.label>
           <div className="relative">
             <motion.select
@@ -186,7 +190,7 @@ export default function FaqsFilters() {
               onChange={(e) => handleFilterChange("department", e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer"
             >
-              <option value="">All Departments</option>
+              <option value="">{locale.faqs.filters.allDepartments}</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -229,7 +233,7 @@ export default function FaqsFilters() {
             transition={{ duration: 0.2, delay: 1.3 }}
             className="block text-sm font-medium text-slate-700"
           >
-            Sort By
+            {locale.faqs.filters.sortByLabel}
           </motion.label>
           <div className="relative">
             <motion.select
@@ -241,11 +245,17 @@ export default function FaqsFilters() {
               onChange={(e) => handleFilterChange("sortBy", e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer"
             >
-              <option value="text">Question Text</option>
-              <option value="department">Department</option>
-              <option value="views">Views</option>
-              <option value="satisfaction">Satisfaction</option>
-              <option value="dissatisfaction">Dissatisfaction</option>
+              <option value="text">{locale.faqs.filters.sortByQuestion}</option>
+              <option value="department">
+                {locale.faqs.filters.sortByDepartment}
+              </option>
+              <option value="views">{locale.faqs.filters.sortByViews}</option>
+              <option value="satisfaction">
+                {locale.faqs.filters.sortBySatisfaction}
+              </option>
+              <option value="dissatisfaction">
+                {locale.faqs.filters.sortByDissatisfaction}
+              </option>
             </motion.select>
             <motion.div
               initial={{ opacity: 0 }}
@@ -284,7 +294,7 @@ export default function FaqsFilters() {
           transition={{ duration: 0.2, delay: 1.7 }}
           className="text-sm font-medium text-slate-700"
         >
-          Sort Order:
+          {locale.faqs.filters.sortOrderLabel}
         </motion.span>
         <motion.button
           initial={{ opacity: 0, scale: 0.9 }}
@@ -334,7 +344,9 @@ export default function FaqsFilters() {
                 </svg>
               )}
             </motion.div>
-            {filters.sortOrder === "asc" ? "Ascending" : "Descending"}
+            {filters.sortOrder === "asc"
+              ? locale.faqs.filters.ascending
+              : locale.faqs.filters.descending}
           </span>
         </motion.button>
       </motion.div>

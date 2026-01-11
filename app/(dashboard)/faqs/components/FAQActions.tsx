@@ -5,6 +5,7 @@ import { useGroupedFAQsStore } from "../store/useGroupedFAQsStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useMemo } from "react";
 import { Question } from "@/lib/api/types";
 
@@ -19,6 +20,7 @@ export default function FAQActions({
   const { addToast } = useToastStore();
   const { openModal } = useConfirmationModalStore();
   const { setFaq, setIsEditing } = useCurrentEditingFAQStore();
+  const { locale } = useLocaleStore();
 
   const flattedQuestions = useMemo(() => {
     const questions = [];
@@ -37,6 +39,8 @@ export default function FAQActions({
     (q) => q.id === questionId
   ) as Question;
 
+  if (!locale) return null;
+
   return (
     <div className="flex items-center space-x-4">
       <button
@@ -46,20 +50,22 @@ export default function FAQActions({
           setIsEditing(true);
         }}
       >
-        Edit
+        {locale.faqs.actions.edit}
       </button>
       <button
         onClick={() =>
           openModal({
-            title: "Confirm Deletion",
-            message: "Are you sure you want to delete this FAQ?",
-            confirmText: "Yes, Delete",
-            cancelText: "Cancel",
+            title: locale?.faqs?.confirmations?.deleteTitle || "Delete FAQ",
+            message:
+              locale?.faqs?.confirmations?.deleteMessage ||
+              "Are you sure you want to delete this FAQ?",
+            confirmText: locale?.faqs?.confirmations?.confirmText || "Confirm",
+            cancelText: locale?.faqs?.confirmations?.cancelText || "Cancel",
             onConfirm: () => {
               api.FAQsService.deleteQuestion(questionId).then(() => {
                 removeFAQ(departmentId, questionId);
                 addToast({
-                  message: "FAQ Deleted Successfully!",
+                  message: locale?.faqs?.toasts?.faqDeleted || "FAQ deleted",
                   type: "success",
                 });
               });
@@ -68,7 +74,7 @@ export default function FAQActions({
         }
         className="text-red-600 hover:text-red-900 transition-colors duration-200 font-medium"
       >
-        Delete
+        {locale.faqs.actions.delete}
       </button>
     </div>
   );

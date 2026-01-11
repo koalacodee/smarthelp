@@ -1,14 +1,18 @@
 "use client";
 import { motion } from "framer-motion";
 import { useCurrentEditingFAQStore } from "../store/useCurrentEditingFAQ";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AddNewFaqButton() {
   const { setIsEditing, setFaq } = useCurrentEditingFAQStore();
+  const { locale } = useLocaleStore();
 
   const handleAddNew = () => {
     setIsEditing(true);
     setFaq(null); // Clear any existing FAQ to create a new one
   };
+
+  if (!locale) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-10">
@@ -40,7 +44,7 @@ export default function AddNewFaqButton() {
             d="M12 4v16m8-8H4"
           />
         </motion.svg>
-        Add New FAQ
+        {locale.faqs.addButton.addNewFaq}
       </motion.button>
     </div>
   );
