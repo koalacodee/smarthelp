@@ -2,8 +2,13 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function AnimatedHeader() {
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -30, scale: 0.95 }}
@@ -31,7 +36,7 @@ export default function AnimatedHeader() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-3xl font-bold text-transparent"
             >
-              Executive Dashboard
+              {locale.dashboard.admin.header.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -39,7 +44,7 @@ export default function AnimatedHeader() {
               transition={{ duration: 0.4, delay: 0.5 }}
               className="text-slate-600"
             >
-              Overview of key metrics and quick actions
+              {locale.dashboard.admin.header.description}
             </motion.p>
           </div>
         </div>

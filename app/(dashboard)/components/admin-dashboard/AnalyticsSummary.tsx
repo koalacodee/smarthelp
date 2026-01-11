@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface KPIItem {
   label: string;
@@ -23,6 +24,10 @@ export default function AnalyticsSummary({
   departmentPerformance,
 }: AnalyticsSummaryProps) {
   const [expanded, setExpanded] = useState(false);
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -36,7 +41,7 @@ export default function AnalyticsSummary({
         transition={{ duration: 0.4, delay: 1 }}
         className="mb-4 text-base font-semibold text-slate-800"
       >
-        Analytics Summary
+        {locale.dashboard.admin.analytics.title}
       </motion.h3>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="col-span-2 space-y-3">
@@ -114,7 +119,9 @@ export default function AnalyticsSummary({
                 className="inline-flex items-center justify-center rounded-md px-2 py-1 text-[11px] font-medium text-indigo-700 hover:text-indigo-800 hover:underline"
                 onClick={() => setExpanded((v) => !v)}
               >
-                {expanded ? "Show less" : "Show more"}
+                {expanded
+                  ? locale.dashboard.admin.analytics.showLess
+                  : locale.dashboard.admin.analytics.showMore}
               </motion.button>
             </motion.div>
           )}

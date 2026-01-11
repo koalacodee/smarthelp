@@ -1,8 +1,15 @@
 import { EmployeeDashboardService } from "@/lib/api/v2";
 import type { EmployeeDashboardResponse } from "@/lib/api/v2/services/employee-dash";
+import { Locale } from "@/locales/type";
 import EmployeeDashboardContent from "./EmployeeDashboardContent";
 
-export default async function EmployeeDashboard() {
+export default async function EmployeeDashboard({
+  locale,
+  language,
+}: {
+  locale: Locale;
+  language: string;
+}) {
   let dashboardData: EmployeeDashboardResponse = {
     summary: {
       completedTasks: 0,
@@ -24,6 +31,12 @@ export default async function EmployeeDashboard() {
     // Keep default empty data on error
   }
 
-  return <EmployeeDashboardContent data={dashboardData} />;
+  return (
+    <EmployeeDashboardContent
+      data={dashboardData}
+      locale={locale}
+      language={language}
+    />
+  );
 }
 

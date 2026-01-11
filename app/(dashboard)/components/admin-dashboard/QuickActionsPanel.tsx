@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Plus from "@/icons/Plus";
 import Supervisors from "@/icons/Supervisors";
 import { UserResponse } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface ActionItem {
   label: string;
@@ -14,23 +15,9 @@ interface ActionItem {
   allowed: (role: string, permissions: string[]) => boolean;
 }
 
-const actions: ActionItem[] = [
-  {
-    label: "Create Department",
-    href: "/department",
-    icon: <Plus className="h-4 w-4" />,
-    allowed: (r) => r === "ADMIN" || r === "SUPERVISOR",
-  },
-  {
-    label: "Create Supervisor",
-    href: "/supervisors",
-    icon: <Supervisors className="h-4 w-4" />,
-    allowed: (r) => r === "ADMIN",
-  },
-];
-
 export default function QuickActionsPanel() {
   const [user, setUser] = useState<UserResponse | null>(null);
+  const { locale } = useLocaleStore();
 
   useEffect(() => {
     fetch("/server/me")
@@ -38,12 +25,30 @@ export default function QuickActionsPanel() {
       .then((data) => setUser(data.user));
   }, []);
 
+  const actions = useMemo(() => {
+    if (!locale) return [];
+    return [
+      {
+        label: locale.dashboard.admin.quickActions.createDepartment,
+        href: "/department",
+        icon: <Plus className="h-4 w-4" />,
+        allowed: (r: string) => r === "ADMIN" || r === "SUPERVISOR",
+      },
+      {
+        label: locale.dashboard.admin.quickActions.createSupervisor,
+        href: "/supervisors",
+        icon: <Supervisors className="h-4 w-4" />,
+        allowed: (r: string) => r === "ADMIN",
+      },
+    ];
+  }, [locale]);
+
   const visibleActions = useMemo(() => {
-    if (!user) return [];
+    if (!user || !locale) return [];
     return actions.filter((action) =>
       action.allowed(user.role, user.permissions ?? [])
     );
-  }, [user]);
+  }, [user, actions, locale]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -57,7 +62,7 @@ export default function QuickActionsPanel() {
         transition={{ duration: 0.4, delay: 0.6 }}
         className="mb-4 text-base font-semibold text-slate-800"
       >
-        Quick Actions
+        {locale?.dashboard.admin.quickActions.title || "Quick Actions"}
       </motion.h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {visibleActions.map((a, index) => (

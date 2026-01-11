@@ -5,6 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import AlertTriangle from "@/icons/AlertTriangle";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export interface ExpiredAttachmentItem {
   id: string;
@@ -27,6 +29,11 @@ export default function ExpiredAttachments({
 }: {
   items: ExpiredAttachmentItem[];
 }) {
+  const { locale } = useLocaleStore();
+  const language = useLocaleStore((state) => state.language);
+
+  if (!locale) return null;
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -62,7 +69,7 @@ export default function ExpiredAttachments({
       >
         <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          Expired Attachments ({items.length})
+          {locale.dashboard.admin.expiredAttachments.title} ({items.length})
         </h3>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link
@@ -70,7 +77,7 @@ export default function ExpiredAttachments({
             className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-amber-500"
           >
             <DocumentDuplicate className="h-3.5 w-3.5" />
-            Manage
+            {locale.dashboard.admin.expiredAttachments.manage}
           </Link>
         </motion.div>
       </motion.div>
@@ -81,7 +88,7 @@ export default function ExpiredAttachments({
           transition={{ duration: 0.3, delay: 1.4 }}
           className="text-sm text-slate-500"
         >
-          No expired attachments
+          {locale.dashboard.admin.expiredAttachments.noAttachments}
         </motion.p>
       ) : (
         <motion.div
@@ -94,22 +101,22 @@ export default function ExpiredAttachments({
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  File
+                  {locale.dashboard.admin.expiredAttachments.file}
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Size
+                  {locale.dashboard.admin.expiredAttachments.size}
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Type
+                  {locale.dashboard.admin.expiredAttachments.type}
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Status
+                  {locale.dashboard.admin.expiredAttachments.status}
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Expires
+                  {locale.dashboard.admin.expiredAttachments.expires}
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Created
+                  {locale.dashboard.admin.expiredAttachments.created}
                 </th>
               </tr>
             </thead>
@@ -161,17 +168,17 @@ export default function ExpiredAttachments({
                       >
                         <AlertTriangle className="h-3 w-3" />
                         {expired
-                          ? "Expired"
+                          ? locale.dashboard.admin.expiredAttachments.expired
                           : daysLeft <= 3
-                          ? "Expiring Soon"
-                          : "Active"}
+                          ? locale.dashboard.admin.expiredAttachments.expiringSoon
+                          : locale.dashboard.admin.expiredAttachments.active}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-slate-600">
-                      {new Date(item.expirationDate).toLocaleDateString()}
+                      {formatDateWithHijri(item.expirationDate, language)}
                     </td>
                     <td className="px-4 py-2 text-sm text-slate-600">
-                      {new Date(item.createdAt).toLocaleDateString()}
+                      {formatDateWithHijri(item.createdAt, language)}
                     </td>
                   </motion.tr>
                 );

@@ -4,11 +4,18 @@ import {
   EmployeeRequestsService,
 } from "@/lib/api/v2";
 import { DepartmentsService } from "@/lib/api";
+import { Locale } from "@/locales/type";
 import AdminDashboardClient, {
   AdminDashboardData,
 } from "./AdminDashboardClient";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  locale,
+  language,
+}: {
+  locale: Locale;
+  language: string;
+}) {
   // Fetch unified overview; if unavailable, fall back to individual calls
   let summary: AdminDashboardData["summary"] = {
     totalUsers: 0,
@@ -81,6 +88,8 @@ export default async function AdminDashboard() {
     <AdminDashboardClient
       initialData={initialData}
       departments={departments}
+      locale={locale}
+      language={language}
     />
   );
 }

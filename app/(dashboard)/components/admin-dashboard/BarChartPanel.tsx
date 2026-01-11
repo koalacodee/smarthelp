@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 type DayData = {
   day: string;
@@ -18,41 +19,43 @@ export type BarChartPanelProps = {
 
 type SegmentKey = "tasks" | "tickets" | "avgResp";
 
-const SEGMENTS: {
-  key: SegmentKey;
-  label: string;
-  colorFrom: string;
-  colorTo: string;
-  textColor: string;
-}[] = [
-  {
-    key: "tasks",
-    label: "Tasks",
-    colorFrom: "from-blue-400",
-    colorTo: "to-sky-300",
-    textColor: "text-blue-900",
-  },
-  {
-    key: "tickets",
-    label: "Tickets",
-    colorFrom: "from-emerald-400",
-    colorTo: "to-lime-300",
-    textColor: "text-emerald-900",
-  },
-  {
-    key: "avgResp",
-    label: "Avg Resp",
-    colorFrom: "from-fuchsia-400",
-    colorTo: "to-pink-300",
-    textColor: "text-fuchsia-900",
-  },
-];
+function getSegments(locale: any) {
+  return [
+    {
+      key: "tasks" as SegmentKey,
+      label: locale?.dashboard.admin.barChart.tasks || "Tasks",
+      colorFrom: "from-blue-400",
+      colorTo: "to-sky-300",
+      textColor: "text-blue-900",
+    },
+    {
+      key: "tickets" as SegmentKey,
+      label: locale?.dashboard.admin.barChart.tickets || "Tickets",
+      colorFrom: "from-emerald-400",
+      colorTo: "to-lime-300",
+      textColor: "text-emerald-900",
+    },
+    {
+      key: "avgResp" as SegmentKey,
+      label: locale?.dashboard.admin.barChart.avgResp || "Avg Resp",
+      colorFrom: "from-fuchsia-400",
+      colorTo: "to-pink-300",
+      textColor: "text-fuchsia-900",
+    },
+  ];
+}
 
 export default function BarChartPanel({
   data,
   className,
-  title = "Weekly Overview",
+  title,
 }: BarChartPanelProps) {
+  const { locale } = useLocaleStore();
+  const SEGMENTS = getSegments(locale);
+  const chartTitle = title || locale?.dashboard.admin.barChart.title || "Weekly Activity";
+
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,7 +74,7 @@ export default function BarChartPanel({
         transition={{ duration: 0.4, delay: 0.8 }}
         className="mb-4 flex items-center justify-between"
       >
-        <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
+        <h3 className="text-base font-semibold text-neutral-900">{chartTitle}</h3>
         <div className="hidden gap-4 md:flex">
           {SEGMENTS.map((s, index) => (
             <motion.div

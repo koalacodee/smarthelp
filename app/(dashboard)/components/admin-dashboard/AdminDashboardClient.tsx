@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardCard from "./DashboardCard";
 import CheckCircle from "@/icons/CheckCircle";
 import Ticket from "@/icons/Ticket";
@@ -14,6 +14,8 @@ import ExpiredAttachments from "./ExpiredAttachments";
 import DepartmentFilter from "./DepartmentFilter";
 import AnimatedHeader from "./AnimatedHeader";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { Locale } from "@/locales/type";
 import {
   ActivityService,
   DashboardService,
@@ -52,6 +54,8 @@ export interface AdminDashboardData {
 interface AdminDashboardClientProps {
   initialData: AdminDashboardData;
   departments: Department[];
+  locale: Locale;
+  language: string;
 }
 
 async function fetchDashboardData(
@@ -98,11 +102,18 @@ async function fetchDashboardData(
 export default function AdminDashboardClient({
   initialData,
   departments,
+  locale,
+  language,
 }: AdminDashboardClientProps) {
   const [data, setData] = useState<AdminDashboardData>(initialData);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
   const { addToast } = useToastStore();
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
 
   const handleApplyFilter = async () => {
     setIsFiltering(true);
@@ -112,10 +123,12 @@ export default function AdminDashboardClient({
       );
       setData(updatedData);
     } catch (error: any) {
+      const { locale: storeLocale } = useLocaleStore.getState();
       addToast({
         type: "error",
         message:
           error?.response?.data?.message ||
+          storeLocale?.dashboard?.admin?.toasts?.filterError ||
           "Failed to filter dashboard data. Please try again.",
       });
     } finally {
@@ -144,7 +157,7 @@ export default function AdminDashboardClient({
         {/* Metrics cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <DashboardCard
-            title="Total Users"
+            title={locale.dashboard.admin.metrics.totalUsers}
             value={data.summary.totalUsers}
             accentClassName="bg-indigo-500"
             borderGradient="from-indigo-400 via-indigo-500 to-indigo-600"
@@ -153,7 +166,7 @@ export default function AdminDashboardClient({
             index={0}
           />
           <DashboardCard
-            title="Active Tickets"
+            title={locale.dashboard.admin.metrics.activeTickets}
             value={data.summary.activeTickets}
             accentClassName="bg-amber-500"
             borderGradient="from-amber-400 via-yellow-500 to-amber-600"
@@ -162,7 +175,7 @@ export default function AdminDashboardClient({
             index={1}
           />
           <DashboardCard
-            title="Completed Tickets"
+            title={locale.dashboard.admin.metrics.completedTickets}
             value={data.summary.completedTickets}
             accentClassName="bg-amber-500"
             borderGradient="from-amber-400 via-yellow-500 to-amber-600"
@@ -171,7 +184,7 @@ export default function AdminDashboardClient({
             index={2}
           />
           <DashboardCard
-            title="Pending Tasks"
+            title={locale.dashboard.admin.metrics.pendingTasks}
             value={data.summary.pendingTasks}
             accentClassName="bg-blue-500"
             borderGradient="from-blue-400 via-blue-500 to-blue-600"
@@ -180,7 +193,7 @@ export default function AdminDashboardClient({
             index={3}
           />
           <DashboardCard
-            title="Completed Tasks"
+            title={locale.dashboard.admin.metrics.completedTasks}
             value={data.summary.completedTasks}
             accentClassName="bg-emerald-500"
             borderGradient="from-emerald-400 via-green-500 to-emerald-600"
@@ -189,7 +202,7 @@ export default function AdminDashboardClient({
             index={4}
           />
           <DashboardCard
-            title="FAQ Satisfaction"
+            title={locale.dashboard.admin.metrics.faqSatisfaction}
             value={`${data.summary.faqSatisfaction}%`}
             accentClassName="bg-purple-500"
             borderGradient="from-purple-400 via-purple-500 to-purple-600"
@@ -198,7 +211,7 @@ export default function AdminDashboardClient({
             index={5}
           />
           <DashboardCard
-            title="Expired Attachments"
+            title={locale.dashboard.admin.metrics.expiredAttachments}
             value={`${data.summary.expiredAttachments}`}
             accentClassName="bg-red-500"
             borderGradient="from-red-400 via-red-500 to-red-600"
@@ -215,7 +228,7 @@ export default function AdminDashboardClient({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <BarChartPanel
-              title="Weekly Activity"
+              title={locale.dashboard.admin.barChart.title}
               data={data.performance.series.map((s) => ({
                 day: s.label,
                 tasks: s.tasksCompleted,

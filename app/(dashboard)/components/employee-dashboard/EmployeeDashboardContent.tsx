@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import DashboardCard from "../admin-dashboard/DashboardCard";
@@ -8,42 +8,56 @@ import CheckCircle from "@/icons/CheckCircle";
 import Ticket from "@/icons/Ticket";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import ClipboardList from "@/icons/ClipboardList";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import type {
   EmployeeDashboardResponse,
   EmployeePendingTask,
   EmployeePendingTicket,
 } from "@/lib/api/v2/services/employee-dash";
 
-const quickActions = [
-  {
-    label: "My Tasks",
-    href: "/tasks/my-tasks",
-    icon: <CheckCircle className="h-4 w-4" />,
-  },
-  {
-    label: "My Tickets",
-    href: "/tickets",
-    icon: <Ticket className="h-4 w-4" />,
-  },
-  {
-    label: "My Files",
-    href: "/files",
-    icon: <DocumentDuplicate className="h-4 w-4" />,
-  },
-  {
-    label: "Add FAQ",
-    href: "/faqs",
-    icon: <ClipboardList className="h-4 w-4" />,
-  },
-];
-
 interface EmployeeDashboardContentProps {
   data: EmployeeDashboardResponse;
+  locale: Locale;
+  language: string;
 }
 
 export default function EmployeeDashboardContent({
   data,
+  locale,
+  language,
 }: EmployeeDashboardContentProps) {
+  const { setLocale } = useLocaleStore();
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
+
+  const { locale: storeLocale } = useLocaleStore();
+  if (!storeLocale) return null;
+
+  const quickActions = [
+    {
+      label: storeLocale.dashboard.employee.quickActions.myTasks,
+      href: "/tasks/my-tasks",
+      icon: <CheckCircle className="h-4 w-4" />,
+    },
+    {
+      label: storeLocale.dashboard.employee.quickActions.myTickets,
+      href: "/tickets",
+      icon: <Ticket className="h-4 w-4" />,
+    },
+    {
+      label: storeLocale.dashboard.employee.quickActions.myFiles,
+      href: "/files",
+      icon: <DocumentDuplicate className="h-4 w-4" />,
+    },
+    {
+      label: storeLocale.dashboard.employee.quickActions.addFaq,
+      href: "/faqs",
+      icon: <ClipboardList className="h-4 w-4" />,
+    },
+  ];
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -64,7 +78,7 @@ export default function EmployeeDashboardContent({
                   transition={{ duration: 0.5, delay: 0.4 }}
                   className="bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-3xl font-bold text-transparent"
                 >
-                  My Dashboard
+                  {storeLocale.dashboard.employee.header.title}
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 10 }}
@@ -72,7 +86,7 @@ export default function EmployeeDashboardContent({
                   transition={{ duration: 0.4, delay: 0.5 }}
                   className="text-slate-600"
                 >
-                  Overview of your tasks, tickets, and activities
+                  {storeLocale.dashboard.employee.header.description}
                 </motion.p>
               </div>
             </div>
@@ -82,21 +96,21 @@ export default function EmployeeDashboardContent({
         {/* Completed/Closed Counts */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <DashboardCard
-            title="Completed Tasks"
+            title={storeLocale.dashboard.employee.metrics.completedTasks}
             value={data.summary.completedTasks}
             accentClassName="bg-emerald-500"
             icon={<CheckCircle className="h-5 w-5" />}
             index={0}
           />
           <DashboardCard
-            title="Closed Tickets"
+            title={storeLocale.dashboard.employee.metrics.closedTickets}
             value={data.summary.closedTickets}
             accentClassName="bg-blue-500"
             icon={<Ticket className="h-5 w-5" />}
             index={1}
           />
           <DashboardCard
-            title="Expired Files"
+            title={storeLocale.dashboard.employee.metrics.expiredFiles}
             value={data.summary.expiredFiles}
             accentClassName="bg-amber-500"
             icon={<DocumentDuplicate className="h-5 w-5" />}
@@ -126,7 +140,7 @@ export default function EmployeeDashboardContent({
             transition={{ duration: 0.4, delay: 0.6 }}
             className="mb-4 text-base font-semibold text-slate-800"
           >
-            Quick Actions
+            {storeLocale.dashboard.employee.quickActions.title}
           </motion.h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {quickActions.map((action, index) => (
@@ -169,6 +183,9 @@ export default function EmployeeDashboardContent({
 }
 
 function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
+  const { locale } = useLocaleStore();
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -184,17 +201,19 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
           className="text-base font-semibold text-slate-800 flex items-center gap-2"
         >
           <CheckCircle className="h-4 w-4 text-blue-500" />
-          Pending Tasks ({tasks.length})
+          {locale.dashboard.employee.pendingTasks.title} ({tasks.length})
         </motion.h3>
         <Link
           href="/tasks/my-tasks"
           className="text-xs font-medium text-blue-600 hover:text-blue-700"
         >
-          View all →
+          {locale.dashboard.employee.pendingTasks.viewAll}
         </Link>
       </div>
       {tasks.length === 0 ? (
-        <p className="text-sm text-slate-500">No pending tasks</p>
+        <p className="text-sm text-slate-500">
+          {locale.dashboard.employee.pendingTasks.noTasks}
+        </p>
       ) : (
         <div className="space-y-3">
           {tasks.map((task, index) => {
@@ -264,7 +283,10 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
                             isUrgent ? "text-red-600" : "text-slate-600"
                           }`}
                         >
-                          Due: {daysUntilDue > 0 ? `${daysUntilDue}d` : "Today"}
+                          {locale.dashboard.employee.pendingTasks.due}{" "}
+                          {daysUntilDue > 0
+                            ? `${daysUntilDue}d`
+                            : locale.dashboard.employee.pendingTasks.today}
                         </span>
                       )}
                     </div>
@@ -280,6 +302,9 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
 }
 
 function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
+  const { locale } = useLocaleStore();
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -295,17 +320,19 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
           className="text-base font-semibold text-slate-800 flex items-center gap-2"
         >
           <Ticket className="h-4 w-4 text-indigo-500" />
-          My Tickets ({tickets.length})
+          {locale.dashboard.employee.pendingTickets.title} ({tickets.length})
         </motion.h3>
         <Link
           href="/tickets"
           className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
         >
-          View all →
+          {locale.dashboard.employee.pendingTickets.viewAll}
         </Link>
       </div>
       {tickets.length === 0 ? (
-        <p className="text-sm text-slate-500">No pending tickets</p>
+        <p className="text-sm text-slate-500">
+          {locale.dashboard.employee.pendingTickets.noTickets}
+        </p>
       ) : (
         <div className="space-y-3">
           {tickets.map((ticket, index) => {
@@ -367,7 +394,12 @@ function PendingTicketsList({ tickets }: { tickets: EmployeePendingTicket[] }) {
                         {ticket.status.replace("_", " ")}
                       </span>
                       <span className="text-xs text-slate-500">
-                        {hoursAgo === 0 ? "Just now" : `${hoursAgo}h ago`}
+                        {hoursAgo === 0
+                          ? locale.dashboard.employee.pendingTickets.justNow
+                          : locale.dashboard.employee.pendingTickets.hoursAgo.replace(
+                              "{hours}",
+                              hoursAgo.toString()
+                            )}
                       </span>
                     </div>
                   </div>

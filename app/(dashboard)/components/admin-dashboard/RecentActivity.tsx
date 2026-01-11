@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export interface RecentActivityItem {
   id: string;
@@ -16,6 +17,10 @@ export default function RecentActivity({
 }: {
   items: RecentActivityItem[];
 }) {
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -29,7 +34,7 @@ export default function RecentActivity({
         transition={{ duration: 0.4, delay: 1.4 }}
         className="mb-4 text-base font-semibold text-slate-800"
       >
-        Recent Activity
+        {locale.dashboard.admin.recentActivity.title}
       </motion.h3>
       {items.length === 0 ? (
         <motion.p
@@ -38,7 +43,7 @@ export default function RecentActivity({
           transition={{ duration: 0.3, delay: 1.6 }}
           className="text-sm text-slate-500"
         >
-          No recent activity
+          {locale.dashboard.admin.recentActivity.noActivity}
         </motion.p>
       ) : (
         <ul className="space-y-3">

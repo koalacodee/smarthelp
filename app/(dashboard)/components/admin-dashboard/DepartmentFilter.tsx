@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+
 interface Department {
   id: string;
   name: string;
@@ -22,10 +24,14 @@ export default function DepartmentFilter({
   isLoading = false,
   className = "",
 }: DepartmentFilterProps) {
+  const { locale } = useLocaleStore();
+
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     onChange(value);
   };
+
+  if (!locale) return null;
 
   return (
     <div className={`w-full max-w-md ${className}`.trim()}>
@@ -35,7 +41,7 @@ export default function DepartmentFilter({
             htmlFor="admin-dashboard-department-filter"
             className="block text-sm font-medium text-slate-600 mb-2"
           >
-            Department
+            {locale.dashboard.admin.departmentFilter.label}
           </label>
           <div className="relative">
             <select
@@ -44,7 +50,9 @@ export default function DepartmentFilter({
               onChange={handleChange}
               className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-slate-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-              <option value="">All departments</option>
+              <option value="">
+                {locale.dashboard.admin.departmentFilter.allDepartments}
+              </option>
               {departments.map((department) => (
                 <option key={department.id} value={department.id}>
                   {department.name}
@@ -74,10 +82,11 @@ export default function DepartmentFilter({
           disabled={isLoading}
           className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
         >
-          {isLoading ? "Applying..." : "Apply Filter"}
+          {isLoading
+            ? locale.dashboard.admin.departmentFilter.applying
+            : locale.dashboard.admin.departmentFilter.apply}
         </button>
       </div>
     </div>
   );
 }
-

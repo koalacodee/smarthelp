@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import UserPlus from "@/icons/UserPlus";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export interface PendingRequestItem {
   id: string;
@@ -19,6 +21,7 @@ export default function PendingStaffRequests({
   items: PendingRequestItem[];
   total: number;
 }) {
+  const language = useLocaleStore((state) => state.language);
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -94,7 +97,7 @@ export default function PendingStaffRequests({
                     {r.requestedBy?.name ?? "—"}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-600">
-                    {new Date(r.createdAt).toLocaleDateString()}
+                    {formatDateWithHijri(r.createdAt, language)}
                   </td>
                 </motion.tr>
               ))}
