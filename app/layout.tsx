@@ -5,7 +5,6 @@ import "./globals.css";
 import ToastContainer from "@/components/Toasts/ToastContainer";
 import ProgressBar from "@/components/ProgressBar";
 import { PublicEnvScript } from "next-runtime-env";
-import AttachmentsResetter from "@/components/AttachmentsResetter";
 import { getLanguage } from "@/locales/helpers";
 import { isRTL } from "@/locales/isRTL";
 
@@ -42,7 +41,6 @@ export default async function RootLayout({
         <ProgressBar />
         <ToastContainer />
         {children}
-        <AttachmentsResetter />
       </body>
     </html>
   );
