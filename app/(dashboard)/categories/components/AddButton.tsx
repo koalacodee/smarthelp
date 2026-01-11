@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import PlusIcon from "@/icons/Plus";
 import { useCategoriesStore } from "../store/useCategoriesStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface AddButtonProps {
   userRole: string;
 }
 
 export default function AddButton({ userRole }: AddButtonProps) {
+  const { locale } = useLocaleStore();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { openModal } = useCategoriesStore();
@@ -33,6 +35,8 @@ export default function AddButton({ userRole }: AddButtonProps) {
     setIsOpen(false);
   };
 
+  if (!locale) return null;
+
   return (
     <div ref={menuRef} className="fixed bottom-6 right-6 z-40">
       {isOpen && (
@@ -43,7 +47,7 @@ export default function AddButton({ userRole }: AddButtonProps) {
               className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
             >
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              Add Category
+              {locale.categories.addButton.addCategory}
             </button>
           )}
           <button
@@ -51,7 +55,7 @@ export default function AddButton({ userRole }: AddButtonProps) {
             className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2"
           >
             <span className="w-2 h-2 rounded-full bg-indigo-500" />
-            Add Sub-category
+            {locale.categories.addButton.addSubCategory}
           </button>
         </div>
       )}

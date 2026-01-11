@@ -1,18 +1,22 @@
 "use client";
 
 import { useCategoriesStore } from "../store/useCategoriesStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import CategoryCard from "./CategoryCard";
 
 export default function CategoriesList() {
 	const { categories, knowledgeChunks } = useCategoriesStore();
+	const { locale } = useLocaleStore();
+
+	if (!locale) return null;
 
 	return (
 		<section className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
 			<div className="flex items-center gap-3 px-1">
 				<div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg" />
 				<div>
-					<h2 className="text-lg font-semibold text-slate-800">Categories</h2>
-					<p className="text-xs text-slate-600">Manage main categories & knowledge</p>
+					<h2 className="text-lg font-semibold text-slate-800">{locale.categories.categoriesList.title}</h2>
+					<p className="text-xs text-slate-600">{locale.categories.categoriesList.description}</p>
 				</div>
 			</div>
 
@@ -39,10 +43,13 @@ export default function CategoriesList() {
 }
 
 function EmptyState() {
+	const { locale } = useLocaleStore();
+	if (!locale) return null;
+
 	return (
 		<div className="text-center py-12 text-slate-500 bg-white/50 rounded-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-300">
-			<p>No categories found</p>
-			<p className="text-sm mt-1">Create your first category to get started</p>
+			<p>{locale.categories.categoriesList.empty}</p>
+			<p className="text-sm mt-1">{locale.categories.categoriesList.emptyHint}</p>
 		</div>
 	);
 }

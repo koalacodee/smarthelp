@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useCategoriesStore } from "../store/useCategoriesStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import SubCategoryRow from "./SubCategoryRow";
 import SearchInput from "./SearchInput";
 
@@ -11,6 +12,7 @@ interface SubCategoriesTableProps {
 
 export default function SubCategoriesTable({ showParentFilter }: SubCategoriesTableProps) {
     const { subCategories, categories } = useCategoriesStore();
+    const { locale } = useLocaleStore();
     const [search, setSearch] = useState("");
     const [parentFilter, setParentFilter] = useState("");
 
@@ -22,14 +24,16 @@ export default function SubCategoriesTable({ showParentFilter }: SubCategoriesTa
         });
     }, [subCategories, search, parentFilter]);
 
+    if (!locale) return null;
+
     return (
         <section className="bg-white/90 rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500 animation-delay-100">
             <div className="bg-gradient-to-r from-slate-50 to-blue-50/50 px-5 py-4 border-b border-slate-200">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg" />
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-800">Sub-categories</h3>
-                        <p className="text-xs text-slate-600">Manage your sections</p>
+                        <h3 className="text-lg font-semibold text-slate-800">{locale.categories.subCategoriesTable.title}</h3>
+                        <p className="text-xs text-slate-600">{locale.categories.subCategoriesTable.description}</p>
                     </div>
                 </div>
             </div>
@@ -38,7 +42,7 @@ export default function SubCategoriesTable({ showParentFilter }: SubCategoriesTa
                 <SearchInput
                     value={search}
                     onChange={setSearch}
-                    placeholder="Search sub-categories..."
+                    placeholder={locale.categories.subCategoriesTable.searchPlaceholder}
                 />
 
                 {showParentFilter && (
@@ -47,7 +51,7 @@ export default function SubCategoriesTable({ showParentFilter }: SubCategoriesTa
                         onChange={(e) => setParentFilter(e.target.value)}
                         className="px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white min-w-[180px] transition-all"
                     >
-                        <option value="">All Categories</option>
+                        <option value="">{locale.categories.subCategoriesTable.allCategories}</option>
                         {categories.map((cat) => (
                             <option key={cat.id} value={cat.id}>
                                 {cat.name}
@@ -64,8 +68,8 @@ export default function SubCategoriesTable({ showParentFilter }: SubCategoriesTa
                             <tr>
                                 <td colSpan={2} className="px-4 py-12 text-center text-slate-500">
                                     {subCategories.length === 0
-                                        ? "No sub-categories found"
-                                        : "No matches found"}
+                                        ? locale.categories.subCategoriesTable.noSubCategories
+                                        : locale.categories.subCategoriesTable.noMatches}
                                 </td>
                             </tr>
                         ) : (

@@ -5,55 +5,91 @@ import { DepartmentsService } from "@/lib/api";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
 import { useCategoriesStore } from "../store/useCategoriesStore";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import ThreeDotMenu from "@/app/(dashboard)/tasks/components/ThreeDotMenu";
 
 interface SubCategoryActionsProps {
-    subCategory: Department;
+  subCategory: Department;
 }
 
-export default function SubCategoryActions({ subCategory }: SubCategoryActionsProps) {
-    const { openModal, removeSubCategory } = useCategoriesStore();
-    const { openModal: openConfirmation } = useConfirmationModalStore();
-    const { addToast } = useToastStore();
+export default function SubCategoryActions({
+  subCategory,
+}: SubCategoryActionsProps) {
+  const { openModal, removeSubCategory } = useCategoriesStore();
+  const { openModal: openConfirmation } = useConfirmationModalStore();
+  const { addToast } = useToastStore();
+  const { locale } = useLocaleStore();
 
-    const handleEdit = () => {
-        openModal("subCategory", "edit", subCategory);
-    };
+  const handleEdit = () => {
+    openModal("subCategory", "edit", subCategory);
+  };
 
-    const handleDelete = async () => {
-        try {
-            const canDelete = await DepartmentsService.canDeleteSubDepartment(subCategory.id);
+  const handleDelete = async () => {
+    try {
+      const canDelete = await DepartmentsService.canDeleteSubDepartment(
+        subCategory.id
+      );
 
-            if (!canDelete) {
-                addToast({
-                    message: "Cannot delete - has active assignments",
-                    type: "error",
-                });
-                return;
-            }
+      if (!canDelete) {
+        addToast({
+          message:
+            locale?.categories?.toasts?.cannotDeleteSubCategory ||
+            "Cannot delete subcategory",
+          type: "error",
+        });
+        return;
+      }
 
-            openConfirmation({
-                title: "Delete Sub-category",
-                message: `Are you sure you want to delete "${subCategory.name}"?`,
-                onConfirm: async () => {
-                    try {
-                        await DepartmentsService.deleteSubDepartment(subCategory.id);
-                        removeSubCategory(subCategory.id);
-                        addToast({ message: "Sub-category deleted", type: "success" });
-                    } catch {
-                        addToast({ message: "Failed to delete", type: "error" });
-                    }
-                },
+      openConfirmation({
+        title:
+          locale?.categories?.confirmations?.deleteSubCategoryTitle ||
+          "Delete Subcategory",
+        message: (
+          locale?.categories?.confirmations?.deleteSubCategoryMessage ||
+          "Are you sure you want to delete this subcategory?"
+        ).replace("{name}", subCategory.name),
+        onConfirm: async () => {
+          try {
+            await DepartmentsService.deleteSubDepartment(subCategory.id);
+            removeSubCategory(subCategory.id);
+            addToast({
+              message:
+                locale?.categories?.toasts?.subCategoryDeleted ||
+                "Subcategory deleted",
+              type: "success",
             });
-        } catch {
-            addToast({ message: "Failed to check deletion status", type: "error" });
-        }
-    };
+          } catch {
+            addToast({
+              message:
+                locale?.categories?.toasts?.deleteError || "Delete error",
+              type: "error",
+            });
+          }
+        },
+      });
+    } catch {
+      addToast({
+        message:
+          locale?.categories?.toasts?.checkDeleteError || "Check delete error",
+        type: "error",
+      });
+    }
+  };
 
-    const options = [
-        { label: "Edit", onClick: handleEdit, color: "blue" as const },
-        { label: "Delete", onClick: handleDelete, color: "red" as const },
-    ];
+  if (!locale) return null;
 
-    return <ThreeDotMenu options={options} />;
+  const options = [
+    {
+      label: locale.categories.actions.edit,
+      onClick: handleEdit,
+      color: "blue" as const,
+    },
+    {
+      label: locale.categories.actions.delete,
+      onClick: handleDelete,
+      color: "red" as const,
+    },
+  ];
+
+  return <ThreeDotMenu options={options} />;
 }

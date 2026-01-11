@@ -1,6 +1,7 @@
 "use client";
 
 import { Department } from "@/lib/api/departments";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import SubCategoryActions from "./SubCategoryActions";
 
 interface SubCategoryRowProps {
@@ -9,6 +10,10 @@ interface SubCategoryRowProps {
 }
 
 export default function SubCategoryRow({ subCategory, animationDelay = 0 }: SubCategoryRowProps) {
+    const { locale } = useLocaleStore();
+
+    if (!locale) return null;
+
     return (
         <tr
             className="group hover:bg-slate-50 transition-colors animate-stagger fill-both"
@@ -22,7 +27,7 @@ export default function SubCategoryRow({ subCategory, animationDelay = 0 }: SubC
                             {subCategory.name}
                         </p>
                         <p className="text-xs text-slate-500">
-                            Under: {subCategory.parent?.name || "Unknown"}
+                            {locale.categories.subCategoriesTable.underLabel} {subCategory.parent?.name || "Unknown"}
                         </p>
                     </div>
                 </div>
