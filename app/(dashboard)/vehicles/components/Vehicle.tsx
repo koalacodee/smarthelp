@@ -1,7 +1,10 @@
 import { Vehicle as VehicleInterface } from "@/lib/api";
 import VehicleActions from "./VehicleActions";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export default function Vehicle({ vehicle }: { vehicle: VehicleInterface }) {
+  const language = useLocaleStore((state) => state.language);
   const getStatusBadgeColor = (status: VehicleInterface["status"]) => {
     switch (status) {
       case "ACTIVE":
@@ -45,7 +48,7 @@ export default function Vehicle({ vehicle }: { vehicle: VehicleInterface }) {
           {vehicle.nextMaintenanceDate && (
             <p className="text-sm mt-1">
               <span className="font-semibold">Maintenance Due:</span>{" "}
-              {new Date(vehicle.nextMaintenanceDate).toLocaleDateString()}
+              {formatDateWithHijri(vehicle.nextMaintenanceDate, language)}
             </p>
           )}
           {vehicle.notes && (
