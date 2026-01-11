@@ -12,6 +12,7 @@ import type {
   AttachmentGroupSummary,
   AttachmentMetadata,
 } from "@/lib/api/v2/services/filehub-attachment-groups";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface FileHubAttachmentGroupModalProps {
   isOpen: boolean;
@@ -36,6 +37,9 @@ export default function FileHubAttachmentGroupModal({
   const [isLoading, setIsLoading] = useState(false);
   const [expiresAtInput, setExpiresAtInput] = useState("");
   const { addToast } = useToastStore();
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   useEffect(() => {
     if (attachmentGroup) {
@@ -68,7 +72,7 @@ export default function FileHubAttachmentGroupModal({
         await FileHubAttachmentGroupService.createAttachmentGroup(payload);
 
         addToast({
-          message: "TV content created successfully",
+          message: locale.myFiles.groups.toasts.createSuccess,
           type: "success",
         });
       } else if (attachmentGroup) {
@@ -79,7 +83,7 @@ export default function FileHubAttachmentGroupModal({
         );
 
         addToast({
-          message: "TV content updated successfully",
+          message: locale.myFiles.groups.toasts.updateSuccess,
           type: "success",
         });
       }
@@ -90,7 +94,10 @@ export default function FileHubAttachmentGroupModal({
       onClose();
     } catch (error) {
       addToast({
-        message: `Failed to ${mode} TV content`,
+        message:
+          mode === "create"
+            ? locale.myFiles.groups.toasts.createFailed
+            : locale.myFiles.groups.toasts.updateFailed,
         type: "error",
       });
     } finally {
@@ -137,10 +144,10 @@ export default function FileHubAttachmentGroupModal({
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
                 <DocumentDuplicate className="w-6 h-6 text-blue-500" />
                 {mode === "create"
-                  ? "Create TV Content"
+                  ? locale.myFiles.groups.modal.createTitle
                   : mode === "edit"
-                  ? "Edit TV Content"
-                  : "TV Content"}
+                  ? locale.myFiles.groups.modal.editTitle
+                  : locale.myFiles.groups.modal.viewTitle}
               </h2>
               <button
                 onClick={onClose}
@@ -155,8 +162,7 @@ export default function FileHubAttachmentGroupModal({
                 <div className="space-y-6">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      Create new TV content by selecting files from your
-                      available attachments.
+                      {locale.myFiles.groups.modal.createHint}
                     </p>
                   </div>
 
@@ -165,7 +171,7 @@ export default function FileHubAttachmentGroupModal({
                       htmlFor="attachment-group-expiration"
                       className="text-sm font-medium text-slate-700"
                     >
-                      Expiration Date (optional)
+                      {locale.myFiles.groups.modal.expirationLabel}
                     </label>
                     <input
                       id="attachment-group-expiration"
@@ -177,14 +183,17 @@ export default function FileHubAttachmentGroupModal({
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
                     <p className="text-xs text-slate-500">
-                      Leave empty to keep this group available indefinitely.
+                      {locale.myFiles.groups.modal.expirationHint}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium text-slate-800">
-                        Selected Attachments ({selectedAttachmentIds.length})
+                        {locale.myFiles.groups.modal.selectedAttachments.replace(
+                          "{count}",
+                          selectedAttachmentIds.length.toString()
+                        )}
                       </h3>
                     </div>
 
@@ -222,7 +231,7 @@ export default function FileHubAttachmentGroupModal({
 
                   <div className="space-y-3">
                     <h3 className="text-lg font-medium text-slate-800">
-                      Available Attachments
+                      {locale.myFiles.groups.modal.availableAttachments}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {availableAttachments
@@ -263,7 +272,7 @@ export default function FileHubAttachmentGroupModal({
                     <div className="bg-slate-50 p-4 rounded-lg space-y-2">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
-                          Group Key:
+                          {locale.myFiles.groups.modal.groupKey}
                         </p>
                         <p className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md">
                           {attachmentGroup.key}
@@ -271,7 +280,7 @@ export default function FileHubAttachmentGroupModal({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
-                          Created At:
+                          {locale.myFiles.groups.modal.createdAt}
                         </p>
                         <p className="text-sm text-slate-600">
                           {new Date(attachmentGroup.createdAt).toLocaleString()}
@@ -279,15 +288,18 @@ export default function FileHubAttachmentGroupModal({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
-                          Watchers:
+                          {locale.myFiles.groups.modal.watchers}
                         </p>
                         <p className="text-sm text-slate-600">
-                          {attachmentGroup.clientIds.length} clients
+                          {locale.myFiles.groups.modal.clients.replace(
+                            "{count}",
+                            attachmentGroup.clientIds.length.toString()
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
-                          Expires At:
+                          {locale.myFiles.groups.modal.expiresAt}
                         </p>
                         <p
                           className={`text-sm ${
@@ -301,7 +313,7 @@ export default function FileHubAttachmentGroupModal({
                             ? new Date(
                                 attachmentGroup.expiresAt
                               ).toLocaleString()
-                            : "No expiration"}
+                            : locale.myFiles.groups.modal.noExpiration}
                         </p>
                       </div>
                     </div>
@@ -383,7 +395,7 @@ export default function FileHubAttachmentGroupModal({
                     {mode === "edit" && availableAttachments.length > 0 && (
                       <div className="space-y-3">
                         <h3 className="text-lg font-medium text-slate-800">
-                          Available Attachments
+                          {locale.myFiles.groups.modal.availableAttachments}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {availableAttachments
@@ -448,7 +460,9 @@ export default function FileHubAttachmentGroupModal({
                 onClick={onClose}
                 className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
               >
-                {mode === "view" ? "Close" : "Cancel"}
+                {mode === "view"
+                  ? locale.myFiles.groups.modal.close
+                  : locale.myFiles.groups.modal.cancel}
               </button>
               {mode !== "view" && (
                 <button
@@ -465,10 +479,10 @@ export default function FileHubAttachmentGroupModal({
                   } transition-colors`}
                 >
                   {isLoading
-                    ? "Saving..."
+                    ? locale.myFiles.groups.modal.saving
                     : mode === "create"
-                    ? "Create Group"
-                    : "Save Changes"}
+                    ? locale.myFiles.groups.modal.createGroup
+                    : locale.myFiles.groups.modal.saveChanges}
                 </button>
               )}
             </div>

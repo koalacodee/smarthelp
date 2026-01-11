@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { FileHubAttachmentGroupService } from "@/lib/api/v2";
 import XCircle from "@/icons/XCircle";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface FileHubShareModalProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export default function FileHubShareModal({
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const { locale } = useLocaleStore();
+
+  if (!locale) return null;
 
   React.useEffect(() => {
     if (isOpen && groupId) {
@@ -84,7 +88,7 @@ export default function FileHubShareModal({
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-slate-800">
-            Share TV Content
+            {locale.myFiles.groups.shareModal.title}
           </h3>
           <button
             type="button"
@@ -111,7 +115,7 @@ export default function FileHubShareModal({
             {shareLink && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Share Link
+                  {locale.myFiles.groups.shareModal.shareLink}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -130,11 +134,13 @@ export default function FileHubShareModal({
                     }`}
                   >
                     <DocumentDuplicate className="w-4 h-4" />
-                    {copied ? "Copied!" : "Copy"}
+                    {copied
+                      ? locale.myFiles.groups.shareModal.copied
+                      : locale.myFiles.groups.shareModal.copy}
                   </button>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  This link provides access to all attachments in this group.
+                  {locale.myFiles.groups.shareModal.linkHint}
                 </p>
               </div>
             )}
@@ -148,7 +154,7 @@ export default function FileHubShareModal({
             onClick={handleClose}
             className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
           >
-            Close
+            {locale.myFiles.groups.shareModal.close}
           </button>
           {shareLink && (
             <button
@@ -158,7 +164,7 @@ export default function FileHubShareModal({
               }}
               className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
             >
-              Open Link
+              {locale.myFiles.groups.shareModal.openLink}
             </button>
           )}
         </div>
