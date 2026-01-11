@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import LogoutIcon from "@/icons/Logout";
 import api from "@/lib/api";
 import { usePathname } from "next/navigation";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 const LogoutButton = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
   const pathname = usePathname();
+
+  const { locale } = useLocaleStore();
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -29,10 +32,12 @@ const LogoutButton = () => {
           onClick={handleLogout}
           disabled={isLoading}
           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          title="Logout"
+          title={locale?.components.logoutButton.title || ""}
         >
           <LogoutIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">Logout</span>
+          <span className="hidden sm:inline">
+            {locale?.components.logoutButton.label || ""}
+          </span>
         </button>
       )}
     </>

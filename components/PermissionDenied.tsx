@@ -2,8 +2,13 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function PermissionDenied() {
+  const locale = useLocaleStore((state) => state.locale);
+
+  if (!locale) return null;
+
   return (
     <div className="flex items-center justify-center min-h-[60vh] px-4">
       <motion.div
@@ -75,7 +80,7 @@ export default function PermissionDenied() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="text-3xl sm:text-4xl font-bold text-center mb-3 bg-gradient-to-r from-red-600 via-red-700 to-orange-600 bg-clip-text text-transparent"
               >
-                Access Denied
+                {locale.components.permissionDenied.title}
               </motion.h1>
 
               {/* Description */}
@@ -85,7 +90,7 @@ export default function PermissionDenied() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="text-center text-slate-600 mb-8 text-base sm:text-lg"
               >
-                You don't have permission to access this page.
+                {locale.components.permissionDenied.description}
               </motion.p>
 
               {/* Help text */}
@@ -95,8 +100,7 @@ export default function PermissionDenied() {
                 transition={{ duration: 0.5, delay: 0.5 }}
                 className="text-center text-sm text-slate-500"
               >
-                Please contact your administrator if you believe this is an
-                error.
+                {locale.components.permissionDenied.helpText}
               </motion.p>
 
               {/* Decorative elements */}

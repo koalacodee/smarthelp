@@ -10,6 +10,8 @@ import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import Plus from "@/icons/Plus";
 import Trash from "@/icons/Trash";
 import X from "@/icons/X";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 interface AttachmentInputV2Props {
   label?: string;
@@ -59,6 +61,7 @@ export default function AttachmentInputV2({
   chunkSize,
   onFilesChange,
 }: AttachmentInputV2Props) {
+  const language = useLocaleStore((state) => state.language);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
@@ -340,7 +343,7 @@ export default function AttachmentInputV2({
                         {item.expiration && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
                             Expires{" "}
-                            {new Date(item.expiration).toLocaleDateString()}
+                            {formatDateWithHijri(item.expiration, language)}
                           </span>
                         )}
                         {item.isGlobal && (

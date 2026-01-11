@@ -9,6 +9,8 @@ import { useAttachmentStore } from "@/app/(dashboard)/store/useAttachmentStore";
 import AttachmentClip from "@/icons/AttachmentClip";
 import Eye from "@/icons/Eye";
 import Trash from "@/icons/Trash";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateDisplay } from "@/locales/dateFormatter";
 
 interface AttachmentPreviewerProps {
   fileHubAttachments: Record<string, string>; // {attachmentId: signedUrl}
@@ -31,11 +33,6 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 };
 
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "No expiration";
-  const date = new Date(dateString);
-  return date.toLocaleDateString();
-};
 
 const isExpired = (expiryDate: string | null) => {
   if (!expiryDate) return false;
@@ -47,6 +44,7 @@ export default function AttachmentPreviewer({
   questionId,
   label = "FileHub Attachments",
 }: AttachmentPreviewerProps) {
+  const language = useLocaleStore((state) => state.language);
   const { openPreview } = useMediaPreviewStore();
   const { deleteExistingAttachment, restoreExistingAttachment } =
     useAttachmentStore();
@@ -241,7 +239,7 @@ export default function AttachmentPreviewer({
                                     : ""
                                 }
                               >
-                                Expires {formatDate(metadata.expiryDate)}
+                                Expires {formatDateDisplay(metadata.expiryDate, language)}
                                 {isExpired(metadata.expiryDate) && " (EXPIRED)"}
                               </span>
                             </>
