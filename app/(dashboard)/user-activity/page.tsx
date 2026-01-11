@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { UserActivityService } from "@/lib/api";
 import AnimatedUserActivityPage from "./components/AnimatedUserActivityPage";
+import { getLocale, getLanguage } from "@/locales/helpers";
 
 export const metadata: Metadata = {
   title: "User Activity | Performance Analytics",
@@ -9,14 +10,20 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const report = await UserActivityService.getUserActivity();
-  const performance = await UserActivityService.getPerformance();
+  const [locale, language, report, performance] = await Promise.all([
+    getLocale(),
+    getLanguage(),
+    UserActivityService.getUserActivity(),
+    UserActivityService.getPerformance(),
+  ]);
 
   return (
     <AnimatedUserActivityPage
       report={report.data}
       users={performance.users}
       tickets={performance.tickets}
+      locale={locale}
+      language={language}
     />
   );
 }

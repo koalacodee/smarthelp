@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import UserActivityReport from "./UserActivityReport";
 import UserPerformanceTable from "./UserPerformanceTable";
@@ -9,19 +9,33 @@ import { ApiResponse, ActivityItem } from "./UserActivityReport";
 import AnalyticsInsights from "@/icons/AnalyticsInsights";
 import UserActivityFilters from "./UserActivityFilters";
 import { useUserActivityStore } from "../store/useUserActivityStore";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface AnimatedUserActivityPageProps {
   report: ApiResponse;
   users: PerformanceUser[];
   tickets: PerformanceTicket[];
+  locale: Locale;
+  language: string;
 }
 
 export default function AnimatedUserActivityPage({
   report,
   users,
   tickets,
+  locale,
+  language,
 }: AnimatedUserActivityPageProps) {
+  const { setLocale } = useLocaleStore();
   const { filters } = useUserActivityStore();
+  const storeLocale = useLocaleStore((state) => state.locale);
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
+
+  if (!storeLocale) return null;
 
   // Filter users based on search and role filter
   const filteredUsers = useMemo(() => {
@@ -271,7 +285,7 @@ export default function AnimatedUserActivityPage({
               }}
               className="text-4xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent"
             >
-              User Activity & Performance
+              {storeLocale.userActivity.pageHeader.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -279,8 +293,7 @@ export default function AnimatedUserActivityPage({
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Monitor user performance metrics, activity analytics, and team
-              productivity insights
+              {storeLocale.userActivity.pageHeader.description}
             </motion.p>
           </motion.div>
 
@@ -303,7 +316,12 @@ export default function AnimatedUserActivityPage({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>{filteredUsers.length} Active Users</span>
+                <span>
+                  {storeLocale.userActivity.stats.activeUsers.replace(
+                    "{count}",
+                    filteredUsers.length.toString()
+                  )}
+                </span>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -312,7 +330,12 @@ export default function AnimatedUserActivityPage({
                 className="flex items-center gap-2"
               >
                 <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                <span>{filteredTickets.length} Total Activities</span>
+                <span>
+                  {storeLocale.userActivity.stats.totalActivities.replace(
+                    "{count}",
+                    filteredTickets.length.toString()
+                  )}
+                </span>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -376,7 +399,7 @@ export default function AnimatedUserActivityPage({
                 transition={{ duration: 0.5, delay: 0.8 }}
                 className="text-xl font-bold text-slate-800 flex items-center gap-2"
               >
-                User Performance Analytics
+                {storeLocale.userActivity.performanceTable.title}
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -449,7 +472,7 @@ export default function AnimatedUserActivityPage({
                 transition={{ duration: 0.5, delay: 0.8 }}
                 className="text-xl font-bold text-slate-800 flex items-center gap-2"
               >
-                Activity Report
+                {storeLocale.userActivity.activityReport.title}
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}

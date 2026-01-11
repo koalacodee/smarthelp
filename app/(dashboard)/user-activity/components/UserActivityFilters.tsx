@@ -4,8 +4,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useUserActivityStore } from "../store/useUserActivityStore";
 import Search from "@/icons/Search";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export default function UserActivityFilters() {
+  const locale = useLocaleStore((state) => state.locale);
   const { filters, setFilters, clearFilters } = useUserActivityStore();
 
   const handleFilterChange = (key: string, value: string) => {
@@ -13,31 +15,54 @@ export default function UserActivityFilters() {
     setFilters({ [key]: value });
   };
 
+  if (!locale) return null;
+
   const activityTypes = [
-    { value: "all", label: "All Activities" },
-    { value: "ticket_answered", label: "Answered Tickets" },
-    { value: "task_performed", label: "Tasks Performed" },
-    { value: "task_approved", label: "Tasks Approved" },
-    { value: "faq_created", label: "FAQs Created" },
-    { value: "faq_updated", label: "FAQs Updated" },
-    { value: "promotion_created", label: "Promotions Created" },
-    { value: "staff_request_created", label: "Staff Requests" },
+    { value: "all", label: locale.userActivity.filters.activityType.all },
+    {
+      value: "ticket_answered",
+      label: locale.userActivity.filters.activityType.ticketAnswered,
+    },
+    {
+      value: "task_performed",
+      label: locale.userActivity.filters.activityType.taskPerformed,
+    },
+    {
+      value: "task_approved",
+      label: locale.userActivity.filters.activityType.taskApproved,
+    },
+    {
+      value: "faq_created",
+      label: locale.userActivity.filters.activityType.faqCreated,
+    },
+    {
+      value: "faq_updated",
+      label: locale.userActivity.filters.activityType.faqUpdated,
+    },
+    {
+      value: "promotion_created",
+      label: locale.userActivity.filters.activityType.promotionCreated,
+    },
+    {
+      value: "staff_request_created",
+      label: locale.userActivity.filters.activityType.staffRequestCreated,
+    },
   ];
 
   const roles = [
-    { value: "all", label: "All Roles" },
-    { value: "ADMIN", label: "Admin" },
-    { value: "SUPERVISOR", label: "Supervisor" },
-    { value: "EMPLOYEE", label: "Employee" },
+    { value: "all", label: locale.userActivity.filters.role.all },
+    { value: "ADMIN", label: locale.userActivity.filters.role.admin },
+    { value: "SUPERVISOR", label: locale.userActivity.filters.role.supervisor },
+    { value: "EMPLOYEE", label: locale.userActivity.filters.role.employee },
   ];
 
   const dateRanges = [
-    { value: "all", label: "All Time" },
-    { value: "today", label: "Today" },
-    { value: "week", label: "This Week" },
-    { value: "month", label: "This Month" },
-    { value: "quarter", label: "This Quarter" },
-    { value: "year", label: "This Year" },
+    { value: "all", label: locale.userActivity.filters.dateRange.all },
+    { value: "today", label: locale.userActivity.filters.dateRange.today },
+    { value: "week", label: locale.userActivity.filters.dateRange.week },
+    { value: "month", label: locale.userActivity.filters.dateRange.month },
+    { value: "quarter", label: locale.userActivity.filters.dateRange.quarter },
+    { value: "year", label: locale.userActivity.filters.dateRange.year },
   ];
 
   return (
@@ -73,7 +98,7 @@ export default function UserActivityFilters() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="text-xl font-bold text-slate-800"
         >
-          Search & Filters
+          {locale.userActivity.filters.title}
         </motion.h2>
       </motion.div>
 
@@ -105,7 +130,7 @@ export default function UserActivityFilters() {
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 bg-slate-50/50"
-            placeholder="Search by user name, activity title, or content..."
+            placeholder={locale.userActivity.filters.searchPlaceholder}
           />
         </div>
       </motion.div>
@@ -120,7 +145,7 @@ export default function UserActivityFilters() {
         {/* Activity Type Filter */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Activity Type
+            {locale.userActivity.filters.activityType.label}
           </label>
           <select
             value={filters.activityType}
@@ -138,7 +163,7 @@ export default function UserActivityFilters() {
         {/* Role Filter */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            User Role
+            {locale.userActivity.filters.role.label}
           </label>
           <select
             value={filters.role}
@@ -156,7 +181,7 @@ export default function UserActivityFilters() {
         {/* Date Range Filter */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Date Range
+            {locale.userActivity.filters.dateRange.label}
           </label>
           <select
             value={filters.dateRange}
@@ -183,7 +208,7 @@ export default function UserActivityFilters() {
           onClick={clearFilters}
           className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors duration-200"
         >
-          Clear Filters
+          {locale.userActivity.filters.clearFilters}
         </button>
       </motion.div>
     </motion.div>

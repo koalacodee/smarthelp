@@ -7,6 +7,8 @@ import Megaphone from "@/icons/Megaphone";
 import Ticket from "@/icons/Ticket";
 import UserPlus from "@/icons/UserPlus";
 import React, { useState } from "react";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 export type ActivityItem = {
   id: string;
@@ -63,9 +65,11 @@ const ActivitySection: React.FC<{
   }[];
   emptyMessage: string;
 }> = ({ title, icon, items, columns, emptyMessage }) => {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const [isOpen, setIsOpen] = useState(true);
 
-  if (items.length === 0) return null;
+  if (items.length === 0 || !locale) return null;
 
   return (
     <div className="bg-white/50  rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
@@ -141,7 +145,11 @@ const ActivitySection: React.FC<{
 };
 
 const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
+  const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const groups = report.data.data;
+
+  if (!locale) return null;
 
   const answeredTickets =
     groups.find((g) => g.type === "ticket_answered")?.activities || [];
@@ -161,28 +169,28 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
   const columns = {
     ticket_answered: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Ticket ID",
+        header: locale.userActivity.activityReport.columns.ticketId,
         accessor: (item: ActivityItem) => (
           <span className="font-mono text-xs">{item.meta.code}</span>
         ),
       },
       {
-        header: "Subject",
+        header: locale.userActivity.activityReport.columns.subject,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Response Time",
+        header: locale.userActivity.activityReport.columns.responseTime,
         accessor: (item: ActivityItem) => {
           const repliedInSeconds = item.meta.repliedInSeconds;
           if (!repliedInSeconds)
-            return <span className="text-slate-400">N/A</span>;
+            return <span className="text-slate-400">{locale.userActivity.activityReport.columns.notAvailable}</span>;
 
           return (
             <span className="font-semibold text-slate-700">
@@ -193,10 +201,10 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
         className: "text-center",
       },
       {
-        header: "Rating",
+        header: locale.userActivity.activityReport.columns.rating,
         accessor: (item: ActivityItem) => {
           const rating = item.meta.rating;
-          if (!rating) return <span className="text-slate-400">N/A</span>;
+          if (!rating) return <span className="text-slate-400">{locale.userActivity.activityReport.columns.notAvailable}</span>;
 
           return (
             <span
@@ -208,37 +216,37 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
                   : "bg-gray-100 text-gray-800"
               }`}
             >
-              {rating === "SATISFACTION" ? "👍 Satisfied" : "👎 Dissatisfied"}
+              {rating === "SATISFACTION" ? locale.userActivity.activityReport.columns.satisfied : locale.userActivity.activityReport.columns.dissatisfied}
             </span>
           );
         },
         className: "text-center",
       },
       {
-        header: "Date Answered",
+        header: locale.userActivity.activityReport.columns.dateAnswered,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
         className: "text-center",
       },
     ],
     task_performed: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Task Title",
+        header: locale.userActivity.activityReport.columns.taskTitle,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Completion Time",
+        header: locale.userActivity.activityReport.columns.completionTime,
         accessor: (item: ActivityItem) => {
           const performedInSeconds = item.meta.performedInSeconds;
           if (!performedInSeconds)
-            return <span className="text-slate-400">N/A</span>;
+            return <span className="text-slate-400">{locale.userActivity.activityReport.columns.notAvailable}</span>;
 
           return (
             <span className="font-semibold text-slate-700">
@@ -249,120 +257,120 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
         className: "text-center",
       },
       {
-        header: "Status",
+        header: locale.userActivity.activityReport.columns.status,
         accessor: (item: ActivityItem) => (
           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-            {item.meta.status?.replace("_", " ") || "N/A"}
+            {item.meta.status?.replace("_", " ") || locale.userActivity.activityReport.columns.notAvailable}
           </span>
         ),
         className: "text-center",
       },
       {
-        header: "Date Submitted",
+        header: locale.userActivity.activityReport.columns.dateSubmitted,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
         className: "text-center",
       },
     ],
     task_approved: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Task Title",
+        header: locale.userActivity.activityReport.columns.taskTitle,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Date Approved",
+        header: locale.userActivity.activityReport.columns.dateApproved,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
       },
     ],
     faq_created: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Question",
+        header: locale.userActivity.activityReport.columns.question,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Date Created",
+        header: locale.userActivity.activityReport.columns.dateCreated,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
       },
     ],
     faq_updated: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Question",
+        header: locale.userActivity.activityReport.columns.question,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Date Updated",
+        header: locale.userActivity.activityReport.columns.dateUpdated,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
       },
     ],
     promotion_created: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Title",
+        header: locale.userActivity.activityReport.columns.title,
         accessor: (item: ActivityItem) => item.title,
         className: "max-w-xs truncate",
       },
       {
-        header: "Audience",
+        header: locale.userActivity.activityReport.columns.audience,
         accessor: (item: ActivityItem) => (
-          <span className="capitalize">{item.meta.audience || "N/A"}</span>
+          <span className="capitalize">{item.meta.audience || locale.userActivity.activityReport.columns.notAvailable}</span>
         ),
       },
       {
-        header: "Date Created",
+        header: locale.userActivity.activityReport.columns.dateCreated,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
       },
     ],
     staff_request_created: [
       {
-        header: "User",
+        header: locale.userActivity.activityReport.columns.user,
         accessor: (item: ActivityItem) => (
           <span className="font-semibold">{item.user.name}</span>
         ),
       },
       {
-        header: "Requested User",
+        header: locale.userActivity.activityReport.columns.requestedUser,
         accessor: (item: ActivityItem) => item.title,
       },
       {
-        header: "Status",
+        header: locale.userActivity.activityReport.columns.status,
         accessor: (item: ActivityItem) => (
-          <span className="capitalize">{item.meta.status || "N/A"}</span>
+          <span className="capitalize">{item.meta.status || locale.userActivity.activityReport.columns.notAvailable}</span>
         ),
       },
       {
-        header: "Date",
+        header: locale.userActivity.activityReport.columns.date,
         accessor: (item: ActivityItem) =>
-          new Date(item.occurredAt).toLocaleDateString(),
+          formatDateWithHijri(item.occurredAt, language),
       },
     ],
   };
@@ -371,53 +379,53 @@ const UserActivityReport: React.FC<UserActivityReportProps> = ({ report }) => {
     <div className="space-y-8">
       <div className="space-y-4">
         <ActivitySection
-          title="Answered Tickets"
+          title={locale.userActivity.activityReport.sections.answeredTickets}
           icon={<Ticket className="w-6 h-6 text-blue-500" />}
           items={answeredTickets}
           columns={columns.ticket_answered}
-          emptyMessage="No tickets answered."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.answeredTickets}
         />
         <ActivitySection
-          title="Tasks Performed"
+          title={locale.userActivity.activityReport.sections.tasksPerformed}
           icon={<CheckCircle className="w-6 h-6 text-green-500" />}
           items={performedTasks}
           columns={columns.task_performed}
-          emptyMessage="No tasks performed."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.tasksPerformed}
         />
         <ActivitySection
-          title="Tasks Approved"
+          title={locale.userActivity.activityReport.sections.tasksApproved}
           icon={<Briefcase className="w-6 h-6 text-purple-500" />}
           items={approvedTasks}
           columns={columns.task_approved}
-          emptyMessage="No tasks approved."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.tasksApproved}
         />
         <ActivitySection
-          title="FAQs Created"
+          title={locale.userActivity.activityReport.sections.faqsCreated}
           icon={<ClipboardList className="w-6 h-6 text-yellow-500" />}
           items={createdFaqs}
           columns={columns.faq_created}
-          emptyMessage="No FAQs created."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.faqsCreated}
         />
         <ActivitySection
-          title="FAQs Updated"
+          title={locale.userActivity.activityReport.sections.faqsUpdated}
           icon={<ClipboardList className="w-6 h-6 text-yellow-500" />}
           items={updatedFaqs}
           columns={columns.faq_updated}
-          emptyMessage="No FAQs updated."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.faqsUpdated}
         />
         <ActivitySection
-          title="Promotions Created"
+          title={locale.userActivity.activityReport.sections.promotionsCreated}
           icon={<Megaphone className="w-6 h-6 text-pink-500" />}
           items={createdPromotions}
           columns={columns.promotion_created}
-          emptyMessage="No promotions created."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.promotionsCreated}
         />
         <ActivitySection
-          title="Staff Requests Created"
+          title={locale.userActivity.activityReport.sections.staffRequestsCreated}
           icon={<UserPlus className="w-6 h-6 text-indigo-500" />}
           items={createdStaffRequests}
           columns={columns.staff_request_created}
-          emptyMessage="No staff requests created."
+          emptyMessage={locale.userActivity.activityReport.emptyMessages.staffRequestsCreated}
         />
       </div>
     </div>

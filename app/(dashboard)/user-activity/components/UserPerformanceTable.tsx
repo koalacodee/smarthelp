@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 export interface PerformanceUser {
   id: string;
@@ -52,6 +55,10 @@ const UserPerformanceTable: React.FC<UserPerformanceTableProps> = ({
   users,
   tickets,
 }) => {
+  const locale = useLocaleStore((state) => state.locale);
+
+  if (!locale) return null;
+
   // Static calculation of performance data
   const performanceData: PerformanceStats[] = React.useMemo(() => {
     const userStats: Record<
@@ -110,7 +117,7 @@ const UserPerformanceTable: React.FC<UserPerformanceTableProps> = ({
   if (performanceData.length === 0) {
     return (
       <p className="text-center py-8 text-slate-500 italic">
-        No ticket performance data available yet.
+        {locale.userActivity.performanceTable.empty}
       </p>
     );
   }
@@ -125,43 +132,43 @@ const UserPerformanceTable: React.FC<UserPerformanceTableProps> = ({
                 scope="col"
                 className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                User
+                {locale.userActivity.performanceTable.columns.user}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Role
+                {locale.userActivity.performanceTable.columns.role}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Answered
+                {locale.userActivity.performanceTable.columns.answered}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Satisfied 👍
+                {locale.userActivity.performanceTable.columns.satisfied}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Dissatisfied 👎
+                {locale.userActivity.performanceTable.columns.dissatisfied}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Avg Response Time
+                {locale.userActivity.performanceTable.columns.avgResponseTime}
               </th>
               <th
                 scope="col"
                 className="px-8 py-5 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
               >
-                Satisfaction Rate
+                {locale.userActivity.performanceTable.columns.satisfactionRate}
               </th>
             </tr>
           </thead>
