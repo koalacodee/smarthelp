@@ -4,11 +4,20 @@ import Ticket from "@/icons/Ticket";
 import api from "@/lib/api";
 import { setCookie } from "@/lib/api/cookies";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Locale } from "@/locales/type";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  locale: Locale;
+  language: string;
+}
+
+export default function LoginForm({ locale, language }: LoginFormProps) {
+  const { setLocale } = useLocaleStore();
+  const storeLocale = useLocaleStore((state) => state.locale);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -16,6 +25,12 @@ export default function LoginForm() {
     "username",
     "password",
   ]);
+
+  useEffect(() => {
+    setLocale(locale, language);
+  }, [locale, language, setLocale]);
+
+  if (!storeLocale) return null;
 
   // Debug: Log errors whenever they change
 
@@ -26,13 +41,12 @@ export default function LoginForm() {
     try {
       const response = await api.authService.login({ username, password });
       setCookie("accessToken", response.accessToken);
-      // window.location.href = "/";
       router.push("/");
     } catch (error: any) {
       if (error?.response?.data?.data?.details) {
         setErrors(error?.response?.data?.data?.details);
       } else {
-        setRootError("Invalid username or password. Please try again");
+        setRootError(storeLocale.login.errors.invalidCredentials);
       }
     }
   };
@@ -75,7 +89,7 @@ export default function LoginForm() {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className="text-2xl font-bold text-slate-800"
               >
-                Admin & Supervisor Login
+                {storeLocale.login.header.title}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, x: -20 }}
@@ -83,7 +97,7 @@ export default function LoginForm() {
                 transition={{ duration: 0.4, delay: 0.3 }}
                 className="text-sm text-slate-600"
               >
-                Access your dashboard
+                {storeLocale.login.header.description}
               </motion.p>
             </div>
           </div>
@@ -135,7 +149,7 @@ export default function LoginForm() {
               transition={{ duration: 0.4, delay: 0.7 }}
               className="text-lg font-semibold text-slate-800"
             >
-              Sign In
+              {storeLocale.login.form.title}
             </motion.h2>
           </motion.div>
 
@@ -206,7 +220,7 @@ export default function LoginForm() {
                 htmlFor="username"
                 className="block text-sm font-medium text-slate-700 mb-2"
               >
-                Username *
+                {storeLocale.login.form.fields.username.label} *
               </motion.label>
               <motion.input
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -222,7 +236,7 @@ export default function LoginForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                placeholder="Enter your username"
+                placeholder={storeLocale.login.form.fields.username.placeholder}
                 required
                 autoComplete="username"
               />
@@ -254,7 +268,7 @@ export default function LoginForm() {
                   htmlFor="password"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Password *
+                  {storeLocale.login.form.fields.password.label} *
                 </label>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -269,7 +283,7 @@ export default function LoginForm() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3, delay: 1.2 }}
                     >
-                      Forgot Password?
+                      {storeLocale.login.form.fields.password.forgotPassword}
                     </motion.span>
                   </Link>
                 </motion.div>
@@ -288,7 +302,7 @@ export default function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
-                placeholder="Enter your password"
+                placeholder={storeLocale.login.form.fields.password.placeholder}
                 required
                 autoComplete="current-password"
               />
@@ -324,7 +338,7 @@ export default function LoginForm() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  Sign In
+                  {storeLocale.login.form.buttons.submit}
                 </motion.span>
               </motion.button>
             </motion.div>
