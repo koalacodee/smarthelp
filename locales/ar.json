@@ -475,6 +475,23 @@
         "description": "تصفح المرفقات التي رفعتها سابقاً وأضف أخرى جديدة."
       },
       "uploadButton": "رفع ملف",
+      "tabs": {
+        "allFiles": "كل الملفات",
+        "documents": "المستندات",
+        "videos": "الفيديوهات",
+        "images": "الصور",
+        "audio": "الصوتيات"
+      },
+      "search": {
+        "placeholder": "البحث في الملفات..."
+      },
+      "sections": {
+        "documents": "الملفات والمستندات",
+        "videos": "محتوى الفيديو",
+        "images": "الصور",
+        "audio": "الملفات الصوتية",
+        "items": "{count} عنصر"
+      },
       "attachments": {
         "title": "مرفقاتي",
         "count": "{count} عنصر",

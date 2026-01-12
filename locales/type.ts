@@ -477,6 +477,23 @@ export type Locale = {
         description: string;
       };
       uploadButton: string;
+      tabs: {
+        allFiles: string;
+        documents: string;
+        videos: string;
+        images: string;
+        audio: string;
+      };
+      search: {
+        placeholder: string;
+      };
+      sections: {
+        documents: string;
+        videos: string;
+        images: string;
+        audio: string;
+        items: string;
+      };
       attachments: {
         title: string;
         count: string;

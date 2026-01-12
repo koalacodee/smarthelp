@@ -475,6 +475,23 @@
         "description": "Browse your previously uploaded attachments and add new ones."
       },
       "uploadButton": "Upload file",
+      "tabs": {
+        "allFiles": "All Files",
+        "documents": "Documents",
+        "videos": "Videos",
+        "images": "Images",
+        "audio": "Audio"
+      },
+      "search": {
+        "placeholder": "Search files..."
+      },
+      "sections": {
+        "documents": "Files & Documents",
+        "videos": "Video Content",
+        "images": "Images",
+        "audio": "Audio Files",
+        "items": "{count} Items"
+      },
       "attachments": {
         "title": "My attachments",
         "count": "{count} item{plural}",
