@@ -18,6 +18,8 @@ import Cookie from "js-cookie";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { formatDateWithHijri } from "@/locales/dateFormatter";
 
+type StatusFilter = "all" | "online" | "offline";
+
 export default function MemberManagementPanel() {
   const [members, setMembers] = useState<MemberWithGroupDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +27,7 @@ export default function MemberManagementPanel() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] =
     useState<MemberWithGroupDetails | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   // Form states
   const [otp, setOtp] = useState("");
@@ -182,6 +185,15 @@ export default function MemberManagementPanel() {
     setSelectedMember(null);
   };
 
+  // Filter members based on status
+  const filteredMembers = members.filter((member) => {
+    if (statusFilter === "all") return true;
+    const isOnline = activeMembers.includes(member.id);
+    if (statusFilter === "online") return isOnline;
+    if (statusFilter === "offline") return !isOnline;
+    return true;
+  });
+
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -192,9 +204,27 @@ export default function MemberManagementPanel() {
     );
   }
 
+  // Filter icon component (funnel icon)
+  const FilterIcon = () => (
+    <svg
+      className="w-4 h-4 text-slate-600"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+      />
+    </svg>
+  );
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Header */}
+      {/* Header with Add Button */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
@@ -214,6 +244,49 @@ export default function MemberManagementPanel() {
         </button>
       </div>
 
+      {/* Filter and Count Section - Top Control Bar */}
+      {members.length > 0 && (
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FilterIcon />
+            <span className="text-sm text-slate-700">Filter by Status:</span>
+            <div className="relative inline-block">
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as StatusFilter)
+                }
+                className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="all">Show All</option>
+                <option value="online">
+                  {locale.myFiles.groups.members.status.online}
+                </option>
+                <option value="offline">
+                  {locale.myFiles.groups.members.status.offline}
+                </option>
+              </select>
+              <svg
+                className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+          <div className="text-sm text-slate-600">
+            Showing {filteredMembers.length} of {members.length} members
+          </div>
+        </div>
+      )}
+
       {/* Members List */}
       {members.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
@@ -225,74 +298,96 @@ export default function MemberManagementPanel() {
             {locale.myFiles.groups.members.empty.hint}
           </p>
         </div>
+      ) : filteredMembers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
+          <p className="text-sm font-medium text-slate-700">
+            No members found with the selected filter
+          </p>
+        </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full bg-white">
             <thead>
               <tr className="border-b border-slate-200">
                 <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {locale.myFiles.groups.members.table.name}
+                  NAME
                 </th>
                 <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {locale.myFiles.groups.members.table.attachmentGroup}
+                  STATUS
                 </th>
                 <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {locale.myFiles.groups.members.table.created}
+                  ATTACHMENT GROUP
+                </th>
+                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                  CREATED
                 </th>
                 <th className="pb-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {locale.myFiles.groups.members.table.actions}
+                  ACTIONS
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {members.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/50">
-                  <td className="py-3 text-sm font-medium text-slate-900">
-                    <div className="flex items-center gap-2">
-                      <span>{member.name}</span>
-                      {activeMembers.includes(member.id) ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+              {filteredMembers.map((member) => {
+                const isOnline = activeMembers.includes(member.id);
+                // Format date as M/D/YYYY
+                const formattedDate = new Date(
+                  member.createdAt
+                ).toLocaleDateString("en-US", {
+                  month: "numeric",
+                  day: "numeric",
+                  year: "numeric",
+                });
+                return (
+                  <tr key={member.id} className="hover:bg-slate-50/50">
+                    <td className="py-3 text-sm font-medium text-slate-900">
+                      {member.name}
+                    </td>
+                    <td className="py-3">
+                      {isOnline ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600">
                           <span className="h-1.5 w-1.5 rounded-full bg-green-600"></span>
                           {locale.myFiles.groups.members.status.online}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-400 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                          <span className="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
                           {locale.myFiles.groups.members.status.offline}
                         </span>
                       )}
-                    </div>
-                  </td>
-                  <td className="py-3 text-sm text-slate-600">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                      {member.attachmentGroup.name}
-                    </span>
-                  </td>
-                  <td className="py-3 text-xs text-slate-500">
-                    {formatDateWithHijri(member.createdAt, language)}
-                  </td>
-                  <td className="py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(member)}
-                        className="inline-flex items-center justify-center rounded-full border border-green-200 p-1.5 text-green-600 hover:bg-green-50 hover:text-green-700 transition"
-                        aria-label="Edit member"
+                    </td>
+                    <td className="py-3 flex items-center justify-center">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium bg-blue-50 border-blue-400 text-blue-600`}
                       >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteMember(member)}
-                        className="inline-flex items-center justify-center rounded-full border border-rose-200 p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition"
-                        aria-label="Delete member"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {member.attachmentGroup.name}
+                      </span>
+                    </td>
+                    <td className="py-3 text-xs text-slate-500">
+                      {formattedDate}
+                    </td>
+                    <td className="py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(member)}
+                          className="inline-flex items-center justify-center rounded-md bg-green-50 p-1.5 text-green-600 hover:bg-green-100 transition"
+                          aria-label="Edit member"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMember(member)}
+                          className="inline-flex items-center justify-center rounded-md bg-red-50 p-1.5 text-red-600 hover:bg-red-100 transition"
+                          aria-label="Delete member"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
