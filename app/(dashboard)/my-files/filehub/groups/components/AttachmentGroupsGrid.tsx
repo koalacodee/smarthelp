@@ -54,8 +54,7 @@ export default function AttachmentGroupsGrid({
           onGroupDeleted?.();
         } catch (err: any) {
           addToast({
-            message:
-              err?.message || locale.myFiles.groups.toasts.deleteFailed,
+            message: err?.message || locale.myFiles.groups.toasts.deleteFailed,
             type: "error",
           });
         }
@@ -101,12 +100,12 @@ export default function AttachmentGroupsGrid({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-900">
-                  {group.key}
+                  {group.name}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-500">
                   {locale.myFiles.groups.grid.groupId.replace(
                     "{id}",
-                    group.id.slice(0, 8)
+                    group.key.slice(0, 8)
                   )}
                 </p>
               </div>

@@ -28,6 +28,7 @@ export interface AttachmentMetadata {
 
 export interface CreateAttachmentGroupRequest {
   attachmentIds: UUID[];
+  name: string;
   expiresAt?: Date | string;
 }
 
@@ -41,6 +42,7 @@ export interface GetAttachmentGroupByKeyResponse {
 
 export interface GetAttachmentGroupDetailsResponse {
   id: UUID;
+  name: string;
   key: string;
   ips: string[];
   attachments: AttachmentMetadata[];
@@ -56,6 +58,7 @@ export interface GetMyAttachmentGroupsRequest {
 
 export interface AttachmentGroupSummary {
   id: UUID;
+  name: string;
   key: string;
   clientIds: string[];
   attachments: AttachmentMetadata[];
@@ -71,6 +74,7 @@ export interface GetMyAttachmentGroupsResponse {
 }
 
 export interface UpdateAttachmentGroupRequest {
+  name?: string;
   attachmentIds?: UUID[];
   expiresAt?: Date | string;
 }

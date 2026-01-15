@@ -36,6 +36,7 @@ export default function FileHubAttachmentGroupModal({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [expiresAtInput, setExpiresAtInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
   const { addToast } = useToastStore();
   const { locale } = useLocaleStore();
 
@@ -46,6 +47,7 @@ export default function FileHubAttachmentGroupModal({
       setSelectedAttachmentIds(
         attachmentGroup.attachments.map((att) => att.id)
       );
+      setNameInput(attachmentGroup.name || "");
       if (attachmentGroup.expiresAt) {
         const date = new Date(attachmentGroup.expiresAt);
         setExpiresAtInput(date.toISOString().slice(0, 16));
@@ -54,6 +56,7 @@ export default function FileHubAttachmentGroupModal({
       }
     } else {
       setSelectedAttachmentIds([]);
+      setNameInput("");
       setExpiresAtInput("");
     }
   }, [attachmentGroup]);
@@ -61,12 +64,28 @@ export default function FileHubAttachmentGroupModal({
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const payload = {
+      const payload: any = {
         attachmentIds: selectedAttachmentIds,
         ...(expiresAtInput
           ? { expiresAt: new Date(expiresAtInput).toISOString() }
           : {}),
       };
+      
+      // Name is mandatory for creation, optional for updates
+      if (mode === "create") {
+        if (!nameInput.trim()) {
+          addToast({
+            message: locale?.myFiles?.groups?.modal?.nameRequired || "Name is required",
+            type: "error",
+          });
+          setIsLoading(false);
+          return;
+        }
+        payload.name = nameInput.trim();
+      } else if (mode === "edit" && nameInput.trim()) {
+        payload.name = nameInput.trim();
+      }
+      
       if (mode === "create") {
         // Create new attachment group
         await FileHubAttachmentGroupService.createAttachmentGroup(payload);
@@ -164,6 +183,24 @@ export default function FileHubAttachmentGroupModal({
                     <p className="text-sm text-blue-700">
                       {locale.myFiles.groups.modal.createHint}
                     </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="attachment-group-name"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {locale?.myFiles?.groups?.modal?.nameLabel || "Name"} *
+                    </label>
+                    <input
+                      id="attachment-group-name"
+                      type="text"
+                      value={nameInput}
+                      onChange={(event) => setNameInput(event.target.value)}
+                      placeholder={locale?.myFiles?.groups?.modal?.namePlaceholder || "Enter group name"}
+                      required
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -272,6 +309,14 @@ export default function FileHubAttachmentGroupModal({
                     <div className="bg-slate-50 p-4 rounded-lg space-y-2">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
+                          {locale?.myFiles?.groups?.modal?.nameLabel || "Name"}
+                        </p>
+                        <p className="text-sm font-bold text-slate-800">
+                          {attachmentGroup.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-700">
                           {locale.myFiles.groups.modal.groupKey}
                         </p>
                         <p className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md">
@@ -319,13 +364,33 @@ export default function FileHubAttachmentGroupModal({
                     </div>
 
                     {mode === "edit" && (
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="attachment-group-expiration-edit"
-                          className="text-sm font-medium text-slate-700"
-                        >
-                          Update Expiration Date
-                        </label>
+                      <>
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="attachment-group-name-edit"
+                            className="text-sm font-medium text-slate-700"
+                          >
+                            {locale?.myFiles?.groups?.modal?.nameLabel || "Name"}
+                          </label>
+                          <input
+                            id="attachment-group-name-edit"
+                            type="text"
+                            value={nameInput}
+                            onChange={(event) => setNameInput(event.target.value)}
+                            placeholder={locale?.myFiles?.groups?.modal?.namePlaceholder || "Enter group name"}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <p className="text-xs text-slate-500">
+                            {locale?.myFiles?.groups?.modal?.nameHint || "Leave empty to keep current name."}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="attachment-group-expiration-edit"
+                            className="text-sm font-medium text-slate-700"
+                          >
+                            Update Expiration Date
+                          </label>
                         <input
                           id="attachment-group-expiration-edit"
                           type="datetime-local"
@@ -339,6 +404,7 @@ export default function FileHubAttachmentGroupModal({
                           Leave empty to remove the expiration date.
                         </p>
                       </div>
+                      </>
                     )}
 
                     <div className="space-y-3">
@@ -469,7 +535,7 @@ export default function FileHubAttachmentGroupModal({
                   onClick={handleSave}
                   disabled={
                     isLoading ||
-                    (mode === "create" && selectedAttachmentIds.length === 0)
+                    (mode === "create" && (selectedAttachmentIds.length === 0 || !nameInput.trim()))
                   }
                   className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
                     isLoading ||

@@ -600,6 +600,10 @@ export type Locale = {
         editTitle: string;
         viewTitle: string;
         createHint: string;
+        nameLabel: string;
+        namePlaceholder: string;
+        nameHint: string;
+        nameRequired: string;
         expirationLabel: string;
         expirationHint: string;
         selectedAttachments: string;

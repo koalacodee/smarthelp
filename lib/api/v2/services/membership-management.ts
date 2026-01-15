@@ -42,6 +42,7 @@ export interface MemberWithGroupDetails {
   attachmentGroup: {
     id: UUID;
     key: string;
+    name: string;
     createdAt: Date;
     updatedAt: Date;
     createdById: UUID;

@@ -96,8 +96,7 @@ export default function MemberManagementPanel() {
       loadMembers();
     } catch (err: any) {
       addToast({
-        message:
-          err?.message || locale.myFiles.groups.members.toasts.addFailed,
+        message: err?.message || locale.myFiles.groups.members.toasts.addFailed,
         type: "error",
       });
     }
@@ -136,10 +135,11 @@ export default function MemberManagementPanel() {
   const handleDeleteMember = (member: MemberWithGroupDetails) => {
     openConfirmation({
       title: locale.myFiles.groups.members.confirmations.deleteTitle,
-      message: locale.myFiles.groups.members.confirmations.deleteMessage.replace(
-        "{name}",
-        member.name
-      ),
+      message:
+        locale.myFiles.groups.members.confirmations.deleteMessage.replace(
+          "{name}",
+          member.name
+        ),
       confirmText: locale.myFiles.groups.members.confirmations.confirmText,
       cancelText: locale.myFiles.groups.members.confirmations.cancelText,
       onConfirm: async () => {
@@ -265,7 +265,7 @@ export default function MemberManagementPanel() {
                   </td>
                   <td className="py-3 text-sm text-slate-600">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                      {member.attachmentGroup.key}
+                      {member.attachmentGroup.name}
                     </span>
                   </td>
                   <td className="py-3 text-xs text-slate-500">
@@ -315,7 +315,9 @@ export default function MemberManagementPanel() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder={locale.myFiles.groups.members.addModal.otpPlaceholder}
+                  placeholder={
+                    locale.myFiles.groups.members.addModal.otpPlaceholder
+                  }
                   required
                 />
               </div>
@@ -329,7 +331,9 @@ export default function MemberManagementPanel() {
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder={locale.myFiles.groups.members.addModal.namePlaceholder}
+                  placeholder={
+                    locale.myFiles.groups.members.addModal.namePlaceholder
+                  }
                   required
                 />
               </div>
@@ -349,7 +353,7 @@ export default function MemberManagementPanel() {
                   </option>
                   {attachmentGroups.map((group) => (
                     <option key={group.id} value={group.id}>
-                      {group.key}
+                      {group.name}
                     </option>
                   ))}
                 </select>
@@ -392,7 +396,9 @@ export default function MemberManagementPanel() {
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder={locale.myFiles.groups.members.editModal.namePlaceholder}
+                  placeholder={
+                    locale.myFiles.groups.members.editModal.namePlaceholder
+                  }
                 />
               </div>
 
@@ -410,7 +416,7 @@ export default function MemberManagementPanel() {
                   </option>
                   {attachmentGroups.map((group) => (
                     <option key={group.id} value={group.id}>
-                      {group.key}
+                      {group.name}
                     </option>
                   ))}
                 </select>
