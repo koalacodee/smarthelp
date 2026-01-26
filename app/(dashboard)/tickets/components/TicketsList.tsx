@@ -1,5 +1,5 @@
 "use client";
-import { SupportTicket, Ticket, TicketStatus } from "@/lib/api";
+import { SupportTicket, TicketStatus } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketActionsDropdown from "./TicketActionsDropdown";
 import { useCurrentEditingTicketStore } from "../store/useCurrentReplyingTicket";
@@ -97,13 +97,7 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                   delay: 1 + index * 0.05,
                   ease: "easeOut",
                 }}
-                whileHover={{
-                  backgroundColor: "rgb(248 250 252)",
-                  scale: 1.01,
-                  transition: { duration: 0.2 },
-                }}
-                className="group hover:bg-slate-50 transition-all duration-200 cursor-pointer"
-                onClick={() => handleTicketClick(ticket)}
+                className="group hover:bg-slate-50 transition-all duration-200 cursor-pointer relative hover:z-10"
               >
                 <div className="grid grid-cols-12 gap-4 px-6 py-4">
                   {/* Subject */}
@@ -177,9 +171,9 @@ export default function TicketsList({ tickets }: TicketsListProps) {
                     transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
                     className="col-span-1 flex items-center justify-end"
                   >
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <TicketActionsDropdown ticket={ticket} />
-                    </div>
+
+                    <TicketActionsDropdown ticket={ticket} />
+
                   </motion.div>
                 </div>
               </motion.div>

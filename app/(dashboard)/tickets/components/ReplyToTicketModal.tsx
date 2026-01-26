@@ -30,8 +30,6 @@ export default function ReplyToTicketModal() {
   const { moveCurrentNewTargetSelectionsToExisting, reset } = useAttachments();
   const { locale } = useLocaleStore();
 
-  if (!locale) return null;
-
   const handleClose = () => {
     setTicket(null);
     setIsWaitingToClose(false);
@@ -47,6 +45,8 @@ export default function ReplyToTicketModal() {
       handleClose();
     }
   }, [hasStartedUpload, isUploading, isWaitingToClose]);
+
+  if (!locale) return null;
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     if (!ticket) return;
@@ -92,7 +92,7 @@ export default function ReplyToTicketModal() {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            locale.tickets.toasts.replyError
+          locale.tickets.toasts.replyError
         );
       }
     }
@@ -218,11 +218,11 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 }}
               >
-                  <p className="font-semibold text-sm text-slate-600 mb-2">
-                    {locale.tickets.modal.subDepartment}
-                  </p>
+                <p className="font-semibold text-sm text-slate-600 mb-2">
+                  {locale.tickets.modal.subDepartment}
+                </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
-                  Domestic Shipping
+                  {ticket.department?.name || locale.tickets.list.unknown}
                 </p>
               </motion.div>
               <motion.div
@@ -230,9 +230,9 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.6 }}
               >
-                  <p className="font-semibold text-sm text-slate-600 mb-2">
-                    {locale.tickets.modal.subject}
-                  </p>
+                <p className="font-semibold text-sm text-slate-600 mb-2">
+                  {locale.tickets.modal.subject}
+                </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200">
                   {ticket.subject}
                 </p>
@@ -242,9 +242,9 @@ export default function ReplyToTicketModal() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.7 }}
               >
-                  <p className="font-semibold text-sm text-slate-600 mb-2">
-                    {locale.tickets.modal.description}
-                  </p>
+                <p className="font-semibold text-sm text-slate-600 mb-2">
+                  {locale.tickets.modal.description}
+                </p>
                 <p className="p-3 bg-slate-50 rounded-xl text-slate-800 border border-slate-200 whitespace-pre-wrap">
                   {ticket.description}
                 </p>

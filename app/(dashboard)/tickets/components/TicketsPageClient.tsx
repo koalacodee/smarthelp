@@ -212,10 +212,10 @@ export default function TicketsPageClient({
         startDate && endDate
           ? `${startDate}-${endDate}`
           : startDate
-          ? `from-${startDate}`
-          : endDate
-          ? `until-${endDate}`
-          : "all";
+            ? `from-${startDate}`
+            : endDate
+              ? `until-${endDate}`
+              : "all";
       const filename = `tickets-export-${dateRange}.${exportResponse.type.toLowerCase()}`;
 
       let downloadUrl: string;
@@ -447,7 +447,7 @@ export default function TicketsPageClient({
               y: -2,
               transition: { duration: 0.2 },
             }}
-            className="bg-white/90  rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+            className="bg-white/90  rounded-2xl shadow-xl border border-white/20"
           >
             {isFetchingTickets ? (
               <div className="flex flex-col items-center justify-center py-24">
