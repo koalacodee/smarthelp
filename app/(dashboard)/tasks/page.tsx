@@ -45,6 +45,7 @@ export default async function Page() {
   let attachments: any = {};
   let fileHubAttachments: FileHubAttachment[] = [];
   let metrics: any = null;
+  let meta: any = null;
   let taskSubmissions: Record<string, TaskSubmission[]> = {};
   let delegationSubmissions: Record<string, any[]> = {};
   let submissionAttachments: Record<string, string[]> = {};
@@ -56,6 +57,7 @@ export default async function Page() {
         attachments = data.attachments;
         fileHubAttachments = data.fileHubAttachments;
         metrics = data.metrics;
+        meta = data.meta;
 
         (data.submissions || []).forEach((sub: any) => {
           if (!taskSubmissions[sub.taskId]) taskSubmissions[sub.taskId] = [];
@@ -73,54 +75,22 @@ export default async function Page() {
     departments = fetchedDepartments;
   } else if (userRole === "SUPERVISOR") {
     const [_, fetchedSubDepartments, fetchedDepartments] = await Promise.all([
-      Promise.all([
-        TasksService.getSubDepartmentLevel(),
-        TasksService.getEmployeeLevel(),
-      ]).then(async ([subTasks, empTasks]) => {
-        tasks = [...subTasks.data, ...empTasks.data];
-        attachments = {
-          ...(subTasks.attachments || {}),
-          ...(empTasks.attachments || {}),
-        };
-        fileHubAttachments = [
-          ...subTasks.fileHubAttachments,
-          ...empTasks.fileHubAttachments,
-        ];
-
-        [...subTasks.submissions, ...empTasks.submissions].forEach(
-          (sub: any) => {
-            if (!taskSubmissions[sub.taskId]) taskSubmissions[sub.taskId] = [];
-            taskSubmissions[sub.taskId].push(sub);
-
-            if (sub.delegationSubmission) {
-              if (!delegationSubmissions[sub.taskId])
-                delegationSubmissions[sub.taskId] = [];
-              delegationSubmissions[sub.taskId].push(sub.delegationSubmission);
-            }
-          }
-        );
-
-        // Combine metrics from both sub-department and employee level tasks
+      TasksService.getTeamTasks().then(async (data) => {
+        tasks = data.data;
+        fileHubAttachments = data.fileHubAttachments;
+        meta = data.meta;
         metrics = {
-          pendingCount:
-            (subTasks.metrics?.pendingCount || 0) +
-            (empTasks.metrics?.pendingCount || 0),
-          completedCount:
-            (subTasks.metrics?.completedCount || 0) +
-            (empTasks.metrics?.completedCount || 0),
-          completionPercentage: Math.round(
-            (((subTasks.metrics?.completedCount || 0) +
-              (empTasks.metrics?.completedCount || 0)) /
-              Math.max(
-                (subTasks.metrics?.pendingCount || 0) +
-                  (empTasks.metrics?.pendingCount || 0) +
-                  (subTasks.metrics?.completedCount || 0) +
-                  (empTasks.metrics?.completedCount || 0),
-                1
-              )) *
-              100
-          ),
+          pendingCount: data.metrics.pendingTasks,
+          completedCount: data.metrics.completedTasks,
+          completionPercentage: data.metrics.taskCompletionPercentage,
         };
+
+        console.log(data);
+
+
+        // Note: The new endpoint returns tasks with rejectionReason and approvalFeedback already included
+        // We might need to adjust how taskSubmissions are handled if they are needed separately
+        // For now, let's keep the structure as close as possible
       }),
       DepartmentsService.getAllSubDepartments(),
       DepartmentsService.getAllDepartments(),
@@ -138,6 +108,7 @@ export default async function Page() {
           initialSubDepartments={subDepartments}
           initialAttachments={attachments}
           initialMetrics={metrics}
+          initialMeta={meta}
           initialTaskSubmissions={taskSubmissions}
           initialDelegationSubmissions={delegationSubmissions}
           initialSubmissionAttachments={submissionAttachments}

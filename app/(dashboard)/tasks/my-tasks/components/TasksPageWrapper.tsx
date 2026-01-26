@@ -8,7 +8,7 @@ import { Locale } from "@/locales/type";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TasksPageWrapperProps {
-  tasksData: MyTasksResponse;
+  tasksData: MyTasksResponse & { meta?: any };
   delegationsData: {
     delegations: any[];
     submissions: any;

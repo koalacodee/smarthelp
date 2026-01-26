@@ -39,6 +39,7 @@ interface TasksPageClientProps {
     completedCount: number;
     completionPercentage: number;
   };
+  initialMeta?: any;
   initialTaskSubmissions?: Record<string, TaskSubmission[]>;
   initialDelegationSubmissions?: Record<string, any[]>;
   initialSubmissionAttachments?: Record<string, string[]>;
@@ -54,6 +55,7 @@ export default function TasksPageClient({
   initialAttachments,
   initialFileHubAttachments,
   initialMetrics,
+  initialMeta,
   initialTaskSubmissions,
   initialDelegationSubmissions,
   initialSubmissionAttachments,
@@ -64,12 +66,10 @@ export default function TasksPageClient({
   const { setLocale } = useLocaleStore();
   const {
     tasks,
-    filteredTasks,
-    filters,
     setTasks,
-    setFilters,
     isLoading,
     error,
+    meta,
   } = useTaskStore();
   const storeLocale = useLocaleStore((state) => state.locale);
 
@@ -165,7 +165,7 @@ export default function TasksPageClient({
 
   useEffect(() => {
     // Initialize with server data only once on mount
-    setTasks(initialTasks);
+    setTasks(initialTasks, initialMeta);
     setDepartments(initialDepartments);
     setSubDepartments(initialSubDepartments);
     if (initialAttachments) {
@@ -214,14 +214,18 @@ export default function TasksPageClient({
       statusValue: string,
       priorityValue: string,
       searchValue: string,
-      departmentValue: string
+      departmentValue: string,
+      cursor?: string,
+      direction?: "next" | "prev"
     ) => {
       setIsFetchingTasks(true);
       try {
         let response: any;
         let allTasks: any[] = [];
         let allAttachments: any = {};
+        let allFileHubAttachments: FileHubAttachment[] = [];
         let combinedMetrics: any = null;
+        let combinedMeta: any = null;
 
         const submissions: Record<string, TaskSubmission[]> = {};
         const delegationSubs: Record<string, any[]> = {};
@@ -246,62 +250,60 @@ export default function TasksPageClient({
               ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
               : undefined,
             searchValue || undefined,
-            departmentValue || undefined
+            departmentValue || undefined,
+            cursor,
+            direction
           );
           allTasks = response.data;
           allAttachments = response.attachments;
+          allFileHubAttachments = response.fileHubAttachments || [];
           combinedMetrics = response.metrics;
+          combinedMeta = response.meta;
           processSubmissions(response.submissions);
         } else if (userRole === "SUPERVISOR") {
-          const [subTasks, empTasks] = await Promise.all([
-            TasksService.getSubDepartmentLevel(
-              statusValue ? (statusValue as TaskStatus) : undefined,
-              priorityValue
-                ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
-                : undefined,
-              searchValue || undefined,
-              departmentValue || undefined
-            ),
-            TasksService.getEmployeeLevel(
-              statusValue ? (statusValue as TaskStatus) : undefined,
-              priorityValue
-                ? (priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH")
-                : undefined,
-              searchValue || undefined,
-              departmentValue || undefined
-            ),
-          ]);
+          response = await TasksService.getTeamTasks(
+            statusValue ? statusValue as TaskStatus : undefined,
+            priorityValue
+              ? priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH"
+              : undefined,
+            cursor,
+            direction
+          );
 
-          allTasks = [...subTasks.data, ...empTasks.data];
-          allAttachments = {
-            ...(subTasks.attachments || {}),
-            ...(empTasks.attachments || {}),
-          };
+          allTasks = response.data;
+          allFileHubAttachments = response.fileHubAttachments;
           combinedMetrics = {
-            pendingCount:
-              (subTasks.metrics?.pendingCount || 0) +
-              (empTasks.metrics?.pendingCount || 0),
-            completedCount:
-              (subTasks.metrics?.completedCount || 0) +
-              (empTasks.metrics?.completedCount || 0),
-            completionPercentage: Math.round(
-              (((subTasks.metrics?.completedCount || 0) +
-                (empTasks.metrics?.completedCount || 0)) /
-                Math.max(
-                  (subTasks.metrics?.pendingCount || 0) +
-                  (empTasks.metrics?.pendingCount || 0) +
-                  (subTasks.metrics?.completedCount || 0) +
-                  (empTasks.metrics?.completedCount || 0),
-                  1
-                )) *
-              100
-            ),
+            pendingCount: response.metrics.pendingTasks,
+            completedCount: response.metrics.completedTasks,
+            completionPercentage: response.metrics.taskCompletionPercentage,
           };
-          processSubmissions(subTasks.submissions);
-          processSubmissions(empTasks.submissions);
+          combinedMeta = response.meta;
         }
 
-        setTasks(allTasks);
+        setTasks(allTasks, combinedMeta);
+        if (allFileHubAttachments.length > 0) {
+          const allTargetIds = new Set<string>();
+          allFileHubAttachments.forEach((attachment) => {
+            allTargetIds.add(attachment.targetId);
+          });
+          allTargetIds.forEach((targetId) => {
+            clearExistingAttachmentsForTarget(targetId);
+          });
+          allFileHubAttachments.forEach((attachment) => {
+            if (!attachment?.targetId) return;
+            addExistingAttachmentToTarget(attachment.targetId, {
+              fileType: attachment.type,
+              originalName: attachment.originalName,
+              size: attachment.size,
+              expirationDate: attachment.expirationDate,
+              id: attachment.id,
+              filename: attachment.filename,
+              isGlobal: attachment.isGlobal,
+              createdAt: attachment.createdAt,
+              signedUrl: attachment.signedUrl,
+            });
+          });
+        }
         setTaskAttachments(allAttachments);
         setAttachments("task", allAttachments);
         setAllTaskSubmissions(submissions);
@@ -544,7 +546,7 @@ export default function TasksPageClient({
                     className="bg-white/90  rounded-2xl shadow-xl border border-white/20 p-6"
                   >
                     <TeamTasksDashboard
-                      total={tasks.length}
+                      total={metrics.completedCount + metrics.pendingCount}
                       completedCount={metrics.completedCount}
                       pendingCount={metrics.pendingCount}
                       completionPercentage={metrics.completionPercentage}
@@ -668,6 +670,71 @@ export default function TasksPageClient({
                         <TeamTaskCard task={task} />
                       </motion.div>
                     ))}
+                  </div>
+                )}
+
+                {/* Pagination Controls */}
+                {meta && (meta.hasNextPage || meta.hasPrevPage) && (
+                  <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-slate-100">
+                    <button
+                      onClick={() =>
+                        fetchTasks(
+                          statusFilter,
+                          priorityFilter,
+                          searchTerm,
+                          departmentFilter,
+                          meta.prevCursor,
+                          "prev"
+                        )
+                      }
+                      disabled={!meta.hasPrevPage || isFetchingTasks}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                      {(storeLocale?.tasks.teamTasks as any).pagination?.previous ||
+                        "Previous"}
+                    </button>
+                    <button
+                      onClick={() =>
+                        fetchTasks(
+                          statusFilter,
+                          priorityFilter,
+                          searchTerm,
+                          departmentFilter,
+                          meta.nextCursor,
+                          "next"
+                        )
+                      }
+                      disabled={!meta.hasNextPage || isFetchingTasks}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {(storeLocale?.tasks.teamTasks as any).pagination?.next || "Next"}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 )}
               </motion.div>

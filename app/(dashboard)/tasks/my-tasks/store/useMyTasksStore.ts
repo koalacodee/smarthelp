@@ -16,13 +16,19 @@ interface MyTasksStore {
   filters: MyTasksFilters;
   total: number;
   metrics: MyTasksResponse["metrics"];
+  meta: {
+    nextCursor?: string;
+    prevCursor?: string;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  } | null;
 
   // Loading states
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  setTasks: (data: MyTasksResponse) => void;
+  setTasks: (data: MyTasksResponse & { meta?: any }) => void;
   updateTask: (
     taskId: string,
     updates: Partial<MyTasksResponse["tasks"][0]>
@@ -61,6 +67,7 @@ export const useMyTasksStore = create<MyTasksStore>()(
         pendingTasks: 0,
         taskCompletionPercentage: 0,
       },
+      meta: null,
       isLoading: false,
       error: null,
 
@@ -73,6 +80,7 @@ export const useMyTasksStore = create<MyTasksStore>()(
             tasks: nextTasks,
             total: data.total,
             metrics: data.metrics,
+            meta: data.meta || null,
           } as Partial<MyTasksStore>;
           // Derive filteredTasks using current filters
           const { filters } = state;

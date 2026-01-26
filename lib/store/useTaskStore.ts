@@ -16,6 +16,12 @@ interface TaskStore {
   tasks: TaskType[];
   filteredTasks: TaskType[];
   filters: TaskFilters;
+  meta: {
+    nextCursor?: string;
+    prevCursor?: string;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  } | null;
 
   // Loading states
   isLoading: boolean;
@@ -27,7 +33,7 @@ interface TaskStore {
   error: string | null;
 
   // Actions
-  setTasks: (tasks: TaskType[]) => void;
+  setTasks: (tasks: TaskType[], meta?: any) => void;
   addTask: (task: TaskType) => void;
   addTasks: (tasks: TaskType[]) => void;
   updateTask: (taskId: string, updates: Partial<TaskType>) => void;
@@ -64,6 +70,7 @@ export const useTaskStore = create<TaskStore>()(
         priority: "All",
         assignee: "All",
       },
+      meta: null,
       isLoading: false,
       isCreating: false,
       isUpdating: false,
@@ -71,8 +78,8 @@ export const useTaskStore = create<TaskStore>()(
       error: null,
 
       // Data actions
-      setTasks: (tasks) => {
-        set({ tasks, filteredTasks: tasks });
+      setTasks: (tasks, meta) => {
+        set({ tasks, filteredTasks: tasks, meta: meta || null });
       },
 
       addTask: (task) => {

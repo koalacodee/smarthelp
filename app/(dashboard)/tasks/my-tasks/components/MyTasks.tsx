@@ -60,7 +60,15 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const { openDetails } = useTaskDetailsStore();
   const { locale } = useLocaleStore();
   const language = useLocaleStore((state) => state.language);
-  const { filteredTasks, total, metrics, setTasks } = useMyTasksStore();
+  const {
+    filteredTasks,
+    total,
+    metrics,
+    setTasks,
+    meta,
+    isLoading,
+    setLoading,
+  } = useMyTasksStore();
   const { addToast } = useToastStore();
   const { openModal: openSubmitDelegationModal } =
     useSubmitDelegationModalStore();
@@ -71,6 +79,22 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   >({});
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
+
+  const fetchMyTasks = async (cursor?: string, direction?: "next" | "prev") => {
+    setLoading(true);
+    try {
+      const response = await TasksService.getMyTasks(cursor, direction);
+      setTasks(response);
+    } catch (error) {
+      addToast({
+        message: locale?.tasks?.myTasks?.toasts?.fetchFailed || "Fetch failed",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Initialize store with server data
   useEffect(() => {
     setTasks(data);
@@ -537,13 +561,58 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
             </>
           )}
 
-          {/* Empty state */}
           {(!filteredTasks || filteredTasks.length === 0) &&
             (!delegations || delegations.length === 0) && (
               <div className="text-center py-8 text-muted-foreground">
                 No tasks found
               </div>
             )}
+
+          {/* Pagination Controls */}
+          {meta && (meta.hasNextPage || meta.hasPrevPage) && (
+            <div className="flex items-center justify-center gap-4 mt-6 pt-6 border-t border-gray-100">
+              <button
+                onClick={() => fetchMyTasks(meta.prevCursor, "prev")}
+                disabled={!meta.hasPrevPage || isLoading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                {(locale?.tasks?.myTasks as any)?.pagination?.previous || "Previous"}
+              </button>
+              <button
+                onClick={() => fetchMyTasks(meta.nextCursor, "next")}
+                disabled={!meta.hasNextPage || isLoading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {(locale?.tasks?.myTasks as any)?.pagination?.next || "Next"}
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

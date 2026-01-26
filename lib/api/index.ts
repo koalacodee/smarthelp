@@ -837,16 +837,22 @@ export const TasksService = {
     status?: TaskStatus,
     priority?: "LOW" | "MEDIUM" | "HIGH",
     search?: string,
-    departmentId?: string
+    departmentId?: string,
+    cursor?: string,
+    cursorDir?: "next" | "prev",
+    limit?: number
   ) => {
     const response = await api.get<{
-      data: DepartmentLevelTaskData;
+      data: DepartmentLevelTaskData & { meta: any };
     }>("/tasks/admin/department-level", {
       params: {
         status,
         priority,
         search,
         departmentId,
+        cursor,
+        cursorDir,
+        limit,
       },
     });
     return response.data.data;
@@ -855,16 +861,22 @@ export const TasksService = {
     status?: TaskStatus,
     priority?: "LOW" | "MEDIUM" | "HIGH",
     search?: string,
-    departmentId?: string
+    departmentId?: string,
+    cursor?: string,
+    cursorDir?: "next" | "prev",
+    limit?: number
   ) => {
     const response = await api.get<{
-      data: SubDepartmentLevelTaskData;
+      data: SubDepartmentLevelTaskData & { meta: any };
     }>("/tasks/supervisor/sub-department", {
       params: {
         status,
         priority,
         search,
         departmentId,
+        cursor,
+        cursorDir,
+        limit,
       },
     });
     return response.data.data;
@@ -873,10 +885,13 @@ export const TasksService = {
     status?: TaskStatus,
     priority?: "LOW" | "MEDIUM" | "HIGH",
     search?: string,
-    departmentId?: string
+    departmentId?: string,
+    cursor?: string,
+    cursorDir?: "next" | "prev",
+    limit?: number
   ) => {
     const response = await api
-      .get<{ data: EmployeeLevelTaskData }>(
+      .get<{ data: EmployeeLevelTaskData & { meta: any } }>(
         "/tasks/supervisor/employee-level",
         {
           params: {
@@ -884,6 +899,9 @@ export const TasksService = {
             priority,
             search,
             departmentId,
+            cursor,
+            cursorDir,
+            limit,
           },
         }
       )
@@ -891,6 +909,32 @@ export const TasksService = {
         console.error(error.response.data);
         throw error.response.data;
       });
+    return response.data.data;
+  },
+  getTeamTasks: async (
+    status?: TaskStatus,
+    priority?: "LOW" | "MEDIUM" | "HIGH",
+    cursor?: string,
+    cursorDir?: "next" | "prev",
+    limit?: number
+  ) => {
+    const response = await api.get<{
+      data: {
+        success: boolean;
+        data: any[];
+        meta: any;
+        metrics: any;
+        fileHubAttachments: FileHubAttachment[];
+      };
+    }>("/tasks/supervisor/team-tasks", {
+      params: {
+        status,
+        priority,
+        cursor,
+        cursorDir,
+        limit,
+      },
+    });
     return response.data.data;
   },
   createTask: async (dto: CreateTaskDto, attach: boolean) => {
@@ -927,9 +971,20 @@ export const TasksService = {
     const response = await api.get<{ data: MultipleTasksResponse }>("/tasks");
     return response.data.data;
   },
-  getMyTasks: async () => {
-    const response = await api.get<{ data: MyTasksResponse }>(
-      "/tasks/my-tasks"
+  getMyTasks: async (
+    cursor?: string,
+    cursorDir?: "next" | "prev",
+    limit?: number
+  ) => {
+    const response = await api.get<{ data: MyTasksResponse & { meta: any } }>(
+      "/tasks/my-tasks",
+      {
+        params: {
+          cursor,
+          cursorDir,
+          limit,
+        },
+      }
     );
     return response.data.data;
   },
