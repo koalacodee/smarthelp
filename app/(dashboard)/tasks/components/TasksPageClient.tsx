@@ -120,10 +120,10 @@ export default function TasksPageClient({
         startDate && endDate
           ? `${startDate}-${endDate}`
           : startDate
-          ? `from-${startDate}`
-          : endDate
-          ? `until-${endDate}`
-          : "all";
+            ? `from-${startDate}`
+            : endDate
+              ? `until-${endDate}`
+              : "all";
       const filename = `tasks-export-${dateRange}.${exportResponse.type.toLowerCase()}`;
 
       let downloadUrl: string;
@@ -223,6 +223,22 @@ export default function TasksPageClient({
         let allAttachments: any = {};
         let combinedMetrics: any = null;
 
+        const submissions: Record<string, TaskSubmission[]> = {};
+        const delegationSubs: Record<string, any[]> = {};
+        const submissionAtts: Record<string, string[]> = {};
+
+        const processSubmissions = (subs: any[]) => {
+          (subs || []).forEach((sub: any) => {
+            if (!submissions[sub.taskId]) submissions[sub.taskId] = [];
+            submissions[sub.taskId].push(sub);
+
+            if (sub.delegationSubmission) {
+              if (!delegationSubs[sub.taskId]) delegationSubs[sub.taskId] = [];
+              delegationSubs[sub.taskId].push(sub.delegationSubmission);
+            }
+          });
+        };
+
         if (userRole === "ADMIN") {
           response = await TasksService.getDepartmentLevel(
             statusValue ? (statusValue as TaskStatus) : undefined,
@@ -235,6 +251,7 @@ export default function TasksPageClient({
           allTasks = response.data;
           allAttachments = response.attachments;
           combinedMetrics = response.metrics;
+          processSubmissions(response.submissions);
         } else if (userRole === "SUPERVISOR") {
           const [subTasks, empTasks] = await Promise.all([
             TasksService.getSubDepartmentLevel(
@@ -272,33 +289,17 @@ export default function TasksPageClient({
                 (empTasks.metrics?.completedCount || 0)) /
                 Math.max(
                   (subTasks.metrics?.pendingCount || 0) +
-                    (empTasks.metrics?.pendingCount || 0) +
-                    (subTasks.metrics?.completedCount || 0) +
-                    (empTasks.metrics?.completedCount || 0),
+                  (empTasks.metrics?.pendingCount || 0) +
+                  (subTasks.metrics?.completedCount || 0) +
+                  (empTasks.metrics?.completedCount || 0),
                   1
                 )) *
-                100
+              100
             ),
           };
+          processSubmissions(subTasks.submissions);
+          processSubmissions(empTasks.submissions);
         }
-
-        // Fetch submissions for all tasks
-        const submissions: Record<string, TaskSubmission[]> = {};
-        const delegationSubs: Record<string, any[]> = {};
-        const submissionAtts: Record<string, string[]> = {};
-
-        await Promise.all(
-          allTasks.map(async (task) => {
-            const taskSubs = await TasksService.getTaskSubmissions(task.id);
-            submissions[task.id] = taskSubs.taskSubmissions;
-            delegationSubs[task.id] = taskSubs.delegationSubmissions || [];
-            Object.entries(taskSubs.attachments).forEach(
-              ([submissionId, attachmentIds]) => {
-                submissionAtts[submissionId] = attachmentIds;
-              }
-            );
-          })
-        );
 
         setTasks(allTasks);
         setTaskAttachments(allAttachments);
@@ -656,7 +657,7 @@ export default function TasksPageClient({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{
                           duration: 0.3,
-                          delay: 0.8 + index * 0.05,
+                          delay: Math.min(0.1 + index * 0.02, 0.5),
                           ease: "easeOut",
                         }}
                         whileHover={{

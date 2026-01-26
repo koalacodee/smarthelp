@@ -714,17 +714,20 @@ export interface DepartmentLevelTaskData
   extends TaskData<Omit<Task, "targetSubDepartment">> {
   attachments: { [taskId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
+  submissions: TaskSubmission[];
 }
 
 export interface SubDepartmentLevelTaskData
   extends TaskData<Omit<Task, "targetDepartment">> {
   attachments: { [taskId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
+  submissions: TaskSubmission[];
 }
 
 export interface EmployeeLevelTaskData extends TaskData<Datum> {
   attachments: { [taskId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
+  submissions: TaskSubmission[];
 }
 
 export interface UpdateTaskDto {

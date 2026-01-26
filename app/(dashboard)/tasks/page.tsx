@@ -52,32 +52,21 @@ export default async function Page() {
   if (userRole === "ADMIN") {
     const [_, fetchedDepartments] = await Promise.all([
       TasksService.getDepartmentLevel().then(async (data) => {
-        console.log("data", data);
-
-        await Promise.all(
-          data.data.map(async (task) => {
-            const submissions = await TasksService.getTaskSubmissions(task.id);
-            console.log("submissions", submissions);
-
-            taskSubmissions[task.id] = submissions.taskSubmissions;
-            delegationSubmissions[task.id] =
-              submissions.delegationSubmissions || [];
-
-            // Store submission attachments (for both task submissions and delegation submissions)
-            Object.entries(submissions.attachments).forEach(
-              ([submissionId, attachmentIds]) => {
-                submissionAttachments[submissionId] = attachmentIds;
-              }
-            );
-            fileHubAttachments = fileHubAttachments.concat(
-              submissions.fileHubAttachments
-            );
-          })
-        );
         tasks = data.data;
         attachments = data.attachments;
-        fileHubAttachments = data.fileHubAttachments.concat(fileHubAttachments);
+        fileHubAttachments = data.fileHubAttachments;
         metrics = data.metrics;
+
+        (data.submissions || []).forEach((sub: any) => {
+          if (!taskSubmissions[sub.taskId]) taskSubmissions[sub.taskId] = [];
+          taskSubmissions[sub.taskId].push(sub);
+
+          if (sub.delegationSubmission) {
+            if (!delegationSubmissions[sub.taskId])
+              delegationSubmissions[sub.taskId] = [];
+            delegationSubmissions[sub.taskId].push(sub.delegationSubmission);
+          }
+        });
       }),
       DepartmentsService.getAllDepartments(),
     ]);
@@ -88,34 +77,29 @@ export default async function Page() {
         TasksService.getSubDepartmentLevel(),
         TasksService.getEmployeeLevel(),
       ]).then(async ([subTasks, empTasks]) => {
-        const allTasks = [...subTasks.data, ...empTasks.data];
-        await Promise.all(
-          allTasks.map(async (task) => {
-            const submissions = await TasksService.getTaskSubmissions(task.id);
-            taskSubmissions[task.id] = submissions.taskSubmissions;
-            delegationSubmissions[task.id] =
-              submissions.delegationSubmissions || [];
-
-            // Store submission attachments (for both task submissions and delegation submissions)
-            Object.entries(submissions.attachments).forEach(
-              ([submissionId, attachmentIds]) => {
-                submissionAttachments[submissionId] = attachmentIds;
-              }
-            );
-            fileHubAttachments = fileHubAttachments.concat(
-              submissions.fileHubAttachments
-            );
-          })
-        );
-        tasks = allTasks;
+        tasks = [...subTasks.data, ...empTasks.data];
         attachments = {
           ...(subTasks.attachments || {}),
           ...(empTasks.attachments || {}),
         };
-        fileHubAttachments = fileHubAttachments.concat(
-          subTasks.fileHubAttachments,
-          empTasks.fileHubAttachments
+        fileHubAttachments = [
+          ...subTasks.fileHubAttachments,
+          ...empTasks.fileHubAttachments,
+        ];
+
+        [...subTasks.submissions, ...empTasks.submissions].forEach(
+          (sub: any) => {
+            if (!taskSubmissions[sub.taskId]) taskSubmissions[sub.taskId] = [];
+            taskSubmissions[sub.taskId].push(sub);
+
+            if (sub.delegationSubmission) {
+              if (!delegationSubmissions[sub.taskId])
+                delegationSubmissions[sub.taskId] = [];
+              delegationSubmissions[sub.taskId].push(sub.delegationSubmission);
+            }
+          }
         );
+
         // Combine metrics from both sub-department and employee level tasks
         metrics = {
           pendingCount:
