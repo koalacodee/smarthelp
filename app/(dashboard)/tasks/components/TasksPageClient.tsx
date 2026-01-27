@@ -262,15 +262,22 @@ export default function TasksPageClient({
           processSubmissions(response.submissions);
         } else if (userRole === "SUPERVISOR") {
           response = await TasksService.getTeamTasks(
-            statusValue ? statusValue as TaskStatus : undefined,
-            priorityValue
-              ? priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH"
-              : undefined,
-            cursor,
-            direction
+            {
+              status: statusValue ? statusValue as TaskStatus : undefined,
+              priority: priorityValue
+                ? priorityValue.toUpperCase() as "LOW" | "MEDIUM" | "HIGH"
+                : undefined,
+              cursor,
+              cursorDir: direction,
+              search: searchValue,
+            }
           );
 
-          allTasks = response.data;
+          allTasks = response.data.map((t: any) => ({
+            ...t.task,
+            rejectionReason: t.rejectionReason,
+            approvalFeedback: t.approvalFeedback,
+          }));
           allFileHubAttachments = response.fileHubAttachments;
           combinedMetrics = {
             pendingCount: response.metrics.pendingTasks,
@@ -278,6 +285,15 @@ export default function TasksPageClient({
             completionPercentage: response.metrics.taskCompletionPercentage,
           };
           combinedMeta = response.meta;
+
+          response.data.forEach((t: any) => {
+            if (t.task.submissions) {
+              submissions[t.task.id] = t.task.submissions;
+            }
+            if (t.task.delegationSubmissions) {
+              delegationSubs[t.task.id] = t.task.delegationSubmissions;
+            }
+          });
         }
 
         setTasks(allTasks, combinedMeta);

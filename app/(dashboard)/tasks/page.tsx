@@ -76,7 +76,11 @@ export default async function Page() {
   } else if (userRole === "SUPERVISOR") {
     const [_, fetchedSubDepartments, fetchedDepartments] = await Promise.all([
       TasksService.getTeamTasks().then(async (data) => {
-        tasks = data.data;
+        tasks = data.data.map((t) => ({
+          ...t.task,
+          rejectionReason: t.rejectionReason,
+          approvalFeedback: t.approvalFeedback,
+        }));
         fileHubAttachments = data.fileHubAttachments;
         meta = data.meta;
         metrics = {
@@ -85,12 +89,16 @@ export default async function Page() {
           completionPercentage: data.metrics.taskCompletionPercentage,
         };
 
+        data.data.forEach((t) => {
+          if (t.task.submissions) {
+            taskSubmissions[t.task.id] = t.task.submissions;
+          }
+          if (t.task.delegationSubmissions) {
+            delegationSubmissions[t.task.id] = t.task.delegationSubmissions;
+          }
+        });
+
         console.log(data);
-
-
-        // Note: The new endpoint returns tasks with rejectionReason and approvalFeedback already included
-        // We might need to adjust how taskSubmissions are handled if they are needed separately
-        // For now, let's keep the structure as close as possible
       }),
       DepartmentsService.getAllSubDepartments(),
       DepartmentsService.getAllDepartments(),

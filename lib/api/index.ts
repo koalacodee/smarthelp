@@ -912,18 +912,32 @@ export const TasksService = {
     return response.data.data;
   },
   getTeamTasks: async (
-    status?: TaskStatus,
-    priority?: "LOW" | "MEDIUM" | "HIGH",
-    cursor?: string,
-    cursorDir?: "next" | "prev",
-    limit?: number
+    options?: {
+      status?: TaskStatus,
+      priority?: "LOW" | "MEDIUM" | "HIGH",
+      cursor?: string,
+      cursorDir?: "next" | "prev",
+      limit?: number,
+      search?: string
+    }
   ) => {
+    const { status, priority, cursor, cursorDir, limit, search } = options || {};
     const response = await api.get<{
       data: {
-        success: boolean;
-        data: any[];
+        data: Array<{
+          task: Datum & {
+            submissions: TaskSubmission[];
+            delegationSubmissions: TaskDelegationSubmissionDTO[];
+          };
+          rejectionReason?: string;
+          approvalFeedback?: string;
+        }>;
         meta: any;
-        metrics: any;
+        metrics: {
+          pendingTasks: number;
+          completedTasks: number;
+          taskCompletionPercentage: number;
+        };
         fileHubAttachments: FileHubAttachment[];
       };
     }>("/tasks/supervisor/team-tasks", {
@@ -933,6 +947,7 @@ export const TasksService = {
         cursor,
         cursorDir,
         limit,
+        search,
       },
     });
     return response.data.data;
