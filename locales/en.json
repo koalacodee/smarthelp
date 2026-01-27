@@ -1161,6 +1161,7 @@
         "delegate": "Delegate"
       },
       "toasts": {
+        "fetchFailed": "Failed to fetch tasks. Please try again.",
         "markSeenSuccess": "Task marked as seen",
         "markSeenFailed": "Failed to mark task as seen",
         "submitSuccess": "Task submitted for review successfully!",

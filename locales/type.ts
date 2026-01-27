@@ -1163,6 +1163,7 @@ export type Locale = {
         delegate: string;
       };
       toasts: {
+        fetchFailed: string;
         markSeenSuccess: string;
         markSeenFailed: string;
         submitSuccess: string;
