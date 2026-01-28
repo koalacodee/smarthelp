@@ -716,15 +716,15 @@ export interface MultipleTasksResponse extends TaskAttachmentsResponse {
 }
 
 export interface MyTasksResponse {
-  tasks: Array<Task & { rejectionReason?: string; approvalFeedback?: string }>;
-  delegations: TaskDelegationDTO[];
-  total: number;
+  data: Array<Task & { rejectionReason?: string; approvalFeedback?: string }>;
+  meta: CursorMeta;
+  delegations?: TaskDelegationDTO[];
+  fileHubAttachments: FileHubAttachment[];
   metrics: {
     pendingTasks: number;
     completedTasks: number;
     taskCompletionPercentage: number;
   };
-  fileHubAttachments: FileHubAttachment[];
 }
 
 export interface DepartmentLevelTaskData
@@ -1006,18 +1006,17 @@ export const TasksService = {
   getMyTasks: async (
     cursor?: string,
     cursorDir?: "next" | "prev",
-    limit?: number
-  ) => {
-    const response = await api.get<{ data: MyTasksResponse & { meta: any } }>(
-      "/tasks/my-tasks",
-      {
-        params: {
-          cursor,
-          cursorDir,
-          limit,
-        },
-      }
-    );
+    limit?: number,
+    status?: TaskStatus
+  ): Promise<MyTasksResponse> => {
+    const response = await api.get<{ data: MyTasksResponse }>("/tasks/my-tasks", {
+      params: {
+        cursor,
+        cursorDir,
+        limit,
+        status,
+      },
+    });
     return response.data.data;
   },
   approveTask: async (taskId: string) => {

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { MyTasksResponse, UserResponse } from "@/lib/api";
 import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
@@ -68,6 +68,7 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
     meta,
     isLoading,
     setLoading,
+    filters,
   } = useMyTasksStore();
   const { addToast } = useToastStore();
   const { openModal: openSubmitDelegationModal } =
@@ -77,13 +78,31 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
   const [expandedFeedback, setExpandedFeedback] = useState<
     Record<string, { rejection: boolean; approval: boolean }>
   >({});
+  const isInitialMount = useRef(true);
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
 
-  const fetchMyTasks = async (cursor?: string, direction?: "next" | "prev") => {
+  const fetchMyTasks = async (
+    cursor?: string,
+    direction?: "next" | "prev"
+  ) => {
     setLoading(true);
     try {
-      const response = await TasksService.getMyTasks(cursor, direction);
+      const statusMap: { [key: string]: string } = {
+        Completed: "COMPLETED",
+        "In Progress": "TODO",
+        "Pending Review": "PENDING_REVIEW",
+        Seen: "SEEN",
+        Rejected: "REJECTED",
+      };
+      const statusValue = statusMap[filters.status] as TaskStatus | undefined;
+
+      const response = await TasksService.getMyTasks(
+        cursor,
+        direction,
+        undefined,
+        statusValue
+      );
       setTasks(response);
     } catch (error) {
       addToast({
@@ -94,6 +113,22 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
       setLoading(false);
     }
   };
+
+  // Trigger fetch when status changes (server-side filter)
+  useEffect(() => {
+    // Skip fetch on initial mount since we already have data from server component
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchMyTasks();
+    }, 400);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.status, filters.search, filters.priority]);
 
   // Initialize store with server data
   useEffect(() => {

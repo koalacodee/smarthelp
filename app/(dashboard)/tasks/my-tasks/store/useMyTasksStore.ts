@@ -11,27 +11,22 @@ interface MyTasksFilters {
 
 interface MyTasksStore {
   // Data
-  tasks: MyTasksResponse["tasks"];
-  filteredTasks: MyTasksResponse["tasks"];
+  tasks: MyTasksResponse["data"];
+  filteredTasks: MyTasksResponse["data"];
   filters: MyTasksFilters;
   total: number;
   metrics: MyTasksResponse["metrics"];
-  meta: {
-    nextCursor?: string;
-    prevCursor?: string;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  } | null;
+  meta: CursorMeta | null;
 
   // Loading states
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  setTasks: (data: MyTasksResponse & { meta?: any }) => void;
+  setTasks: (data: MyTasksResponse) => void;
   updateTask: (
     taskId: string,
-    updates: Partial<MyTasksResponse["tasks"][0]>
+    updates: Partial<MyTasksResponse["data"][0]>
   ) => void;
 
   // Filter actions
@@ -74,11 +69,11 @@ export const useMyTasksStore = create<MyTasksStore>()(
       // Data actions
       setTasks: (data) => {
         set((state) => {
-          const nextTasks = data.tasks;
+          const nextTasks = data.data;
           // Keep filters as-is; recompute filteredTasks accordingly
           const nextState = {
             tasks: nextTasks,
-            total: data.total,
+            total: data.metrics.pendingTasks + data.metrics.completedTasks,
             metrics: data.metrics,
             meta: data.meta || null,
           } as Partial<MyTasksStore>;
@@ -158,22 +153,15 @@ export const useMyTasksStore = create<MyTasksStore>()(
             );
           }
           // Recompute metrics and total from nextTasks to keep dashboard in sync
-          const total = nextTasks.length;
-          const completedCount = nextTasks.filter(
-            (t) => t.status === "COMPLETED"
-          ).length;
-          const pendingCount = total - completedCount;
-          const completionPercentage =
-            total === 0 ? 0 : Math.round((completedCount / total) * 100);
+          // Note: total and metrics are kept as-is from the last server fetch to maintain accuracy across pages
+          const total = state.total;
+          const metrics = state.metrics;
+
           return {
             tasks: nextTasks,
             filteredTasks: filtered,
             total,
-            metrics: {
-              completedTasks: completedCount,
-              pendingTasks: pendingCount,
-              taskCompletionPercentage: completionPercentage,
-            },
+            metrics,
           } as Partial<MyTasksStore> as MyTasksStore;
         }),
 
