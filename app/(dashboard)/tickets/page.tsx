@@ -37,6 +37,7 @@ export default async function Page() {
       initialTickets={response.tickets}
       initialAttachments={response.attachments}
       initialMetrics={metrics}
+      initialMeta={response.meta}
       departments={departments}
       locale={locale}
       language={language}

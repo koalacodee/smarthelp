@@ -305,10 +305,24 @@ export interface SupportTicket {
   guestEmail: string;
 }
 
+export interface CursorInput {
+  cursor?: string;
+  direction?: "next" | "prev";
+  pageSize?: number;
+}
+
+export interface CursorMeta {
+  nextCursor?: string;
+  prevCursor?: string;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface SupportTicketsResponse {
   tickets: SupportTicket[];
   metrics: TicketMetrics;
   attachments: FileHubAttachment[];
+  meta: CursorMeta;
 }
 
 export interface TrackTicketResponse extends TicketAttachmentsResponse {
@@ -344,17 +358,20 @@ export interface AnswerTicketOutput {
 }
 
 export const TicketsService = {
-  getAllTickets: async (
-    status?: TicketStatus,
-    departmentId?: string,
-    search?: string
-  ) => {
+  getAllTickets: async (options?: {
+    status?: TicketStatus;
+    departmentId?: string;
+    search?: string;
+    cursor?: CursorInput;
+  }) => {
+    const { status, departmentId, search, cursor } = options || {};
     const response = await api
       .get<JSend<SupportTicketsResponse>>("/support-tickets", {
         params: {
           status,
           departmentId,
           search,
+          cursor,
         },
       })
       .catch((error) => {
@@ -1059,6 +1076,9 @@ export const TasksService = {
       `/tasks/${taskId}/seen`
     );
     return response.data;
+  },
+  restartTask: async (id: string) => {
+    return await api.post(`/tasks/${id}/restart`);
   },
 };
 

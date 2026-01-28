@@ -10,6 +10,7 @@ import {
   UserResponse,
   TicketStatus,
   SupportTicket,
+  CursorMeta,
 } from "@/lib/api";
 import { useTicketStore } from "../store/useTicketStore";
 import TicketsDashboard from "./TicketsDashboard";
@@ -29,6 +30,7 @@ interface TicketsPageClientProps {
   initialTickets: SupportTicket[];
   initialAttachments: FileHubAttachment[];
   initialMetrics: TicketMetrics;
+  initialMeta: CursorMeta;
   departments: Department[];
   locale: Locale;
   language: string;
@@ -38,11 +40,12 @@ export default function TicketsPageClient({
   initialTickets,
   initialAttachments,
   initialMetrics,
+  initialMeta,
   departments,
   locale,
   language,
 }: TicketsPageClientProps) {
-  const { tickets, setTickets } = useTicketStore();
+  const { tickets, setTickets, meta } = useTicketStore();
   const [metrics, setMetrics] = useState<TicketMetrics>(initialMetrics);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -77,7 +80,7 @@ export default function TicketsPageClient({
 
   // Initialize with server data
   useEffect(() => {
-    setTickets(initialTickets);
+    setTickets(initialTickets, initialMeta);
     const allTargetIds = new Set<string>();
 
     initialAttachments?.forEach((attachment) => {
@@ -102,23 +105,25 @@ export default function TicketsPageClient({
         signedUrl: attachment.signedUrl,
       });
     });
-  }, [initialTickets, setTickets]);
+  }, [initialTickets, initialMeta, setTickets]);
 
   const fetchTickets = useCallback(
     async (
       statusValue: string,
       departmentValue: string,
-      searchValue: string
+      searchValue: string,
+      cursor?: { cursor?: string; direction?: "next" | "prev" }
     ) => {
       setIsFetchingTickets(true);
       try {
-        const response = await TicketsService.getAllTickets(
-          statusValue ? (statusValue as TicketStatus) : undefined,
-          departmentValue || undefined,
-          searchValue || undefined
-        );
+        const response = await TicketsService.getAllTickets({
+          status: statusValue ? (statusValue as TicketStatus) : undefined,
+          departmentId: departmentValue || undefined,
+          search: searchValue || undefined,
+          cursor,
+        });
 
-        setTickets(response.tickets);
+        setTickets(response.tickets, response.meta);
         setMetrics({
           totalTickets: response.metrics.totalTickets,
           pendingTickets: response.metrics.pendingTickets,
@@ -154,6 +159,24 @@ export default function TicketsPageClient({
     },
     [addToast, setTickets]
   );
+
+  const handleNextPage = () => {
+    if (meta?.nextCursor) {
+      fetchTickets(statusFilter, departmentFilter, searchTerm, {
+        cursor: meta.nextCursor,
+        direction: "next",
+      });
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (meta?.prevCursor) {
+      fetchTickets(statusFilter, departmentFilter, searchTerm, {
+        cursor: meta.prevCursor,
+        direction: "prev",
+      });
+    }
+  };
 
   useEffect(() => {
     latestStatusRef.current = statusFilter;
@@ -457,7 +480,60 @@ export default function TicketsPageClient({
                 </p>
               </div>
             ) : (
-              <TicketsList tickets={tickets} />
+              <div className="flex flex-col h-full">
+                <div className="flex-grow">
+                  <TicketsList tickets={tickets} />
+                </div>
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                  <div className="text-sm text-slate-500">
+                    {locale.tickets.list.showing} {tickets.length}{" "}
+                    {locale.tickets.list.tickets}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={!meta?.hasPrevPage || isFetchingTickets}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                      {locale.tickets.list.previous || "Previous"}
+                    </button>
+                    <button
+                      onClick={handleNextPage}
+                      disabled={!meta?.hasNextPage || isFetchingTickets}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {locale.tickets.list.next || "Next"}
+                      <svg
+                        className="w-4 h-4 ml-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </motion.div>
         </motion.div>

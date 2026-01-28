@@ -1,4 +1,4 @@
-import { SupportTicket, TicketStatus } from "@/lib/api";
+import { SupportTicket, TicketStatus, CursorMeta } from "@/lib/api";
 // import { SupportTicket } from "@/lib/api/types";
 import { create } from "zustand";
 
@@ -15,8 +15,9 @@ interface TicketStore {
   hoveredTicket: SupportTicket | null;
   loading: boolean;
   error: string | null;
+  meta: CursorMeta | null;
 
-  setTickets: (tickets: SupportTicket[]) => void;
+  setTickets: (tickets: SupportTicket[], meta?: CursorMeta) => void;
   addTicket: (ticket: SupportTicket) => void;
   updateTicket: (id: string, updated: Partial<SupportTicket>) => void;
   removeTicket: (id: string) => void;
@@ -40,9 +41,10 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   loading: false,
   error: null,
   hoveredTicket: null,
+  meta: null,
 
-  setTickets: (tickets) => {
-    set({ tickets, filteredTickets: tickets });
+  setTickets: (tickets, meta) => {
+    set({ tickets, filteredTickets: tickets, meta: meta || null });
   },
   addTicket: (ticket) =>
     set((state) => {
