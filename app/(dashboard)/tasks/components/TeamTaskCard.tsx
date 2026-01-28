@@ -16,6 +16,7 @@ import InlineAttachments from "./InlineAttachments";
 import { useTaskSubmissionModalStore } from "../store/useTaskSubmissionModalStore";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { formatDateTimeWithHijri } from "@/locales/dateFormatter";
+import { useAttachments } from "@/hooks/useAttachments";
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
@@ -79,28 +80,13 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
     getTaskSubmissions,
     getDelegationSubmissions,
     getSubmissionAttachments,
+    removeSubmissionsForTask,
   } = useTaskSubmissionsStore();
+  const { clearExistingAttachmentsForTarget } = useAttachments();
   const { openApprovalModal, openRejectionModal } =
     useTaskSubmissionModalStore();
 
   if (!locale) return null;
-
-  const handleApprove = async () => {
-    try {
-      await api.TasksService.approveTask(task.id!).then((val) =>
-        updateTask(val.id, val)
-      );
-      addToast({
-        message: locale.tasks.teamTasks.toasts.taskApproved,
-        type: "success",
-      });
-    } catch {
-      addToast({
-        message: locale.tasks.teamTasks.toasts.approveFailed,
-        type: "error",
-      });
-    }
-  };
 
   const handleDelete = async () => {
     openModal({
@@ -169,6 +155,40 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
     openRejectionModal(submissionId);
   };
 
+  const handleRestart = async () => {
+    openModal({
+      title: locale.tasks.teamTasks.confirmations.restartTitle,
+      message: locale.tasks.teamTasks.confirmations.restartMessage,
+      confirmText: locale.tasks.teamTasks.confirmations.confirmRestartText,
+      onConfirm: async () => {
+        try {
+          await api.TasksService.restartTask(task.id);
+          addToast({
+            message: locale.tasks.teamTasks.toasts.taskRestarted,
+            type: "success",
+          });
+          // Clear submission attachments from the attachment store
+          taskSubmissions.forEach((sub) =>
+            clearExistingAttachmentsForTarget(sub.id)
+          );
+          delegationSubmissions.forEach((sub) =>
+            clearExistingAttachmentsForTarget(sub.id.toString())
+          );
+          // Remove submissions from store
+          removeSubmissionsForTask(task.id);
+          // Refresh the task in the store
+          const updatedTask = await api.TasksService.getTask(task.id);
+          updateTask(task.id, updatedTask.task);
+        } catch {
+          addToast({
+            message: locale.tasks.teamTasks.toasts.restartFailed,
+            type: "error",
+          });
+        }
+      },
+    });
+  };
+
   return (
     <>
       <div className="relative bg-white/90  border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
@@ -207,6 +227,11 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                     color: "blue",
                   },
                   {
+                    label: locale.tasks.teamTasks.card.actions.restart,
+                    onClick: handleRestart,
+                    color: "blue",
+                  },
+                  {
                     label: locale.tasks.teamTasks.card.actions.delete,
                     onClick: handleDelete,
                     color: "red",
@@ -226,25 +251,24 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
               {task.status === "PENDING_REVIEW"
                 ? locale.tasks.teamTasks.card.status.pendingReview
                 : task.status === "SEEN"
-                ? locale.tasks.teamTasks.card.status.seen
-                : task.status === "COMPLETED"
-                ? locale.tasks.teamTasks.card.status.completed
-                : locale.tasks.teamTasks.card.status.todo}
+                  ? locale.tasks.teamTasks.card.status.seen
+                  : task.status === "COMPLETED"
+                    ? locale.tasks.teamTasks.card.status.completed
+                    : locale.tasks.teamTasks.card.status.todo}
             </span>
             <span
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                task.priority === "HIGH"
-                  ? "bg-red-100 text-red-800"
-                  : task.priority === "MEDIUM"
+              className={`px-2.5 py-1 rounded-full text-xs font-medium ${task.priority === "HIGH"
+                ? "bg-red-100 text-red-800"
+                : task.priority === "MEDIUM"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-green-100 text-green-800"
-              }`}
+                }`}
             >
               {task.priority === "HIGH"
                 ? locale?.tasks?.modals?.addTask?.priorityOptions?.high || "HIGH"
                 : task.priority === "MEDIUM"
-                ? locale?.tasks?.modals?.addTask?.priorityOptions?.medium || "MEDIUM"
-                : locale?.tasks?.modals?.addTask?.priorityOptions?.low || "LOW"}
+                  ? locale?.tasks?.modals?.addTask?.priorityOptions?.medium || "MEDIUM"
+                  : locale?.tasks?.modals?.addTask?.priorityOptions?.low || "LOW"}
             </span>
             {task.dueDate && (
               <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -286,9 +310,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
               >
                 <div className="flex items-center gap-2">
                   <svg
-                    className={`w-3 h-3 transition-transform ${
-                      isSubmissionsExpanded ? "rotate-90" : ""
-                    }`}
+                    className={`w-3 h-3 transition-transform ${isSubmissionsExpanded ? "rotate-90" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -349,9 +372,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
                               >
                                 <svg
-                                  className={`w-3 h-3 transition-transform ${
-                                    isExpanded ? "rotate-90" : ""
-                                  }`}
+                                  className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""
+                                    }`}
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -442,11 +464,11 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                               <span className="text-xs font-medium text-purple-600">
                                 {submission.performerName
                                   ? submission.performerName
-                                      .charAt(0)
-                                      .toUpperCase()
+                                    .charAt(0)
+                                    .toUpperCase()
                                   : submission.performerType
-                                      .charAt(0)
-                                      .toUpperCase()}
+                                    .charAt(0)
+                                    .toUpperCase()}
                               </span>
                             </div>
                             <span className="text-xs font-medium text-gray-900">
@@ -473,9 +495,8 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
                                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
                               >
                                 <svg
-                                  className={`w-3 h-3 transition-transform ${
-                                    isExpanded ? "rotate-90" : ""
-                                  }`}
+                                  className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""
+                                    }`}
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"

@@ -301,7 +301,11 @@
       "unknown": "Unknown",
       "high": "High",
       "medium": "Medium",
-      "low": "Low"
+      "low": "Low",
+      "showing": "Showing",
+      "tickets": "Tickets",
+      "previous": "Previous",
+      "next": "Next"
     },
     "actions": {
       "viewDetails": "View Details",
@@ -1058,7 +1062,8 @@
           "delete": "Delete",
           "approve": "Approve",
           "reject": "Reject",
-          "viewDetails": "View Details"
+          "viewDetails": "View Details",
+          "restart": "Restart"
         },
         "status": {
           "pendingReview": "Pending Review",
@@ -1097,7 +1102,10 @@
       "confirmations": {
         "deleteTitle": "Delete Task",
         "deleteMessage": "Are you sure you want to delete this task?",
+        "restartTitle": "Restart Task",
+        "restartMessage": "Are you sure you want to restart this task? All submissions and delegations will be permanently deleted.",
         "confirmText": "Delete",
+        "confirmRestartText": "Restart",
         "cancelText": "Cancel"
       },
       "toasts": {
@@ -1111,6 +1119,8 @@
         "createFailed": "Failed to create task. Please try again.",
         "updateSuccess": "Task updated successfully!",
         "updateFailed": "Failed to update task. Please try again.",
+        "taskRestarted": "Task restarted successfully",
+        "restartFailed": "Failed to restart task. Please try again.",
         "uploadFailed": "Failed to upload new attachments. Please try again.",
         "missingUploadKey": "Missing upload key for new attachments. Please retry the upload."
       }

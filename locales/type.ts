@@ -304,6 +304,10 @@ export type Locale = {
       high: string;
       medium: string;
       low: string;
+      showing: string;
+      tickets: string;
+      previous: string;
+      next: string;
     };
     actions: {
       viewDetails: string;
@@ -1061,6 +1065,7 @@ export type Locale = {
           approve: string;
           reject: string;
           viewDetails: string;
+          restart: string;
         };
         status: {
           pendingReview: string;
@@ -1099,7 +1104,10 @@ export type Locale = {
       confirmations: {
         deleteTitle: string;
         deleteMessage: string;
+        restartTitle: string;
+        restartMessage: string;
         confirmText: string;
+        confirmRestartText: string;
         cancelText: string;
       };
       toasts: {
@@ -1113,6 +1121,8 @@ export type Locale = {
         createFailed: string;
         updateSuccess: string;
         updateFailed: string;
+        taskRestarted: string;
+        restartFailed: string;
         uploadFailed: string;
         missingUploadKey: string;
       };

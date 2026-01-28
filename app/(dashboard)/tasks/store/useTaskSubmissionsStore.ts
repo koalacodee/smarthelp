@@ -24,6 +24,7 @@ interface TaskSubmissionsState {
   getTaskSubmissions: (taskId: string) => TaskSubmission[];
   getDelegationSubmissions: (taskId: string) => TaskDelegationSubmissionDTO[];
   getSubmissionAttachments: (submissionId: string) => string[];
+  removeSubmissionsForTask: (taskId: string) => void;
   clearTaskSubmissions: () => void;
 }
 
@@ -80,6 +81,33 @@ export const useTaskSubmissionsStore = create<TaskSubmissionsState>(
       const state = get();
       return state.submissionAttachments[submissionId] || [];
     },
+
+    removeSubmissionsForTask: (taskId: string) =>
+      set((state) => {
+        const newTaskSubmissions = { ...state.taskSubmissions };
+        const newDelegationSubmissions = { ...state.delegationSubmissions };
+        const newSubmissionAttachments = { ...state.submissionAttachments };
+
+        // Identify submission IDs to remove attachments for
+        const taskSubs = state.taskSubmissions[taskId] || [];
+        const delegationSubs = state.delegationSubmissions[taskId] || [];
+
+        taskSubs.forEach((sub) => {
+          delete newSubmissionAttachments[sub.id];
+        });
+        delegationSubs.forEach((sub) => {
+          delete newSubmissionAttachments[sub.id.toString()];
+        });
+
+        delete newTaskSubmissions[taskId];
+        delete newDelegationSubmissions[taskId];
+
+        return {
+          taskSubmissions: newTaskSubmissions,
+          delegationSubmissions: newDelegationSubmissions,
+          submissionAttachments: newSubmissionAttachments,
+        };
+      }),
 
     clearTaskSubmissions: () =>
       set({ taskSubmissions: {}, delegationSubmissions: {}, submissionAttachments: {} }),
