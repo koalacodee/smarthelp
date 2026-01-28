@@ -8,7 +8,7 @@ import { Locale } from "@/locales/type";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
 interface TasksPageWrapperProps {
-  tasksData: MyTasksResponse & { meta?: any };
+  tasksData: MyTasksResponse;
   delegationsData: {
     delegations: any[];
     submissions: any;
@@ -48,21 +48,19 @@ export default function TasksPageWrapper({
           <div className="flex space-x-8">
             <button
               onClick={() => setActiveTab("tasks")}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "tasks"
+              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "tasks"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               {storeLocale.tasks.myTasks.pageHeader.title}
             </button>
             <button
               onClick={() => setActiveTab("delegations")}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "delegations"
+              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "delegations"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               {storeLocale.tasks.delegations.pageHeader.title}
             </button>

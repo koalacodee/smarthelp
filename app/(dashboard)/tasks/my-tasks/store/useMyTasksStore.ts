@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { MyTasksResponse } from "@/lib/api";
+import { MyTasksResponse, CursorMeta } from "@/lib/api";
 
 interface MyTasksFilters {
   search: string;
@@ -39,9 +39,9 @@ interface MyTasksStore {
   setError: (error: string | null) => void;
 
   // Utility actions
-  getTaskById: (id: string) => MyTasksResponse["tasks"][0] | undefined;
-  getTasksByStatus: (status: string) => MyTasksResponse["tasks"];
-  getTasksByPriority: (priority: string) => MyTasksResponse["tasks"];
+  getTaskById: (id: string) => MyTasksResponse["data"][0] | undefined;
+  getTasksByStatus: (status: string) => MyTasksResponse["data"];
+  getTasksByPriority: (priority: string) => MyTasksResponse["data"];
 }
 
 export const useMyTasksStore = create<MyTasksStore>()(
