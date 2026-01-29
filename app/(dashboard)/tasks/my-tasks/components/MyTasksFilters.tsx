@@ -37,7 +37,6 @@ export default function MyTasksFilters() {
           <option>In Progress</option>
           <option>{locale.tasks.myTasks.filters.status.pendingReview}</option>
           <option>{locale.tasks.myTasks.filters.status.seen}</option>
-          <option>Rejected</option>
         </select>
         <label className="block mb-1 mt-4 text-xs text-[#4a5568]">
           {locale.tasks.myTasks.filters.priority.label}
