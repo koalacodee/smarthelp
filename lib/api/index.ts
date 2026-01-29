@@ -1004,17 +1004,21 @@ export const TasksService = {
     return response.data.data;
   },
   getMyTasks: async (
-    cursor?: string,
-    cursorDir?: "next" | "prev",
-    limit?: number,
-    status?: TaskStatus
+    options?: {
+      cursor?: string,
+      cursorDir?: "next" | "prev",
+      limit?: number,
+      status?: TaskStatus
+      search?: string
+    }
   ): Promise<MyTasksResponse> => {
     const response = await api.get<{ data: MyTasksResponse }>("/tasks/my-tasks", {
       params: {
-        cursor,
-        cursorDir,
-        limit,
-        status,
+        cursor: options?.cursor,
+        cursorDir: options?.cursorDir,
+        limit: options?.limit,
+        status: options?.status,
+        search: options?.search,
       },
     });
     return response.data.data;
