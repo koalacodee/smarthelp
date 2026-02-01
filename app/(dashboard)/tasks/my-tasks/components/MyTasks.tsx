@@ -55,7 +55,24 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-export default function MyTasks({ data }: { data: MyTasksResponse }) {
+interface DepartmentOption {
+  id: string;
+  name: string;
+}
+
+interface MyTasksProps {
+  data: MyTasksResponse;
+  userRole?: string;
+  initialDepartments?: DepartmentOption[];
+  initialSubDepartments?: DepartmentOption[];
+}
+
+export default function MyTasks({
+  data,
+  userRole = "",
+  initialDepartments = [],
+  initialSubDepartments = [],
+}: MyTasksProps) {
   const { openModal } = useSubmitWorkModalStore();
   const { openDetails } = useTaskDetailsStore();
   const { locale } = useLocaleStore();
@@ -97,14 +114,18 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
       };
       const statusValue = statusMap[filters.status] as TaskStatus | undefined;
 
-      const response = await TasksService.getMyTasks(
-        {
-          cursor,
-          cursorDir: direction,
-          status: statusValue,
-          search: filters.search,
-        }
-      );
+      const response = await TasksService.getMyTasks({
+        cursor,
+        cursorDir: direction,
+        status: statusValue,
+        search: filters.search,
+        ...(userRole === "SUPERVISOR" && filters.departmentId
+          ? { departmentId: filters.departmentId }
+          : {}),
+        ...(userRole === "EMPLOYEE" && filters.subDepartmentId
+          ? { subDepartmentId: filters.subDepartmentId }
+          : {}),
+      });
       setTasks(response);
     } catch (error) {
       addToast({
@@ -130,7 +151,13 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.status, filters.search, filters.priority]);
+  }, [
+    filters.status,
+    filters.search,
+    filters.priority,
+    filters.departmentId,
+    filters.subDepartmentId,
+  ]);
 
   // Initialize store with server data
   useEffect(() => {
@@ -232,7 +259,11 @@ export default function MyTasks({ data }: { data: MyTasksResponse }) {
         <MyTasksDashboard total={total} {...metrics} />
 
         {/* Filters */}
-        <MyTasksFilters />
+        <MyTasksFilters
+          userRole={userRole}
+          initialDepartments={initialDepartments}
+          initialSubDepartments={initialSubDepartments}
+        />
       </div>
 
       {/* Right Column - Tasks and Delegations List */}

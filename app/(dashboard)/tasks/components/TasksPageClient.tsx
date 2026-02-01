@@ -270,6 +270,7 @@ export default function TasksPageClient({
               cursor,
               cursorDir: direction,
               search: searchValue,
+              subDepartmentId: departmentValue || undefined,
             }
           );
 
@@ -586,7 +587,7 @@ export default function TasksPageClient({
                     status={statusFilter}
                     priority={priorityFilter}
                     department={departmentFilter}
-                    departments={initialDepartments}
+                    departments={userRole === "SUPERVISOR" ? initialSubDepartments : initialDepartments}
                     isLoading={isFetchingTasks}
                     onSearchChange={handleSearchChange}
                     onStatusChange={handleStatusChange}

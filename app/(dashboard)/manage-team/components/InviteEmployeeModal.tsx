@@ -56,8 +56,6 @@ export default function InviteEmployeeModal() {
   } = useInviteEmployeeModalStore();
   const { locale } = useLocaleStore();
 
-  if (!locale) return null;
-
   // Create EmployeeService instance
   const employeeService = EmployeeService.getInstance(api);
 
@@ -107,6 +105,8 @@ export default function InviteEmployeeModal() {
         supervisor.username.toLowerCase().includes(searchLower)
     );
   }, [supervisors, supervisorSearchTerm]);
+
+  if (!locale) return null;
 
   const handleClose = () => {
     clearErrors();

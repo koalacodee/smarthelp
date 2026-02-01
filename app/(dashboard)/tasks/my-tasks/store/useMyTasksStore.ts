@@ -7,6 +7,8 @@ interface MyTasksFilters {
   status: string;
   priority: string;
   category: string;
+  departmentId: string;
+  subDepartmentId: string;
 }
 
 interface MyTasksStore {
@@ -55,6 +57,8 @@ export const useMyTasksStore = create<MyTasksStore>()(
         status: "All",
         priority: "All",
         category: "All",
+        departmentId: "",
+        subDepartmentId: "",
       },
       total: 0,
       metrics: {
@@ -231,6 +235,8 @@ export const useMyTasksStore = create<MyTasksStore>()(
             status: "All",
             priority: "All",
             category: "All",
+            departmentId: "",
+            subDepartmentId: "",
           },
         });
         get().applyFilters();

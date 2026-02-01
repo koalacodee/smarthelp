@@ -1,4 +1,4 @@
-import { TasksService } from "@/lib/api";
+import { TasksService, DepartmentsService, EmployeeService } from "@/lib/api";
 import { TaskDelegationService } from "@/lib/api/v2";
 import MyTasks from "./components/MyTasks";
 import { cookies } from "next/headers";
@@ -7,37 +7,41 @@ import TasksPageWrapper from "./components/TasksPageWrapper";
 import { getLocale, getLanguage } from "@/locales/helpers";
 
 export default async function Page() {
-  const response = await TasksService.getMyTasks();
-
-  console.log(response);
-
-  // Fetch user to check role
   const cookieStore = await cookies();
   const user = await fetch(`${env("NEXT_PUBLIC_BASE_URL")}/server/me`, {
     headers: { Cookie: cookieStore.toString() },
   }).then((res) => res.json());
 
-  // Fetch delegations if user is a supervisor
-  let delegationsData = null;
-  if (user.user.role === "SUPERVISOR") {
-    delegationsData = await TaskDelegationService.getMyDelegations({});
-  }
+  const userRole = user.user.role as string;
 
-  // Fetch locale and language
+  const [response, delegationsData, initialDepartments, initialSubDepartments] =
+    await Promise.all([
+      TasksService.getMyTasks(),
+      userRole === "SUPERVISOR"
+        ? TaskDelegationService.getMyDelegations({})
+        : Promise.resolve(null),
+      userRole === "SUPERVISOR"
+        ? DepartmentsService.getAllDepartments()
+        : Promise.resolve([]),
+      userRole === "EMPLOYEE"
+        ? EmployeeService.getMySubDepartments()
+        : Promise.resolve([]),
+    ]);
+
   const [locale, language] = await Promise.all([
     getLocale(),
     getLanguage(),
   ]);
 
-  // Pass the new response structure directly
-  // Note: attachments are available in response.attachments if needed
   return (
     <TasksPageWrapper
       tasksData={response}
       delegationsData={delegationsData}
-      userRole={user.user.role}
+      userRole={userRole}
       locale={locale}
       language={language}
+      initialDepartments={initialDepartments ?? []}
+      initialSubDepartments={initialSubDepartments ?? []}
     />
   );
 }

@@ -70,7 +70,7 @@ export default async function Page() {
           }
         });
       }),
-      DepartmentsService.getAllDepartments(),
+      DepartmentsService.getMainDepartmentsForAdmin(),
     ]);
     departments = fetchedDepartments;
   } else if (userRole === "SUPERVISOR") {

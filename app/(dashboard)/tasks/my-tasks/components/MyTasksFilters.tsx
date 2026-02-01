@@ -3,13 +3,40 @@
 import { useMyTasksStore } from "../store/useMyTasksStore";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
-export default function MyTasksFilters() {
+interface DepartmentOption {
+  id: string;
+  name: string;
+}
+
+interface MyTasksFiltersProps {
+  userRole?: string;
+  initialDepartments?: DepartmentOption[];
+  initialSubDepartments?: DepartmentOption[];
+}
+
+export default function MyTasksFilters({
+  userRole = "",
+  initialDepartments = [],
+  initialSubDepartments = [],
+}: MyTasksFiltersProps) {
   const locale = useLocaleStore((state) => state.locale);
   const { filters, setFilters, clearFilters } = useMyTasksStore();
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters({ [key]: value });
   };
+
+  const showDepartmentFilter =
+    (userRole === "SUPERVISOR" && initialDepartments.length > 0) ||
+    (userRole === "EMPLOYEE" && initialSubDepartments.length > 0);
+  const departmentOptions =
+    userRole === "SUPERVISOR" ? initialDepartments : initialSubDepartments;
+  const departmentFilterKey =
+    userRole === "SUPERVISOR" ? "departmentId" : "subDepartmentId";
+  const departmentFilterValue =
+    userRole === "SUPERVISOR"
+      ? filters.departmentId
+      : filters.subDepartmentId;
 
   if (!locale) return null;
 
@@ -26,6 +53,29 @@ export default function MyTasksFilters() {
         placeholder={locale.tasks.myTasks.filters.searchPlaceholder}
       />
       <div className="mt-5">
+        {showDepartmentFilter && (
+          <>
+            <label className="block mb-1 text-xs text-[#4a5568]">
+              {(locale.tasks.myTasks.filters as { department?: { label?: string; all?: string } })?.department?.label ?? "Department"}
+            </label>
+            <select
+              value={departmentFilterValue}
+              onChange={(e) =>
+                handleFilterChange(departmentFilterKey, e.target.value)
+              }
+              className="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-md text-sm bg-[#f7fafc] focus:outline-none focus:border-[#3b82f6] mb-4"
+            >
+              <option value="">
+                {(locale.tasks.myTasks.filters as { department?: { all?: string } })?.department?.all ?? "All"}
+              </option>
+              {departmentOptions.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <label className="block mb-1 text-xs text-[#4a5568]">{locale.tasks.myTasks.filters.status.label}</label>
         <select
           value={filters.status}

@@ -7,6 +7,11 @@ import { MyTasksResponse } from "@/lib/api";
 import { Locale } from "@/locales/type";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
+interface DepartmentOption {
+  id: string;
+  name: string;
+}
+
 interface TasksPageWrapperProps {
   tasksData: MyTasksResponse;
   delegationsData: {
@@ -20,6 +25,8 @@ interface TasksPageWrapperProps {
   userRole: string;
   locale: Locale;
   language: string;
+  initialDepartments?: DepartmentOption[];
+  initialSubDepartments?: DepartmentOption[];
 }
 
 export default function TasksPageWrapper({
@@ -28,6 +35,8 @@ export default function TasksPageWrapper({
   userRole,
   locale,
   language,
+  initialDepartments = [],
+  initialSubDepartments = [],
 }: TasksPageWrapperProps) {
   const { setLocale } = useLocaleStore();
   const [activeTab, setActiveTab] = useState<"tasks" | "delegations">("tasks");
@@ -70,7 +79,12 @@ export default function TasksPageWrapper({
 
       {/* Tab Content */}
       {activeTab === "tasks" ? (
-        <MyTasks data={tasksData} />
+        <MyTasks
+          data={tasksData}
+          userRole={userRole}
+          initialDepartments={initialDepartments}
+          initialSubDepartments={initialSubDepartments}
+        />
       ) : (
         delegationsData && (
           <MyDelegationsPageClient

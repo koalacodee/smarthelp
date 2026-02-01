@@ -463,6 +463,10 @@ export const DepartmentsService = {
     const response = await api.get<DepartmentsResponse>("/department");
     return response.data.data;
   },
+  getMainDepartmentsForAdmin: async () => {
+    const response = await api.get<DepartmentsResponse>("/department/main");
+    return response.data.data;
+  },
   getAllSubDepartments: async () => {
     const response = await api.get<DepartmentsResponse>(
       "/department/sub-departments"
@@ -935,10 +939,12 @@ export const TasksService = {
       cursor?: string,
       cursorDir?: "next" | "prev",
       limit?: number,
-      search?: string
+      search?: string,
+      departmentId?: string,
+      subDepartmentId?: string
     }
   ) => {
-    const { status, priority, cursor, cursorDir, limit, search } = options || {};
+    const { status, priority, cursor, cursorDir, limit, search, departmentId, subDepartmentId } = options || {};
     const response = await api.get<{
       data: {
         data: Array<{
@@ -965,6 +971,8 @@ export const TasksService = {
         cursorDir,
         limit,
         search,
+        departmentId,
+        subDepartmentId,
       },
     });
     return response.data.data;
@@ -1010,6 +1018,8 @@ export const TasksService = {
       limit?: number,
       status?: TaskStatus
       search?: string
+      departmentId?: string
+      subDepartmentId?: string
     }
   ): Promise<MyTasksResponse> => {
     const response = await api.get<{ data: MyTasksResponse }>("/tasks/my-tasks", {
@@ -1019,6 +1029,8 @@ export const TasksService = {
         limit: options?.limit,
         status: options?.status,
         search: options?.search,
+        departmentId: options?.departmentId,
+        subDepartmentId: options?.subDepartmentId,
       },
     });
     return response.data.data;
@@ -1202,6 +1214,12 @@ export const SupervisorsService = {
 };
 
 export const EmployeeService = {
+  getMySubDepartments: async (): Promise<Array<{ id: string; name: string }>> => {
+    const response = await api.get<{ data: Array<{ id: string; name: string }> }>(
+      "/employees/me/sub-departments"
+    );
+    return response.data.data ?? [];
+  },
   getEmployeesBySubDepartment: async (subDepartmentId: string) => {
     const response = await api.get<{ data: { employees: TicketAssignee[] } }>(
       "/employees/sub-department/" + subDepartmentId
