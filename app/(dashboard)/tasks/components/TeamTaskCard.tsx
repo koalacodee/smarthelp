@@ -292,10 +292,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
               {locale.tasks.teamTasks.card.assignedTo}
             </span>
             <span className="px-2 py-1 bg-slate-100 rounded-full text-xs">
-              {task.assignee?.user?.name ||
-                task.targetSubDepartment?.name ||
-                task.targetDepartment?.name ||
-                locale.tasks.teamTasks.card.unassigned}
+              {task.assigneeName || locale.tasks.teamTasks.card.unassigned}
             </span>
           </div>
 

@@ -119,6 +119,13 @@ export interface Task {
   updatedAt?: string;
   dueDate?: string;
   assignee?: Assignee;
+  /**
+   * Unified display name for who/what the task is assigned to:
+   * - assignee employee name (if individual)
+   * - target sub-department name
+   * - target main department name
+   */
+  assigneeName?: string;
   notes?: string;
   reminderInterval?: number;
 }
