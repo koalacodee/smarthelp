@@ -127,6 +127,41 @@ export default function MyTasks({
           : {}),
       });
       setTasks(response);
+
+      // Re-hydrate attachments store from latest response (like Team Tasks)
+      if (
+        response.fileHubAttachments &&
+        response.fileHubAttachments.length > 0
+      ) {
+        const allTargetIds = new Set<string>();
+
+        response.fileHubAttachments.forEach((attachment) => {
+          if (attachment.targetId) {
+            allTargetIds.add(attachment.targetId);
+          }
+        });
+
+        allTargetIds.forEach((targetId) => {
+          clearExistingAttachmentsForTarget(targetId);
+        });
+
+        response.fileHubAttachments.forEach(
+          (attachment: FileHubAttachment) => {
+            if (!attachment?.targetId) return;
+            addExistingAttachmentToTarget(attachment.targetId, {
+              fileType: attachment.type,
+              originalName: attachment.originalName,
+              size: attachment.size,
+              expirationDate: attachment.expirationDate,
+              id: attachment.id,
+              filename: attachment.filename,
+              isGlobal: attachment.isGlobal,
+              createdAt: attachment.createdAt,
+              signedUrl: attachment.signedUrl,
+            });
+          }
+        );
+      }
     } catch (error) {
       addToast({
         message: locale?.tasks?.myTasks?.toasts?.fetchFailed || "Fetch failed",
