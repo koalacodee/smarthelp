@@ -109,7 +109,11 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         setTitle(task.title || "");
         setDescription(task.description || "");
         setPriority(task.priority || "MEDIUM");
-        setDueDate(task.dueDate || "");
+        // Convert existing ISO due date to YYYY-MM-DD for the date input
+        const formattedDueDate = task.dueDate
+          ? new Date(task.dueDate).toISOString().slice(0, 10)
+          : "";
+        setDueDate(formattedDueDate);
 
         // Load existing reminder interval values
         const reminderTime = convertMillisecondsToTime(task.reminderInterval);
@@ -274,7 +278,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            locale.tasks.teamTasks.toasts.updateFailed
+          locale.tasks.teamTasks.toasts.updateFailed
         );
       }
     }
