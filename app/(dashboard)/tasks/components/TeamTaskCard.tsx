@@ -126,6 +126,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
         reminderInterval: task.reminderInterval,
+        reminderStartDate: task.reminderStartDate,
       });
     }
   };

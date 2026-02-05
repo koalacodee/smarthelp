@@ -25,26 +25,23 @@ const formatReminderInterval = (
   const parts: string[] = [];
   if (days > 0)
     parts.push(
-      `${days} ${
-        days !== 1
-          ? locale.tasks.modals.addTask.fields.days
-          : locale.tasks.modals.addTask.fields.days
+      `${days} ${days !== 1
+        ? locale.tasks.modals.addTask.fields.days
+        : locale.tasks.modals.addTask.fields.days
       }`
     );
   if (hours > 0)
     parts.push(
-      `${hours} ${
-        hours !== 1
-          ? locale.tasks.modals.addTask.fields.hours
-          : locale.tasks.modals.addTask.fields.hours
+      `${hours} ${hours !== 1
+        ? locale.tasks.modals.addTask.fields.hours
+        : locale.tasks.modals.addTask.fields.hours
       }`
     );
   if (minutes > 0)
     parts.push(
-      `${minutes} ${
-        minutes !== 1
-          ? locale.tasks.modals.addTask.fields.minutes
-          : locale.tasks.modals.addTask.fields.minutes
+      `${minutes} ${minutes !== 1
+        ? locale.tasks.modals.addTask.fields.minutes
+        : locale.tasks.modals.addTask.fields.minutes
       }`
     );
 
@@ -115,8 +112,8 @@ export default function DetailedTaskCard() {
                         {currentTask.priority === "HIGH"
                           ? locale.tasks.modals.addTask.priorityOptions.high
                           : currentTask.priority === "MEDIUM"
-                          ? locale.tasks.modals.addTask.priorityOptions.medium
-                          : locale.tasks.modals.addTask.priorityOptions.low}
+                            ? locale.tasks.modals.addTask.priorityOptions.medium
+                            : locale.tasks.modals.addTask.priorityOptions.low}
                       </p>
                     </div>
 
@@ -130,6 +127,25 @@ export default function DetailedTaskCard() {
                           : locale.tasks.teamTasks.card.noDueDate}
                       </p>
                     </div>
+
+                    {currentTask.reminderInterval && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          {locale.tasks.modals.addTask.fields.reminderStartDate}
+                        </h3>
+                        <p className="text-foreground">
+                          {currentTask.reminderStartDate
+                            ? formatDateWithHijri(
+                              currentTask.reminderStartDate,
+                              language
+                            )
+                            : formatDateWithHijri(
+                              currentTask.createdAt,
+                              language
+                            )}
+                        </p>
+                      </div>
+                    )}
 
                     {currentTask.reminderInterval && (
                       <div>

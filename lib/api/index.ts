@@ -769,6 +769,7 @@ export interface UpdateTaskDto {
   deleteAttachments?: string[];
   reminderInterval?: number;
   chooseAttachments?: string[];
+  reminderStartDate?: Date;
 }
 
 // Interface for a single Task Submission

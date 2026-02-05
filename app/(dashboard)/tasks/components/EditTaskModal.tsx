@@ -63,6 +63,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [assigneeId, setAssigneeId] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [dueDate, setDueDate] = useState("");
+  const [reminderStartDate, setReminderStartDate] = useState("");
   const [reminderDays, setReminderDays] = useState<number>(0);
   const [reminderHours, setReminderHours] = useState<number>(0);
   const [reminderMinutes, setReminderMinutes] = useState<number>(0);
@@ -115,6 +116,13 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
           : "";
         setDueDate(formattedDueDate);
 
+        const baseReminderStart =
+          task.reminderStartDate || task.createdAt || "";
+        const formattedReminderStart = baseReminderStart
+          ? new Date(baseReminderStart).toISOString().slice(0, 10)
+          : "";
+        setReminderStartDate(formattedReminderStart);
+
         // Load existing reminder interval values
         const reminderTime = convertMillisecondsToTime(task.reminderInterval);
         setReminderDays(reminderTime.days);
@@ -135,6 +143,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       setDescription("");
       setPriority("MEDIUM");
       setDueDate("");
+      setReminderStartDate("");
       setReminderDays(0);
       setReminderHours(0);
       setReminderMinutes(0);
@@ -217,6 +226,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         reminderInterval: reminderMs,
+        reminderStartDate: reminderStartDate
+          ? new Date(reminderStartDate)
+          : undefined,
         chooseAttachments: selectedAttachments,
         deleteAttachments: deletedAttachments,
       };
@@ -520,6 +532,25 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
             </div>
 
             <div>
+              <label
+                htmlFor="task-reminder-start-date"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
+                {locale.tasks.modals.addTask.fields.reminderStartDate}
+              </label>
+              <input
+                id="task-reminder-start-date"
+                type="date"
+                value={reminderStartDate}
+                onChange={(e) => setReminderStartDate(e.target.value)}
+                className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {locale.tasks.modals.addTask.fields.reminderStartDateHint}
+              </p>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 {locale.tasks.modals.addTask.fields.reminder}
               </label>
@@ -585,7 +616,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
                 </div>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Set a recurring reminder interval
+                {locale.tasks.modals.addTask.fields.reminderIntervalHint}
               </p>
             </div>
 

@@ -30,6 +30,7 @@ const adminTaskSchema = z.object({
   departmentId: z.string().min(1, "Department is required"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   dueDate: z.string().optional(),
+  reminderStartDate: z.string().optional(),
   reminderDays: z.number().min(0).optional(),
   reminderHours: z.number().min(0).max(23).optional(),
   reminderMinutes: z.number().min(0).max(59).optional(),
@@ -43,6 +44,7 @@ const supervisorTaskSchema = z.object({
   assigneeId: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   dueDate: z.string().optional(),
+  reminderStartDate: z.string().optional(),
   reminderDays: z.number().min(0).optional(),
   reminderHours: z.number().min(0).max(23).optional(),
   reminderMinutes: z.number().min(0).max(59).optional(),
@@ -180,6 +182,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           priority: adminData.priority,
           dueDate: adminData.dueDate || undefined,
           reminderInterval: reminderMs,
+          reminderStartDate: adminData.reminderStartDate || undefined,
           savePreset: adminData.saveAsPreset,
           chooseAttachments: selectedAttachments,
         };
@@ -198,6 +201,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           priority: supervisorData.priority,
           dueDate: supervisorData.dueDate || undefined,
           reminderInterval: reminderMs,
+          reminderStartDate: supervisorData.reminderStartDate || undefined,
           savePreset: supervisorData.saveAsPreset,
           chooseAttachments: selectedAttachments,
         };
@@ -253,8 +257,8 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
       } else {
         setRootError(
           error?.response?.data?.message ||
-            locale?.tasks?.teamTasks?.toasts?.createFailed ||
-            "Failed to create task. Please try again."
+          locale?.tasks?.teamTasks?.toasts?.createFailed ||
+          "Failed to create task. Please try again."
         );
       }
     }
@@ -495,6 +499,24 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                   </div>
 
                   <div>
+                    <label
+                      htmlFor="team-task-reminder-start-date"
+                      className="block text-sm font-medium text-muted-foreground mb-1"
+                    >
+                      {locale.tasks.modals.addTask.fields.reminderStartDate}
+                    </label>
+                    <input
+                      {...register("reminderStartDate")}
+                      id="team-task-reminder-start-date"
+                      type="date"
+                      className="w-full border border-border rounded-md p-2 bg-background"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {locale.tasks.modals.addTask.fields.reminderStartDateHint}
+                    </p>
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">
                       {locale.tasks.modals.addTask.fields.reminder}
                     </label>
@@ -558,7 +580,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Set a recurring reminder interval
+                      {locale.tasks.modals.addTask.fields.reminderIntervalHint}
                     </p>
                   </div>
 

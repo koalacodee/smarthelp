@@ -22,6 +22,7 @@ export interface Datum {
   updatedAt?: string;
   dueDate?: string;
   reminderInterval?: number;
+  reminderStartDate?: string;
 }
 
 export interface Assignee {
@@ -128,6 +129,7 @@ export interface Task {
   assigneeName?: string;
   notes?: string;
   reminderInterval?: number;
+  reminderStartDate?: string;
 }
 
 export interface TargetDepartment {
@@ -148,6 +150,7 @@ export interface CreateTaskDto {
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate?: string;
   reminderInterval?: number;
+  reminderStartDate?: string;
   savePreset?: boolean;
   chooseAttachments?: string[];
 }

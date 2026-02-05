@@ -1258,7 +1258,10 @@ export type Locale = {
           assigneePlaceholder: string;
           priority: string;
           dueDate: string;
+          reminderStartDate: string;
+          reminderStartDateHint: string;
           reminder: string;
+          reminderIntervalHint: string;
           days: string;
           hours: string;
           minutes: string;

@@ -336,8 +336,8 @@ export default function CreateTaskFromPresetModal({
       } else {
         setRootError(
           error?.response?.data?.message ||
-            locale?.tasks?.teamTasks?.toasts?.createFailed ||
-            "Failed to create task. Please try again."
+          locale?.tasks?.teamTasks?.toasts?.createFailed ||
+          "Failed to create task. Please try again."
         );
       }
     }
@@ -681,7 +681,7 @@ export default function CreateTaskFromPresetModal({
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Set a recurring reminder interval
+                      {locale.tasks.modals.addTask.fields.reminderIntervalHint}
                     </p>
                   </div>
 
