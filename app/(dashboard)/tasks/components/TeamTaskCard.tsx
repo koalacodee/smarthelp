@@ -121,7 +121,7 @@ export default function TeamTaskCard({ task }: TeamTaskCardProps) {
         priority: task.priority || "",
         targetDepartment: task.targetDepartment,
         targetSubDepartment: task.targetSubDepartment,
-        assignee: task.assignee,
+        assigneeName: task.assigneeName,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",

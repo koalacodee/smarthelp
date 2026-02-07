@@ -14,11 +14,7 @@ type TaskDetails = {
   targetSubDepartment?: {
     name: string;
   };
-  assignee?: {
-    user: {
-      name: string;
-    };
-  };
+  assigneeName?: string;
   createdAt: string;
   updatedAt: string;
   notes?: string;

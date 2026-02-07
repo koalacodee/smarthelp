@@ -17,7 +17,7 @@ import Clock from "@/icons/Clock";
 // Helper function to convert milliseconds to readable format
 const formatReminderInterval = (
   milliseconds?: number,
-  locale?: any
+  locale?: any,
 ): string => {
   if (!milliseconds || milliseconds <= 0 || !locale) return "";
 
@@ -29,24 +29,27 @@ const formatReminderInterval = (
   const parts: string[] = [];
   if (days > 0)
     parts.push(
-      `${days} ${days !== 1
-        ? locale.tasks.modals.addTask.fields.days
-        : locale.tasks.modals.addTask.fields.days
-      }`
+      `${days} ${
+        days !== 1
+          ? locale.tasks.modals.addTask.fields.days
+          : locale.tasks.modals.addTask.fields.days
+      }`,
     );
   if (hours > 0)
     parts.push(
-      `${hours} ${hours !== 1
-        ? locale.tasks.modals.addTask.fields.hours
-        : locale.tasks.modals.addTask.fields.hours
-      }`
+      `${hours} ${
+        hours !== 1
+          ? locale.tasks.modals.addTask.fields.hours
+          : locale.tasks.modals.addTask.fields.hours
+      }`,
     );
   if (minutes > 0)
     parts.push(
-      `${minutes} ${minutes !== 1
-        ? locale.tasks.modals.addTask.fields.minutes
-        : locale.tasks.modals.addTask.fields.minutes
-      }`
+      `${minutes} ${
+        minutes !== 1
+          ? locale.tasks.modals.addTask.fields.minutes
+          : locale.tasks.modals.addTask.fields.minutes
+      }`,
     );
 
   return parts.length > 0 ? parts.join(", ") : "";
@@ -132,8 +135,6 @@ export default function DetailedTaskCard() {
                       </p>
                     </div>
 
-
-
                     {currentTask.targetDepartment && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">
@@ -156,13 +157,13 @@ export default function DetailedTaskCard() {
                       </div>
                     )}
 
-                    {currentTask.assignee && (
+                    {currentTask.assigneeName && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">
                           {locale.tasks.modals.addTask.fields.assignee}
                         </h3>
                         <p className="text-foreground">
-                          {currentTask.assignee.user.name}
+                          {currentTask.assigneeName}
                         </p>
                       </div>
                     )}
@@ -182,12 +183,15 @@ export default function DetailedTaskCard() {
                           {/* Automatic reminder summary */}
                           <div>
                             <h3 className="text-sm font-medium text-muted-foreground">
-                              {locale.tasks.modals.addTask.fields.automaticReminder}
+                              {
+                                locale.tasks.modals.addTask.fields
+                                  .automaticReminder
+                              }
                             </h3>
                             <p className="text-primary">
                               {formatReminderInterval(
                                 currentTask.taskReminders[0]?.reminderInterval,
-                                locale
+                                locale,
                               ) ||
                                 locale.tasks.modals.addTask.fields
                                   .noAutomaticReminder}
@@ -197,7 +201,10 @@ export default function DetailedTaskCard() {
                           {/* Scheduled reminders list */}
                           <div className="md:col-span-2">
                             <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                              {locale.tasks.modals.addTask.fields.scheduledReminders}
+                              {
+                                locale.tasks.modals.addTask.fields
+                                  .scheduledReminders
+                              }
                             </h3>
                             <div className="space-y-2">
                               {currentTask.taskReminders.map((reminder) => (
@@ -209,7 +216,9 @@ export default function DetailedTaskCard() {
                                   <span className="text-foreground">
                                     {reminder.name}
                                   </span>
-                                  <span className="text-muted-foreground">|</span>
+                                  <span className="text-muted-foreground">
+                                    |
+                                  </span>
                                   <span className="text-muted-foreground">
                                     {formatDateTimeWithHijri(
                                       reminder.reminderDate,
@@ -222,7 +231,7 @@ export default function DetailedTaskCard() {
                                       {
                                         hour: "2-digit",
                                         minute: "2-digit",
-                                      }
+                                      },
                                     )}
                                   </span>
                                 </div>
