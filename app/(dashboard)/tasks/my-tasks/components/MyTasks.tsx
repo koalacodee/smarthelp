@@ -99,10 +99,7 @@ export default function MyTasks({
   const { addExistingAttachmentToTarget, clearExistingAttachmentsForTarget } =
     useAttachments();
 
-  const fetchMyTasks = async (
-    cursor?: string,
-    direction?: "next" | "prev"
-  ) => {
+  const fetchMyTasks = async (cursor?: string, direction?: "next" | "prev") => {
     setLoading(true);
     try {
       const statusMap: { [key: string]: string } = {
@@ -145,22 +142,20 @@ export default function MyTasks({
           clearExistingAttachmentsForTarget(targetId);
         });
 
-        response.fileHubAttachments.forEach(
-          (attachment: FileHubAttachment) => {
-            if (!attachment?.targetId) return;
-            addExistingAttachmentToTarget(attachment.targetId, {
-              fileType: attachment.type,
-              originalName: attachment.originalName,
-              size: attachment.size,
-              expirationDate: attachment.expirationDate,
-              id: attachment.id,
-              filename: attachment.filename,
-              isGlobal: attachment.isGlobal,
-              createdAt: attachment.createdAt,
-              signedUrl: attachment.signedUrl,
-            });
-          }
-        );
+        response.fileHubAttachments.forEach((attachment: FileHubAttachment) => {
+          if (!attachment?.targetId) return;
+          addExistingAttachmentToTarget(attachment.targetId, {
+            fileType: attachment.type,
+            originalName: attachment.originalName,
+            size: attachment.size,
+            expirationDate: attachment.expirationDate,
+            id: attachment.id,
+            filename: attachment.filename,
+            isGlobal: attachment.isGlobal,
+            createdAt: attachment.createdAt,
+            signedUrl: attachment.signedUrl,
+          });
+        });
       }
     } catch (error) {
       addToast({
@@ -259,7 +254,7 @@ export default function MyTasks({
         priority: task.priority || "",
         targetDepartment: task.targetDepartment,
         targetSubDepartment: task.targetSubDepartment,
-        assignee: task.assignee,
+        assigneeName: task.assigneeName,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
@@ -317,7 +312,7 @@ export default function MyTasks({
                     {/* Priority colored line on the left */}
                     <div
                       className={`absolute left-0 top-0 bottom-0 w-1 ${getPriorityColor(
-                        task.priority || "MEDIUM"
+                        task.priority || "MEDIUM",
                       )} rounded-l-lg`}
                     ></div>
 
@@ -325,11 +320,11 @@ export default function MyTasks({
                       {/* Checkbox */}
                       {(task.status === TaskStatus.TODO ||
                         task.status === TaskStatus.SEEN) && (
-                          <button
-                            onClick={() => onTaskClick(task)}
-                            className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
-                          ></button>
-                        )}
+                        <button
+                          onClick={() => onTaskClick(task)}
+                          className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
+                        ></button>
+                      )}
 
                       {/* Task content */}
                       <div className="flex-1 min-w-0">
@@ -370,41 +365,44 @@ export default function MyTasks({
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
-                              ? "bg-blue-100 text-blue-800"
-                              : task.status === "SEEN"
-                                ? "bg-amber-100 text-amber-800"
-                                : task.status === "COMPLETED"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.status === "PENDING_REVIEW"
+                                ? "bg-blue-100 text-blue-800"
+                                : task.status === "SEEN"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : task.status === "COMPLETED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                            }`}
                           >
                             {task.status === "PENDING_REVIEW"
                               ? locale?.tasks?.myTasks?.filters?.status
-                                .pendingReview
+                                  .pendingReview
                               : task.status === "SEEN"
                                 ? locale?.tasks?.myTasks?.filters?.status?.seen
                                 : task.status === "COMPLETED"
                                   ? locale?.tasks?.myTasks?.filters?.status
-                                    ?.completed
-                                  : locale?.tasks?.myTasks?.filters?.status?.todo}
+                                      ?.completed
+                                  : locale?.tasks?.myTasks?.filters?.status
+                                      ?.todo}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
-                              ? "bg-red-100 text-red-800"
-                              : task.priority === "MEDIUM"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-green-100 text-green-800"
-                              }`}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.priority === "HIGH"
+                                ? "bg-red-100 text-red-800"
+                                : task.priority === "MEDIUM"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                            }`}
                           >
                             {task.priority === "HIGH"
                               ? locale?.tasks?.modals?.addTask?.priorityOptions
-                                ?.high
+                                  ?.high
                               : task.priority === "MEDIUM"
-                                ? locale?.tasks?.modals?.addTask?.priorityOptions
-                                  ?.medium
-                                : locale?.tasks?.modals?.addTask?.priorityOptions
-                                  ?.low}
+                                ? locale?.tasks?.modals?.addTask
+                                    ?.priorityOptions?.medium
+                                : locale?.tasks?.modals?.addTask
+                                    ?.priorityOptions?.low}
                           </span>
                         </div>
 
@@ -422,7 +420,7 @@ export default function MyTasks({
                                   hour: "numeric",
                                   minute: "2-digit",
                                   hour12: true,
-                                }
+                                },
                               )}
                             </span>
                           </div>
@@ -452,10 +450,11 @@ export default function MyTasks({
                                 }
                               </span>
                               <svg
-                                className={`w-4 h-4 text-red-600 transition-transform ${expandedFeedback[task.id]?.rejection
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 text-red-600 transition-transform ${
+                                  expandedFeedback[task.id]?.rejection
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -497,10 +496,11 @@ export default function MyTasks({
                                 {locale?.tasks?.modals?.approval?.title || ""}
                               </span>
                               <svg
-                                className={`w-4 h-4 text-green-600 transition-transform ${expandedFeedback[task.id]?.approval
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 text-green-600 transition-transform ${
+                                  expandedFeedback[task.id]?.approval
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -545,7 +545,7 @@ export default function MyTasks({
                     {/* Priority colored line on the left */}
                     <div
                       className={`absolute left-0 top-0 bottom-0 w-1 ${getPriorityColor(
-                        task.priority || "MEDIUM"
+                        task.priority || "MEDIUM",
                       )} rounded-l-lg`}
                     ></div>
 
@@ -594,43 +594,45 @@ export default function MyTasks({
                             {locale?.tasks?.delegations?.delegated || ""}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.status === "PENDING_REVIEW"
-                              ? "bg-blue-100 text-blue-800"
-                              : task.status === "SEEN"
-                                ? "bg-amber-100 text-amber-800"
-                                : task.status === "COMPLETED"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.status === "PENDING_REVIEW"
+                                ? "bg-blue-100 text-blue-800"
+                                : task.status === "SEEN"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : task.status === "COMPLETED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                            }`}
                           >
                             {task.status === "PENDING_REVIEW"
                               ? locale?.tasks?.delegations?.filters?.status
-                                .pendingReview
+                                  .pendingReview
                               : task.status === "SEEN"
                                 ? locale?.tasks?.delegations?.filters?.status
-                                  ?.seen
+                                    ?.seen
                                 : task.status === "COMPLETED"
                                   ? locale?.tasks?.delegations?.filters?.status
-                                    ?.completed
+                                      ?.completed
                                   : locale?.tasks?.delegations?.filters?.status
-                                    ?.todo}
+                                      ?.todo}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${task.priority === "HIGH"
-                              ? "bg-red-100 text-red-800"
-                              : task.priority === "MEDIUM"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-green-100 text-green-800"
-                              }`}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              task.priority === "HIGH"
+                                ? "bg-red-100 text-red-800"
+                                : task.priority === "MEDIUM"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                            }`}
                           >
                             {task.priority === "HIGH"
                               ? locale?.tasks?.modals?.addTask?.priorityOptions
-                                ?.high
+                                  ?.high
                               : task.priority === "MEDIUM"
-                                ? locale?.tasks?.modals?.addTask?.priorityOptions
-                                  ?.medium
-                                : locale?.tasks?.modals?.addTask?.priorityOptions
-                                  ?.low}
+                                ? locale?.tasks?.modals?.addTask
+                                    ?.priorityOptions?.medium
+                                : locale?.tasks?.modals?.addTask
+                                    ?.priorityOptions?.low}
                           </span>
                         </div>
 
@@ -644,7 +646,11 @@ export default function MyTasks({
                                 task.dueDate,
                                 language,
                                 { month: "short", day: "numeric" },
-                                { hour: "numeric", minute: "2-digit", hour12: true }
+                                {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
                               )}
                             </span>
                           </div>
@@ -687,7 +693,8 @@ export default function MyTasks({
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                {(locale?.tasks?.myTasks as any)?.pagination?.previous || "Previous"}
+                {(locale?.tasks?.myTasks as any)?.pagination?.previous ||
+                  "Previous"}
               </button>
               <button
                 onClick={() => fetchMyTasks(meta.nextCursor, "next")}
@@ -755,20 +762,20 @@ function MyTasksActions({
         [
           task.status === TaskStatus.TODO
             ? {
-              label: locale?.tasks?.myTasks?.actions?.markAsSeen || "",
-              onClick: () => handleMarkAsSeen(String(task.id)),
-              color: "blue",
-            }
+                label: locale?.tasks?.myTasks?.actions?.markAsSeen || "",
+                onClick: () => handleMarkAsSeen(String(task.id)),
+                color: "blue",
+              }
             : null,
           userRole == "SUPERVISOR"
             ? {
-              label: locale?.tasks?.modals?.delegation?.title || "",
-              onClick: () => {
-                setTaskId(String(task.id));
-                setIsDelegationModalOpen(true);
-              },
-              color: "green",
-            }
+                label: locale?.tasks?.modals?.delegation?.title || "",
+                onClick: () => {
+                  setTaskId(String(task.id));
+                  setIsDelegationModalOpen(true);
+                },
+                color: "green",
+              }
             : null,
         ].filter(Boolean) as MenuOption[]
       }
