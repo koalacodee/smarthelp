@@ -10,7 +10,7 @@ import {
 import { Question, User, VehicleLicenseStatus } from "./types";
 import { getCookie, setCookie } from "./cookies";
 import { DeepPartial } from "react-hook-form";
-import { CreateTaskDto, TaskData, TaskStatus } from "./tasks";
+import { CreateTaskDto, TaskData, TaskReminder, TaskStatus } from "./tasks";
 import { Task, Datum } from "./tasks";
 import {
   CreateDepartmentInputDto,
@@ -767,9 +767,9 @@ export interface UpdateTaskDto {
   feedback?: string | null;
   attach?: boolean;
   deleteAttachments?: string[];
-  reminderInterval?: number;
   chooseAttachments?: string[];
-  reminderStartDate?: Date;
+  addReminders?: { name: string; reminderDate: Date; reminderInterval: number }[];
+  deleteReminders?: string[];
 }
 
 // Interface for a single Task Submission
@@ -828,7 +828,7 @@ export interface CreateTaskResponse {
     createdAt: string;
     updatedAt: string;
     completedAt?: string | null;
-    reminderInterval?: number;
+    taskReminders?: TaskReminder[];
     assigneeId?: string;
     targetDepartmentId?: string;
     targetSubDepartmentId?: string;

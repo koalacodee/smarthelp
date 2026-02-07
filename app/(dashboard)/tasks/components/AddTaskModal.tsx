@@ -23,6 +23,9 @@ import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import TaskRemindersInput, {
+  type SpecificReminderEntry,
+} from "./TaskRemindersInput";
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -58,7 +61,35 @@ type AddTaskModalProps = {
   role: "admin" | "supervisor";
 };
 
-// Helper function to calculate reminder in milliseconds
+// Build reminders array for CreateTaskDto from TaskRemindersInput state
+function buildReminders(
+  specificReminders: SpecificReminderEntry[]
+): { name: string; reminderDate: Date; reminderInterval: number }[] {
+  const reminders: {
+    name: string;
+    reminderDate: Date;
+    reminderInterval: number;
+  }[] = [];
+
+  for (const r of specificReminders) {
+    if (!r.name.trim() || !r.dateTime) continue;
+    const reminderDate = new Date(r.dateTime);
+    if (Number.isNaN(reminderDate.getTime())) continue;
+    const intervalMs =
+      (r.intervalDays || 0) * 24 * 60 * 60 * 1000 +
+      (r.intervalHours || 0) * 60 * 60 * 1000 +
+      (r.intervalMinutes || 0) * 60 * 1000;
+    reminders.push({
+      name: r.name.trim(),
+      reminderDate,
+      reminderInterval: intervalMs,
+    });
+  }
+
+  return reminders;
+}
+
+// Legacy helper (kept for schema defaults; reminders now built via buildReminders)
 const calculateReminderMilliseconds = (
   days?: number,
   hours?: number,
@@ -99,6 +130,9 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
   const [hasStartedUpload, setHasStartedUpload] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
   const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const [specificReminders, setSpecificReminders] = useState<
+    SpecificReminderEntry[]
+  >([]);
   const { moveCurrentNewTargetSelectionsToExisting, reset: resetAttachments } =
     useAttachments();
   const {
@@ -147,6 +181,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     setHasStartedUpload(false);
     setSelectedAttachments([]);
     setHasFilesToUpload(false);
+    setSpecificReminders([]);
     resetAttachments();
 
     // Reset form and close modal
@@ -165,12 +200,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
     try {
       let createTaskDto: CreateTaskDto;
 
-      // Calculate reminder in milliseconds
-      const reminderMs = calculateReminderMilliseconds(
-        data.reminderDays,
-        data.reminderHours,
-        data.reminderMinutes
-      );
+      const reminders = buildReminders(specificReminders);
 
       if (role === "admin") {
         const adminData = data as AdminTaskFormData;
@@ -181,8 +211,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           targetDepartmentId: adminData.departmentId,
           priority: adminData.priority,
           dueDate: adminData.dueDate || undefined,
-          reminderInterval: reminderMs,
-          reminderStartDate: adminData.reminderStartDate || undefined,
+          reminders: reminders.length > 0 ? reminders : undefined,
           savePreset: adminData.saveAsPreset,
           chooseAttachments: selectedAttachments,
         };
@@ -200,8 +229,7 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
           assigneeId: supervisorData.assigneeId || undefined,
           priority: supervisorData.priority,
           dueDate: supervisorData.dueDate || undefined,
-          reminderInterval: reminderMs,
-          reminderStartDate: supervisorData.reminderStartDate || undefined,
+          reminders: reminders.length > 0 ? reminders : undefined,
           savePreset: supervisorData.saveAsPreset,
           chooseAttachments: selectedAttachments,
         };
@@ -498,91 +526,10 @@ export default function AddTaskModal({ role }: AddTaskModalProps) {
                     </div>
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="team-task-reminder-start-date"
-                      className="block text-sm font-medium text-muted-foreground mb-1"
-                    >
-                      {locale.tasks.modals.addTask.fields.reminderStartDate}
-                    </label>
-                    <input
-                      {...register("reminderStartDate")}
-                      id="team-task-reminder-start-date"
-                      type="date"
-                      className="w-full border border-border rounded-md p-2 bg-background"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {locale.tasks.modals.addTask.fields.reminderStartDateHint}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">
-                      {locale.tasks.modals.addTask.fields.reminder}
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label
-                          htmlFor="reminder-days"
-                          className="block text-xs text-muted-foreground mb-1"
-                        >
-                          {locale.tasks.modals.addTask.fields.days}
-                        </label>
-                        <input
-                          {...register("reminderDays", { valueAsNumber: true })}
-                          id="reminder-days"
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="reminder-hours"
-                          className="block text-xs text-muted-foreground mb-1"
-                        >
-                          {locale.tasks.modals.addTask.fields.hours}
-                        </label>
-                        <input
-                          {...register("reminderHours", {
-                            valueAsNumber: true,
-                          })}
-                          id="reminder-hours"
-                          type="number"
-                          min="0"
-                          max="23"
-                          placeholder="0"
-                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="reminder-minutes"
-                          className="block text-xs text-muted-foreground mb-1"
-                        >
-                          {locale.tasks.modals.addTask.fields.minutes}
-                        </label>
-                        <input
-                          {...register("reminderMinutes", {
-                            valueAsNumber: true,
-                          })}
-                          id="reminder-minutes"
-                          type="number"
-                          min="0"
-                          max="59"
-                          placeholder="0"
-                          className="w-full border border-border rounded-md p-2 bg-background text-sm"
-                          defaultValue={0}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {locale.tasks.modals.addTask.fields.reminderIntervalHint}
-                    </p>
-                  </div>
+                  <TaskRemindersInput
+                    specificReminders={specificReminders}
+                    onSpecificRemindersChange={setSpecificReminders}
+                  />
 
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-1">

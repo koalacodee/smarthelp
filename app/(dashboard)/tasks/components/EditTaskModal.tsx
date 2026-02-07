@@ -11,45 +11,20 @@ import useFormErrors from "@/hooks/useFormErrors";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
+import TaskRemindersInput, {
+  SpecificReminderEntry,
+} from "./TaskRemindersInput";
+import { TaskReminder } from "@/lib/api/tasks";
+import { formatDateTimeWithHijri } from "@/locales/dateFormatter";
+import Clock from "@/icons/Clock";
 
 type EditTaskModalProps = {
   role: "admin" | "supervisor";
 };
 
-// Helper function to calculate reminder in milliseconds
-const calculateReminderMilliseconds = (
-  days?: number,
-  hours?: number,
-  minutes?: number
-): number | undefined => {
-  if (!days && !hours && !minutes) return undefined;
-
-  const totalDays = days || 0;
-  const totalHours = hours || 0;
-  const totalMinutes = minutes || 0;
-
-  // Convert everything to milliseconds
-  const daysInMs = totalDays * 24 * 60 * 60 * 1000;
-  const hoursInMs = totalHours * 60 * 60 * 1000;
-  const minutesInMs = totalMinutes * 60 * 1000;
-
-  return daysInMs + hoursInMs + minutesInMs;
-};
-
-// Helper function to convert milliseconds back to days, hours, minutes
-const convertMillisecondsToTime = (milliseconds?: number) => {
-  if (!milliseconds) return { days: 0, hours: 0, minutes: 0 };
-
-  const totalMinutes = Math.floor(milliseconds / (1000 * 60));
-  const days = Math.floor(totalMinutes / (24 * 60));
-  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
-  const minutes = totalMinutes % 60;
-
-  return { days, hours, minutes };
-};
-
 export default function EditTaskModal({ role }: EditTaskModalProps) {
   const locale = useLocaleStore((state) => state.locale);
+  const language = useLocaleStore((state) => state.language);
   const { clearErrors, setErrors, setRootError, errors } = useFormErrors([
     "title",
     "description",
@@ -63,10 +38,6 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [assigneeId, setAssigneeId] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [dueDate, setDueDate] = useState("");
-  const [reminderStartDate, setReminderStartDate] = useState("");
-  const [reminderDays, setReminderDays] = useState<number>(0);
-  const [reminderHours, setReminderHours] = useState<number>(0);
-  const [reminderMinutes, setReminderMinutes] = useState<number>(0);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [subDepartments, setSubDepartments] = useState<Department[]>([]);
   const [subDepartmentEmployees, setSubDepartmentEmployees] = useState<
@@ -79,6 +50,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
   const [deletedAttachments, setDeletedAttachments] = useState<string[]>([]);
   const [hasFilesToUpload, setHasFilesToUpload] = useState(false);
+  const [existingReminders, setExistingReminders] = useState<TaskReminder[]>([]);
+  const [deleteReminderIds, setDeleteReminderIds] = useState<string[]>([]);
+  const [newReminders, setNewReminders] = useState<SpecificReminderEntry[]>([]);
 
   const { addToast } = useToastStore();
   const { task, setIsEditing, isEditing } = useCurrentEditingTaskStore();
@@ -104,6 +78,19 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     return subDepartments.filter((sd) => sd.parent?.id === departmentId);
   }, [departmentId, subDepartments]);
 
+  // Initialize reminder state only when task changes
+  useEffect(() => {
+    if (task) {
+      setExistingReminders(task.taskReminders ?? []);
+      setDeleteReminderIds([]);
+      setNewReminders([]);
+    } else {
+      setExistingReminders([]);
+      setDeleteReminderIds([]);
+      setNewReminders([]);
+    }
+  }, [task]);
+
   useEffect(() => {
     if (task) {
       const init = async () => {
@@ -115,19 +102,6 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
           ? new Date(task.dueDate).toISOString().slice(0, 10)
           : "";
         setDueDate(formattedDueDate);
-
-        const baseReminderStart =
-          task.reminderStartDate || task.createdAt || "";
-        const formattedReminderStart = baseReminderStart
-          ? new Date(baseReminderStart).toISOString().slice(0, 10)
-          : "";
-        setReminderStartDate(formattedReminderStart);
-
-        // Load existing reminder interval values
-        const reminderTime = convertMillisecondsToTime(task.reminderInterval);
-        setReminderDays(reminderTime.days);
-        setReminderHours(reminderTime.hours);
-        setReminderMinutes(reminderTime.minutes);
 
         if (role === "admin") {
           setDepartmentId(task.targetDepartment?.id || "");
@@ -143,10 +117,6 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       setDescription("");
       setPriority("MEDIUM");
       setDueDate("");
-      setReminderStartDate("");
-      setReminderDays(0);
-      setReminderHours(0);
-      setReminderMinutes(0);
       setDepartmentId("");
       setTargetSubDepartmentId("");
       setAssigneeId("");
@@ -166,7 +136,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
   useEffect(() => {
     if (targetSubDepartmentId) {
       api.EmployeeService.getEmployeesBySubDepartment(
-        targetSubDepartmentId
+        targetSubDepartmentId,
       ).then((val) => {
         setSubDepartmentEmployees(val);
       });
@@ -182,6 +152,9 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     setSelectedAttachments([]);
     setDeletedAttachments([]);
     setHasFilesToUpload(false);
+    setExistingReminders([]);
+    setDeleteReminderIds([]);
+    setNewReminders([]);
     reset();
   };
 
@@ -213,24 +186,55 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
     if (!task?.id) return;
 
     try {
-      // Calculate reminder in milliseconds
-      const reminderMs = calculateReminderMilliseconds(
-        reminderDays,
-        reminderHours,
-        reminderMinutes
+      // Validate partially-filled reminders
+      const incompleteReminder = newReminders.find(
+        (r) =>
+          (r.name || r.dateTime || r.intervalDays || r.intervalHours || r.intervalMinutes) &&
+          (!r.name || !r.dateTime)
       );
+      if (incompleteReminder) {
+        setRootError(
+          locale.tasks.modals.addTask.fields.reminderValidationIncomplete ??
+            "Each reminder must have a name and date/time."
+        );
+        return;
+      }
+
+      // Validate minimum interval
+      const invalidIntervalReminder = newReminders.find((r) => {
+        if (!r.name || !r.dateTime) return false;
+        const intervalMs =
+          (r.intervalDays * 24 * 60 + r.intervalHours * 60 + r.intervalMinutes) * 60 * 1000;
+        return intervalMs > 0 && intervalMs < 60000;
+      });
+      if (invalidIntervalReminder) {
+        setRootError(
+          locale.tasks.modals.addTask.fields.reminderValidationMinInterval ??
+            "Reminder repeat interval must be at least 1 minute."
+        );
+        return;
+      }
+
+      const addReminders = newReminders
+        .filter((r) => r.name && r.dateTime)
+        .map((r) => ({
+          name: r.name,
+          reminderDate: new Date(r.dateTime),
+          reminderInterval:
+            (r.intervalDays * 24 * 60 + r.intervalHours * 60 + r.intervalMinutes) *
+            60 *
+            1000,
+        }));
 
       let updateTaskDto: UpdateTaskDto = {
         title,
         description,
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined,
-        reminderInterval: reminderMs,
-        reminderStartDate: reminderStartDate
-          ? new Date(reminderStartDate)
-          : undefined,
         chooseAttachments: selectedAttachments,
         deleteAttachments: deletedAttachments,
+        ...(addReminders.length > 0 && { addReminders }),
+        ...(deleteReminderIds.length > 0 && { deleteReminders: deleteReminderIds }),
       };
 
       if (role === "admin") {
@@ -243,7 +247,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       const updatedResp = await api.TasksService.updateTask(
         task.id,
         updateTaskDto,
-        hasFilesToUpload
+        hasFilesToUpload,
       );
 
       const { task: updated, fileHubUploadKey } = updatedResp;
@@ -290,7 +294,7 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
       } else {
         setRootError(
           error?.response?.data?.message ||
-          locale.tasks.teamTasks.toasts.updateFailed
+            locale.tasks.teamTasks.toasts.updateFailed,
         );
       }
     }
@@ -531,94 +535,119 @@ export default function EditTaskModal({ role }: EditTaskModalProps) {
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="task-reminder-start-date"
-                className="block text-sm font-medium text-slate-700 mb-1"
-              >
-                {locale.tasks.modals.addTask.fields.reminderStartDate}
-              </label>
-              <input
-                id="task-reminder-start-date"
-                type="date"
-                value={reminderStartDate}
-                onChange={(e) => setReminderStartDate(e.target.value)}
-                className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                {locale.tasks.modals.addTask.fields.reminderStartDateHint}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {locale.tasks.modals.addTask.fields.reminder}
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label
-                    htmlFor="reminder-days"
-                    className="block text-xs text-slate-500 mb-1"
-                  >
-                    {locale.tasks.modals.addTask.fields.days}
-                  </label>
-                  <input
-                    id="reminder-days"
-                    type="number"
-                    min="0"
-                    value={reminderDays}
-                    onChange={(e) =>
-                      setReminderDays(Number(e.target.value) || 0)
-                    }
-                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="reminder-hours"
-                    className="block text-xs text-slate-500 mb-1"
-                  >
-                    {locale.tasks.modals.addTask.fields.hours}
-                  </label>
-                  <input
-                    id="reminder-hours"
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={reminderHours}
-                    onChange={(e) =>
-                      setReminderHours(Number(e.target.value) || 0)
-                    }
-                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="reminder-minutes"
-                    className="block text-xs text-slate-500 mb-1"
-                  >
-                    {locale.tasks.modals.addTask.fields.minutes}
-                  </label>
-                  <input
-                    id="reminder-minutes"
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={reminderMinutes}
-                    onChange={(e) =>
-                      setReminderMinutes(Number(e.target.value) || 0)
-                    }
-                    className="w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                  />
+            {/* Existing reminders */}
+            {existingReminders.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-slate-700 mb-2">
+                  {locale.tasks.modals.addTask.fields.scheduledReminders}
+                </h4>
+                <div className="space-y-2">
+                  {existingReminders.map((reminder) => {
+                    const isMarkedForDeletion = deleteReminderIds.includes(
+                      reminder.id
+                    );
+                    return (
+                      <div
+                        key={reminder.id}
+                        className={`flex items-center gap-3 rounded-lg border px-4 py-2.5 text-sm ${
+                          isMarkedForDeletion
+                            ? "border-red-300 bg-red-50 opacity-60"
+                            : "border-border bg-muted/30"
+                        }`}
+                      >
+                        <Clock className="h-4 w-4 shrink-0 text-blue-500" />
+                        <span
+                          className={`flex-1 font-medium ${
+                            isMarkedForDeletion
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {reminder.name}
+                        </span>
+                        <span className="text-muted-foreground">|</span>
+                        <span className="text-muted-foreground">
+                          {formatDateTimeWithHijri(
+                            reminder.reminderDate,
+                            language,
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            },
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isMarkedForDeletion) {
+                              setDeleteReminderIds((prev) =>
+                                prev.filter((id) => id !== reminder.id)
+                              );
+                            } else {
+                              setDeleteReminderIds((prev) => [
+                                ...prev,
+                                reminder.id,
+                              ]);
+                            }
+                          }}
+                          className={`shrink-0 rounded p-1.5 transition-colors ${
+                            isMarkedForDeletion
+                              ? "text-blue-600 hover:bg-blue-50"
+                              : "text-muted-foreground hover:bg-muted hover:text-red-500"
+                          }`}
+                          aria-label={
+                            isMarkedForDeletion
+                              ? "Undo remove"
+                              : "Remove reminder"
+                          }
+                        >
+                          {isMarkedForDeletion ? (
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                {locale.tasks.modals.addTask.fields.reminderIntervalHint}
-              </p>
-            </div>
+            )}
+
+            {/* Add new reminders */}
+            <TaskRemindersInput
+              specificReminders={newReminders}
+              onSpecificRemindersChange={setNewReminders}
+            />
 
             <AttachmentInputV3
               targetId={task?.id}

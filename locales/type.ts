@@ -1265,7 +1265,21 @@ export type Locale = {
           days: string;
           hours: string;
           minutes: string;
+          automaticReminder: string;
+          scheduledReminders: string;
+          noAutomaticReminder: string;
+          automaticReminderRule: string;
+          automaticReminderRuleDescription: string;
+          daysBeforeDeadline: string;
+          additionalSpecificReminders: string;
+          additionalSpecificRemindersHint: string;
+          addReminder: string;
+          reminderNamePlaceholder: string;
+          reminderDateTimePlaceholder: string;
+          setDueDateForDaysBeforeDeadline: string;
           saveAsPreset: string;
+          reminderValidationIncomplete: string;
+          reminderValidationMinInterval: string;
         };
         priorityOptions: {
           low: string;

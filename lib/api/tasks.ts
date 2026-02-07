@@ -128,8 +128,17 @@ export interface Task {
    */
   assigneeName?: string;
   notes?: string;
-  reminderInterval?: number;
-  reminderStartDate?: string;
+  taskReminders?: TaskReminder[];
+}
+
+export interface TaskReminder {
+  id: string;
+  taskId: string;
+  reminderDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  name: string;
+  reminderInterval: number;
 }
 
 export interface TargetDepartment {
@@ -149,8 +158,11 @@ export interface CreateTaskDto {
   title: string;
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate?: string;
-  reminderInterval?: number;
-  reminderStartDate?: string;
+  reminders?: {
+    name: string;
+    reminderDate: Date;
+    reminderInterval: number;
+  }[];
   savePreset?: boolean;
   chooseAttachments?: string[];
 }

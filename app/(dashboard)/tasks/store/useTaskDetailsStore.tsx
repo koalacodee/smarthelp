@@ -1,3 +1,4 @@
+import { TaskReminder } from "@/lib/api/tasks";
 import { create } from "zustand";
 
 type TaskDetails = {
@@ -22,8 +23,7 @@ type TaskDetails = {
   updatedAt: string;
   notes?: string;
   attachments?: string[];
-  reminderInterval?: number;
-  reminderStartDate?: string;
+  taskReminders?: TaskReminder[];
 };
 
 type TaskDetailsStore = {

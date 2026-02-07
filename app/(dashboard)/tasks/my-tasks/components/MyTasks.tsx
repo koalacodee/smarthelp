@@ -263,8 +263,7 @@ export default function MyTasks({
         createdAt: task.createdAt,
         updatedAt: task.updatedAt || "",
         notes: task.notes || "",
-        reminderInterval: task.reminderInterval,
-        reminderStartDate: task.reminderStartDate,
+        taskReminders: task.taskReminders,
       });
     }
   };

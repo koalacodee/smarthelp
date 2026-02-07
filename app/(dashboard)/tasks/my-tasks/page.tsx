@@ -1,6 +1,5 @@
 import { TasksService, DepartmentsService, EmployeeService } from "@/lib/api";
 import { TaskDelegationService } from "@/lib/api/v2";
-import MyTasks from "./components/MyTasks";
 import { cookies } from "next/headers";
 import { env } from "next-runtime-env";
 import TasksPageWrapper from "./components/TasksPageWrapper";

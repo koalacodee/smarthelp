@@ -8,7 +8,11 @@ import {
 import { Fragment } from "react";
 import ExistingAttachmentsViewer from "../../files/components/ExistingAttachmentsViewer";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
-import { formatDateWithHijri } from "@/locales/dateFormatter";
+import {
+  formatDateWithHijri,
+  formatDateTimeWithHijri,
+} from "@/locales/dateFormatter";
+import Clock from "@/icons/Clock";
 
 // Helper function to convert milliseconds to readable format
 const formatReminderInterval = (
@@ -128,39 +132,7 @@ export default function DetailedTaskCard() {
                       </p>
                     </div>
 
-                    {currentTask.reminderInterval && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                          {locale.tasks.modals.addTask.fields.reminderStartDate}
-                        </h3>
-                        <p className="text-foreground">
-                          {currentTask.reminderStartDate
-                            ? formatDateWithHijri(
-                              currentTask.reminderStartDate,
-                              language
-                            )
-                            : formatDateWithHijri(
-                              currentTask.createdAt,
-                              language
-                            )}
-                        </p>
-                      </div>
-                    )}
 
-                    {currentTask.reminderInterval && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                          {locale.tasks.modals.addTask.fields.reminder}
-                        </h3>
-                        <p className="text-blue-600 font-medium">
-                          {locale.tasks.teamTasks.card.every}{" "}
-                          {formatReminderInterval(
-                            currentTask.reminderInterval,
-                            locale
-                          )}
-                        </p>
-                      </div>
-                    )}
 
                     {currentTask.targetDepartment && (
                       <div>
@@ -203,6 +175,62 @@ export default function DetailedTaskCard() {
                         {new Date(currentTask.createdAt).toLocaleString()}
                       </p>
                     </div>
+
+                    {currentTask.taskReminders &&
+                      currentTask.taskReminders.length > 0 && (
+                        <>
+                          {/* Automatic reminder summary */}
+                          <div>
+                            <h3 className="text-sm font-medium text-muted-foreground">
+                              {locale.tasks.modals.addTask.fields.automaticReminder}
+                            </h3>
+                            <p className="text-primary">
+                              {formatReminderInterval(
+                                currentTask.taskReminders[0]?.reminderInterval,
+                                locale
+                              ) ||
+                                locale.tasks.modals.addTask.fields
+                                  .noAutomaticReminder}
+                            </p>
+                          </div>
+
+                          {/* Scheduled reminders list */}
+                          <div className="md:col-span-2">
+                            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                              {locale.tasks.modals.addTask.fields.scheduledReminders}
+                            </h3>
+                            <div className="space-y-2">
+                              {currentTask.taskReminders.map((reminder) => (
+                                <div
+                                  key={reminder.id}
+                                  className="flex items-center gap-3 rounded-lg border border-border px-4 py-2.5 text-sm"
+                                >
+                                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                                  <span className="text-foreground">
+                                    {reminder.name}
+                                  </span>
+                                  <span className="text-muted-foreground">|</span>
+                                  <span className="text-muted-foreground">
+                                    {formatDateTimeWithHijri(
+                                      reminder.reminderDate,
+                                      language,
+                                      {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                      },
+                                      {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
 
                     {currentTask.notes && (
                       <div className="md:col-span-2">

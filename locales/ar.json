@@ -1264,7 +1264,21 @@
           "days": "أيام",
           "hours": "ساعات",
           "minutes": "دقائق",
-          "saveAsPreset": "حفظ كقالب"
+          "automaticReminder": "التذكير التلقائي",
+          "scheduledReminders": "التذكيرات المجدولة",
+          "noAutomaticReminder": "لا يوجد تذكير تلقائي",
+          "automaticReminderRule": "قاعدة التذكير التلقائي",
+          "automaticReminderRuleDescription": "بدء إرسال تنبيهات تلقائية قبل انتهاء المهمة:",
+          "daysBeforeDeadline": "أيام قبل الموعد النهائي",
+          "additionalSpecificReminders": "تذكيرات محددة إضافية",
+          "additionalSpecificRemindersHint": "أضف تسميات وأوقات محددة للتنبيهات لمرة واحدة.",
+          "addReminder": "إضافة تذكير",
+          "reminderNamePlaceholder": "اسم التذكير (مثال: التحقق النهائي)",
+          "reminderDateTimePlaceholder": "yyyy/mm/dd --:--",
+          "setDueDateForDaysBeforeDeadline": "حدد تاريخ الاستحقاق أعلاه لتطبيق \"أيام قبل الموعد النهائي\".",
+          "saveAsPreset": "حفظ كقالب",
+          "reminderValidationIncomplete": "يجب أن يحتوي كل تذكير على اسم وتاريخ/وقت.",
+          "reminderValidationMinInterval": "يجب أن يكون فاصل تكرار التذكير دقيقة واحدة على الأقل."
         },
         "priorityOptions": {
           "low": "منخفضة",

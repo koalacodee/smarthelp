@@ -1264,7 +1264,21 @@
           "days": "Days",
           "hours": "Hours",
           "minutes": "Minutes",
-          "saveAsPreset": "Save as Preset"
+          "automaticReminder": "Automatic Reminder",
+          "scheduledReminders": "Scheduled Reminders",
+          "noAutomaticReminder": "No automatic reminder",
+          "automaticReminderRule": "Automatic Reminder Rule",
+          "automaticReminderRuleDescription": "Start sending automatic alerts before the task expires:",
+          "daysBeforeDeadline": "Days before deadline",
+          "additionalSpecificReminders": "Additional Specific Reminders",
+          "additionalSpecificRemindersHint": "Add custom labels and specific times for one-off alerts.",
+          "addReminder": "Add Reminder",
+          "reminderNamePlaceholder": "Reminder name (e.g., Final check)",
+          "reminderDateTimePlaceholder": "mm/dd/yyyy --:--",
+          "setDueDateForDaysBeforeDeadline": "Set a due date above for \"days before deadline\" to apply.",
+          "saveAsPreset": "Save as Preset",
+          "reminderValidationIncomplete": "Each reminder must have a name and date/time.",
+          "reminderValidationMinInterval": "Reminder repeat interval must be at least 1 minute."
         },
         "priorityOptions": {
           "low": "Low",
