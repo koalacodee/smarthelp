@@ -1,25 +1,17 @@
 "use client";
 
-// import { Loader2 } from 'lucide-react';
 import Loader2 from "@/icons/Loader2";
 import MyTaskCard from "./MyTaskCard";
 import EmptyState from "../../_components/EmptyState";
-import type {
-  MyTaskItemResponse,
-} from "@/services/tasks/types";
+import type { UnifiedMyTaskItemResponse } from "@/services/tasks/types";
 
 interface MyTasksListProps {
-  tasks: MyTaskItemResponse[];
+  data: UnifiedMyTaskItemResponse[];
   isLoading: boolean;
 }
 
-export default function MyTasksList({
-  tasks,
-  isLoading,
-}: MyTasksListProps) {
-
-
-  const isEmpty = tasks.length === 0;
+export default function MyTasksList({ data, isLoading }: MyTasksListProps) {
+  const isEmpty = data.length === 0;
 
   if (isLoading && isEmpty) {
     return (
@@ -40,9 +32,11 @@ export default function MyTasksList({
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
       <div className="space-y-0">
-        {/* Render tasks */}
-        {tasks.map((item) => (
-          <MyTaskCard key={item.task.id} item={item} />
+        {data.map((item) => (
+          <MyTaskCard
+            key={item.delegationId ?? item.taskId}
+            item={item}
+          />
         ))}
       </div>
     </div>

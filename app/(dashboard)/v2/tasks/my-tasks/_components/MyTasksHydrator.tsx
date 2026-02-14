@@ -8,7 +8,7 @@ import MyTasksDashboard from "./MyTasksDashboard";
 import MyTasksFilters from "./MyTasksFilters";
 import MyTasksList from "./MyTasksList";
 import TaskPagination from "../../_components/TaskPagination";
-import { useMyTasks, useMyDelegations } from "@/services/tasks";
+import { useMyTasks } from "@/services/tasks";
 import { useTaskStore } from "@/services/tasks/store";
 import type { Locale } from "@/locales/type";
 
@@ -16,7 +16,6 @@ import type { Locale } from "@/locales/type";
 import { TaskDetailModal, SubmitWorkModal } from "../../_components/modals";
 import ForwardDelegationModal from "../../_components/modals/ForwardDelegationModal";
 import DelegationModal from "./DelegationModal";
-import SubmitDelegationModal from "./SubmitDelegationModal";
 
 interface MyTasksHydratorProps {
   role: "admin" | "supervisor" | "employee";
@@ -58,7 +57,7 @@ export default function MyTasksHydrator({
 
   const metrics = myTasksQuery.data?.metrics;
   const meta = myTasksQuery.data?.meta;
-  const tasks = myTasksQuery.data?.data ?? [];
+  const data = myTasksQuery.data?.data ?? [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-6">
@@ -78,7 +77,7 @@ export default function MyTasksHydrator({
           </div>
           <div>
             <MyTasksList
-              tasks={tasks}
+              data={data}
               isLoading={myTasksQuery.isLoading || myTasksQuery.isFetching}
             />
             <TaskPagination meta={meta} />
@@ -91,7 +90,6 @@ export default function MyTasksHydrator({
       <SubmitWorkModal />
       <ForwardDelegationModal />
       <DelegationModal />
-      <SubmitDelegationModal />
     </div>
   );
 }

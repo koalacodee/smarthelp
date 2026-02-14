@@ -10,7 +10,7 @@ import MyTaskCardActions from "./MyTaskCardActions";
 import FeedbackCollapsible from "./FeedbackCollapsible";
 import InlineAttachments from "@/app/(dashboard)/tasks/components/InlineAttachments";
 import { formatDateTimeWithHijri } from "@/locales/dateFormatter";
-import type { MyTaskItemResponse } from "@/services/tasks/types";
+import type { UnifiedMyTaskItemResponse } from "@/services/tasks/types";
 
 const priorityBarColor: Record<string, string> = {
   HIGH: "bg-red-500",
@@ -19,7 +19,7 @@ const priorityBarColor: Record<string, string> = {
 };
 
 interface MyTaskCardProps {
-  item: MyTaskItemResponse;
+  item: UnifiedMyTaskItemResponse;
 }
 
 export default function MyTaskCard({ item }: MyTaskCardProps) {
@@ -43,7 +43,7 @@ export default function MyTaskCard({ item }: MyTaskCardProps) {
         {/* Submit work checkbox */}
         {isActionable && (
           <button
-            onClick={() => openModal("submit-work", task)}
+            onClick={() => openModal("submit-work", item)}
             className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors flex-shrink-0 mt-0.5"
           />
         )}
@@ -56,7 +56,7 @@ export default function MyTaskCard({ item }: MyTaskCardProps) {
               {task.title}
             </h3>
             <MyTaskCardActions
-              task={task}
+              item={item}
               rejectionReason={item.rejectionReason}
               approvalFeedback={item.approvalFeedback}
             />
@@ -96,11 +96,11 @@ export default function MyTaskCard({ item }: MyTaskCardProps) {
             </span>
           </div>
 
-          <InlineAttachments targetId={task.id} />
+          <InlineAttachments targetId={item.taskId} />
 
           {/* Feedback collapsible */}
           <FeedbackCollapsible
-            taskId={task.id}
+            taskId={item.delegationId ?? item.taskId}
             rejectionReason={item.rejectionReason}
             approvalFeedback={item.approvalFeedback}
             locale={{

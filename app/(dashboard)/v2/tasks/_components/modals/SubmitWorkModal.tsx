@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { DialogTitle } from "@headlessui/react";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useV2TaskPageStore } from "../../_store/use-v2-task-page-store";
@@ -8,45 +9,74 @@ import { useSubmitTaskForReview } from "@/services/tasks";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useAttachments } from "@/hooks/useAttachments";
 import { useTaskStore } from "@/services/tasks/store";
+import { TaskDelegationService } from "@/lib/api/v2";
+import { taskKeys } from "@/services/tasks";
 import ModalShell from "./ModalShell";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
-import type { TaskResponse } from "@/services/tasks/types";
+import type { UnifiedMyTaskItemResponse } from "@/services/tasks/types";
 
 export default function SubmitWorkModal() {
   const locale = useLocaleStore((state) => state.locale);
+  const queryClient = useQueryClient();
   const { activeModal, modalPayload, closeModal } = useV2TaskPageStore();
   const { addToast } = useToastStore();
-  const submitMutation = useSubmitTaskForReview();
-  const { fileHubUploadKey } = useTaskStore();
+  const submitTaskMutation = useSubmitTaskForReview();
+  const { fileHubUploadKey, setFileHubUploadKey } = useTaskStore();
   const { selectedFormMyAttachments, attachmentsToUpload } = useAttachments();
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const [isDelegationSubmitting, setIsDelegationSubmitting] = useState(false);
 
-  const task = modalPayload as TaskResponse | null;
-  const isOpen = activeModal === "submit-work" && !!task;
+  const item = modalPayload as UnifiedMyTaskItemResponse | null;
+  const task = item?.task ?? null;
+  const isOpen = activeModal === "submit-work" && !!item && !!task;
 
   const handleClose = () => {
     setNotes("");
     setError("");
+    setIsDelegationSubmitting(false);
     closeModal();
   };
 
   const handleSubmit = async () => {
-    if (!task) return;
+    if (!item || !task) return;
     setError("");
     try {
-      await submitMutation.mutateAsync({
-        taskId: task.id,
-        data: {
-          notes: notes.trim() || undefined,
-          attach: attachmentsToUpload.length > 0,
-          chooseAttachments:
-            selectedFormMyAttachments.length > 0
-              ? selectedFormMyAttachments.map((a) => a.id)
-              : undefined,
-
-        },
-      });
+      if (item.type === "task") {
+        await submitTaskMutation.mutateAsync({
+          taskId: item.taskId,
+          data: {
+            notes: notes.trim() || undefined,
+            attach: attachmentsToUpload.length > 0,
+            chooseAttachments:
+              selectedFormMyAttachments.length > 0
+                ? selectedFormMyAttachments.map((a) => a.id)
+                : undefined,
+          },
+        });
+        queryClient.invalidateQueries({
+          queryKey: [...taskKeys.all, "my-tasks"],
+        });
+      } else if (item.type === "delegation" && item.delegationId) {
+        setIsDelegationSubmitting(true);
+        const response = await TaskDelegationService.submitForReview(
+          item.delegationId,
+          {
+            notes: notes.trim() || undefined,
+            chooseAttachments:
+              selectedFormMyAttachments.length > 0
+                ? selectedFormMyAttachments.map((a) => a.id)
+                : undefined,
+          },
+          attachmentsToUpload.length > 0,
+        );
+        queryClient.invalidateQueries({
+          queryKey: [...taskKeys.all, "my-tasks"],
+        });
+        if (attachmentsToUpload.length > 0 && (response.fileHubUploadKey ?? response.uploadKey)) {
+          setFileHubUploadKey(response.fileHubUploadKey ?? response.uploadKey!);
+        }
+      }
       addToast({
         message: locale?.tasks.toasts?.workSubmitted ?? "Work submitted",
         type: "success",
@@ -54,8 +84,13 @@ export default function SubmitWorkModal() {
       handleClose();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Failed to submit work");
+    } finally {
+      setIsDelegationSubmitting(false);
     }
   };
+
+  const isPending =
+    submitTaskMutation.isPending || isDelegationSubmitting;
 
   if (!locale) return null;
 
@@ -100,10 +135,10 @@ export default function SubmitWorkModal() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitMutation.isPending}
+            disabled={isPending}
             className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {submitMutation.isPending ? "Submitting..." : "Submit"}
+            {isPending ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import Users from "@/icons/User";
 import ChevronDown from "@/icons/ChevronDown";
+import Eye from "@/icons/Eye";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useV2TaskPageStore } from "../../_store/use-v2-task-page-store";
 import StatusBadge from "../../_components/StatusBadge";
@@ -11,7 +12,6 @@ import SubmissionItem from "../../_components/SubmissionItem";
 import {
   useApproveDelegationSubmission,
   useRejectDelegationSubmission,
-  useForwardDelegationSubmission,
 } from "@/services/tasks";
 import type {
   DelegationResponse,
@@ -28,11 +28,13 @@ const priorityBarColor: Record<string, string> = {
 interface DelegationCardProps {
   delegation: DelegationResponse;
   submissions: TaskDelegationSubmissionResponse[];
+  isEmployee?: boolean;
 }
 
 export default function DelegationCard({
   delegation,
   submissions,
+  isEmployee = false,
 }: DelegationCardProps) {
   const locale = useLocaleStore((s) => s.locale);
   const language = useLocaleStore((s) => s.language);
@@ -59,45 +61,71 @@ export default function DelegationCard({
 
   if (!locale) return null;
 
+  const taskTitle = delegation.task?.title ?? delegation.taskId;
   const handleSubmitWork = () => {
     openModal("submit-delegation", delegation);
   };
 
-  const menuOptions = [];
-  if (latestSubmission) {
-    menuOptions.push(
-      {
-        label: locale.tasks.teamTasks.card.actions.approve,
-        onClick: () =>
-          approveMutation.mutate({
-            submissionId: latestSubmission.id,
-            data: {},
-          }),
-        color: "green" as const,
-      },
-      {
-        label: locale.tasks.teamTasks.card.actions.reject,
-        onClick: () =>
-          rejectMutation.mutate({
-            submissionId: latestSubmission.id,
-            data: {},
-          }),
-        color: "red" as const,
-      },
-    );
-    if (!latestSubmission.forwarded) {
+  const handleViewDetails = () => {
+    if (delegation.task) {
+      openModal("task-detail", delegation.task);
+    }
+  };
+
+  const menuOptions: Array<{
+    label: string;
+    onClick: () => void;
+    color?: "green" | "red" | "blue";
+  }> = [];
+  if (isEmployee) {
+    menuOptions.push({
+      label: locale.tasks.delegations?.actions?.viewDetails ?? "View details",
+      onClick: handleViewDetails,
+      color: "blue",
+    });
+    if (!latestSubmission) {
       menuOptions.push({
-        label: locale.tasks.delegations?.card?.forward ?? "Forward",
-        onClick: () => handleForward(latestSubmission.id),
-        color: "blue" as const,
+        label: locale.tasks.delegations?.actions?.submitWork ?? "Submit Work",
+        onClick: handleSubmitWork,
+        color: "blue",
       });
     }
   } else {
-    menuOptions.push({
-      label: locale.tasks.delegations?.actions?.submitWork ?? "Submit Work",
-      onClick: handleSubmitWork,
-      color: "blue" as const,
-    });
+    if (latestSubmission) {
+      menuOptions.push(
+        {
+          label: locale.tasks.teamTasks.card.actions.approve,
+          onClick: () =>
+            approveMutation.mutate({
+              submissionId: latestSubmission.id,
+              data: {},
+            }),
+          color: "green",
+        },
+        {
+          label: locale.tasks.teamTasks.card.actions.reject,
+          onClick: () =>
+            rejectMutation.mutate({
+              submissionId: latestSubmission.id,
+              data: {},
+            }),
+          color: "red",
+        }
+      );
+      if (!latestSubmission.forwarded) {
+        menuOptions.push({
+          label: locale.tasks.delegations?.card?.forward ?? "Forward",
+          onClick: () => handleForward(latestSubmission.id),
+          color: "blue",
+        });
+      }
+    } else {
+      menuOptions.push({
+        label: locale.tasks.delegations?.actions?.submitWork ?? "Submit Work",
+        onClick: handleSubmitWork,
+        color: "blue",
+      });
+    }
   }
 
   return (
@@ -119,10 +147,29 @@ export default function DelegationCard({
           {/* Title + actions */}
           <div className="flex items-start justify-between mb-2">
             <h3 className="font-semibold text-gray-900 text-sm">
-              {delegation.taskId}
+              {taskTitle}
             </h3>
-            <ThreeDotMenu options={menuOptions} />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleViewDetails}
+                className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                title={
+                  locale.tasks.delegations?.actions?.viewDetails ?? "View details"
+                }
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              {menuOptions.length > 0 && (
+                <ThreeDotMenu options={menuOptions} />
+              )}
+            </div>
           </div>
+
+          {delegation.task?.description && (
+            <p className="text-xs text-gray-600 mb-3">
+              {delegation.task.description}
+            </p>
+          )}
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-3">
@@ -172,6 +219,7 @@ export default function DelegationCard({
                       isDelegation
                       forwarded={sub.forwarded}
                       onForward={handleForward}
+                      canReviewDelegation={!isEmployee}
                     />
                   ))}
                 </div>

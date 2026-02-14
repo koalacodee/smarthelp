@@ -24,6 +24,8 @@ interface SubmissionItemProps {
   isDelegation?: boolean;
   forwarded?: boolean;
   onForward?: (submissionId: string) => void;
+  /** When false, hides Approve/Reject/Forward for delegation submissions (e.g. for employees) */
+  canReviewDelegation?: boolean;
 }
 
 export default function SubmissionItem({
@@ -31,6 +33,7 @@ export default function SubmissionItem({
   isDelegation,
   forwarded,
   onForward,
+  canReviewDelegation = true,
 }: SubmissionItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const locale = useLocaleStore((state) => state.locale);
@@ -38,6 +41,11 @@ export default function SubmissionItem({
   const { openModal } = useV2TaskPageStore();
 
   const hasContent = Boolean(submission.notes || submission.feedback);
+  // Attachments for forwarded delegations stay on the original delegation submission
+  const attachmentTargetId =
+    "delegationSubmissionId" in submission && submission.delegationSubmissionId
+      ? submission.delegationSubmissionId
+      : submission.id;
   const statusColor =
     statusColorMap[submission.status] ?? "bg-gray-100 text-gray-800";
   const initial = (submission.performerName ?? submission.performerType)
@@ -110,7 +118,7 @@ export default function SubmissionItem({
               ]}
             />
           )}
-          {isDelegation && canReview && (
+          {isDelegation && canReview && canReviewDelegation && (
             <ThreeDotMenu
               options={[
                 {
@@ -162,7 +170,7 @@ export default function SubmissionItem({
               {submission.feedback}
             </p>
           )}
-          <InlineAttachments targetId={submission.id} />
+          <InlineAttachments targetId={attachmentTargetId} />
         </div>
       )}
     </div>

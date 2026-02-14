@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// import { CheckCircle } from 'lucide-react';
 import CheckCircle from "@/icons/CheckCircle";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useV2TaskPageStore } from "../../_store/use-v2-task-page-store";
 import ModalShell from "../../_components/modals/ModalShell";
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import { useAttachments } from "@/hooks/useAttachments";
 import { TaskDelegationService } from "@/lib/api/v2";
+import { taskKeys } from "@/services/tasks";
 import type { DelegationResponse } from "@/services/tasks/types";
 
 export default function SubmitDelegationModal() {
   const locale = useLocaleStore((s) => s.locale);
+  const queryClient = useQueryClient();
   const { activeModal, modalPayload, closeModal } = useV2TaskPageStore();
   const isOpen = activeModal === "submit-delegation";
   const delegation = modalPayload as DelegationResponse | null;
@@ -76,6 +78,9 @@ export default function SubmitDelegationModal() {
 
       const fileHubUploadKey = response.uploadKey;
 
+      queryClient.invalidateQueries({
+        queryKey: [...taskKeys.all, "my-tasks"],
+      });
       if (hasFilesToUpload && fileHubUploadKey) {
         setUploadKeyV3(fileHubUploadKey);
         setIsWaitingToClose(true);

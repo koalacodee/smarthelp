@@ -46,6 +46,7 @@ export interface SubmitTaskDelegationForReviewResponse {
   delegation: TaskDelegationDTO;
   submission: TaskDelegationSubmissionDTO;
   uploadKey?: string;
+  fileHubUploadKey?: string;
 }
 
 export interface TaskDelegationSubmissionDTO {

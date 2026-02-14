@@ -280,10 +280,19 @@ export interface MyTaskItemResponse {
   approvalFeedback?: string;
 }
 
+export interface UnifiedMyTaskItemResponse {
+  type: "task" | "delegation";
+  taskId: string;
+  delegationId?: string;
+  task: TaskResponse;
+  rejectionReason?: string;
+  approvalFeedback?: string;
+  submissions?: TaskDelegationSubmissionResponse[];
+}
+
 export interface GetMyTasksResponse {
-  data: MyTaskItemResponse[];
+  data: UnifiedMyTaskItemResponse[];
   meta: CursorMeta;
-  delegations?: DelegationResponse[];
   fileHubAttachments: AttachmentResponse[];
   metrics: MyTasksMetricsResponse;
 }

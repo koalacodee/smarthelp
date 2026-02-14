@@ -6,25 +6,28 @@ import ThreeDotMenu, {
 import Eye from "@/icons/Eye";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import { useV2TaskPageStore } from "../../_store/use-v2-task-page-store";
-import { useMarkTaskSeen } from "@/services/tasks";
-import type { TaskResponse } from "@/services/tasks/types";
+import { useMarkTaskSeen, useMarkDelegationSeen } from "@/services/tasks";
+import type { UnifiedMyTaskItemResponse } from "@/services/tasks/types";
 
 interface MyTaskCardActionsProps {
-  task: TaskResponse;
+  item: UnifiedMyTaskItemResponse;
   rejectionReason?: string;
   approvalFeedback?: string;
 }
 
 export default function MyTaskCardActions({
-  task,
+  item,
   rejectionReason,
   approvalFeedback,
 }: MyTaskCardActionsProps) {
   const locale = useLocaleStore((s) => s.locale);
   const { openModal, role } = useV2TaskPageStore();
-  const markSeen = useMarkTaskSeen();
+  const markTaskSeen = useMarkTaskSeen();
+  const markDelegationSeen = useMarkDelegationSeen();
 
   if (!locale) return null;
+
+  const task = item.task;
 
   const handlePreview = () => {
     openModal("task-detail", task);
@@ -48,7 +51,13 @@ export default function MyTaskCardActions({
   if (task.status === "TODO") {
     options.push({
       label: locale.tasks.myTasks.actions.markAsSeen,
-      onClick: () => markSeen.mutate(task.id),
+      onClick: () => {
+        if (item.type === "delegation" && item.delegationId) {
+          markDelegationSeen.mutate(item.delegationId);
+        } else {
+          markTaskSeen.mutate(item.taskId);
+        }
+      },
       color: "blue",
     });
   }
@@ -56,7 +65,7 @@ export default function MyTaskCardActions({
   if (role === "supervisor") {
     options.push({
       label: locale.tasks.modals.delegation.title,
-      onClick: () => openModal("delegation", { taskId: task.id }),
+      onClick: () => openModal("delegation", { taskId: item.taskId }),
       color: "green",
     });
   }
