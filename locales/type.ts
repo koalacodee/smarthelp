@@ -1126,6 +1126,10 @@ export type Locale = {
         uploadFailed: string;
         missingUploadKey: string;
       };
+      fab: {
+        newTask: string;
+        fromPreset: string;
+      };
     };
     myTasks: {
       pageHeader: {
@@ -1138,6 +1142,7 @@ export type Locale = {
         totalTasks: string;
         completed: string;
         inProgress: string;
+        total: string;
       };
       filters: {
         title: string;
@@ -1182,12 +1187,28 @@ export type Locale = {
         missingUploadKey: string;
         addNotes: string;
       };
+      pageTitle: string;
+      tabs: {
+        tasks: string;
+        teamTasks: string;
+        myDelegations: string;
+      };
     };
     delegations: {
       pageHeader: {
         title: string;
         description: string;
         count: string;
+      };
+      modals: {
+        forward: {
+          title: string;
+          message: string;
+          messagePlaceholder: string;
+          cancel: string;
+          forward: string;
+          forwarding: string;
+        };
       };
       dashboard: {
         title: string;
@@ -1217,8 +1238,10 @@ export type Locale = {
       };
       empty: {
         title: string;
+        message?: string;
         hint: string;
       };
+      pageTitle?: string;
       loading: string;
       actions: {
         submitWork: string;
@@ -1240,6 +1263,8 @@ export type Locale = {
         uploadFailed: string;
         missingUploadKey: string;
         addNotes: string;
+        forwardSuccess: string;
+        forwardFailed: string;
       };
     };
     modals: {
@@ -1280,6 +1305,8 @@ export type Locale = {
           saveAsPreset: string;
           reminderValidationIncomplete: string;
           reminderValidationMinInterval: string;
+          selectDepartment: string;
+          selectSubDepartment: string;
         };
         priorityOptions: {
           low: string;
@@ -1289,6 +1316,7 @@ export type Locale = {
         buttons: {
           cancel: string;
           create: string;
+          creating: string;
         };
       };
       editTask: {
@@ -1338,6 +1366,7 @@ export type Locale = {
           create: string;
           creating: string;
         };
+        createFromPreset: string;
       };
       createFromPreset: {
         title: string;
@@ -1354,6 +1383,10 @@ export type Locale = {
           cancel: string;
           approve: string;
           approving: string;
+        };
+        fields: {
+          feedback: string;
+          feedbackPlaceholder: string;
         };
       };
       rejection: {
@@ -1406,6 +1439,20 @@ export type Locale = {
       rejectionFailed: string;
       taskRejectionSuccess: string;
       taskRejectionFailed: string;
+      taskCreated: string;
+      taskUpdated: string;
+      taskRejected: string;
+      workSubmitted: string;
+    };
+    details: {
+      buttons: {
+        close: string;
+      };
+      labels: {
+        reminders: string;
+        dueDate: string;
+        priority: string;
+      };
     };
   };
   userActivity: {

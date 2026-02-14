@@ -80,7 +80,7 @@ const getTabs = (locale: any): Tab[] => [
     id: "tasks",
     label: locale.components.sidebar.tabs.tasks,
     icon: <CheckCircle className={ICON_SIZE} />,
-    href: "/tasks",
+    href: "/v2/tasks",
     allowed: (r, p) =>
       r === "ADMIN" ||
       (r === "SUPERVISOR" && p.includes(SupervisorPermissions.MANAGE_TASKS)) ||
@@ -88,11 +88,11 @@ const getTabs = (locale: any): Tab[] => [
     subLinks: [
       {
         label: locale.components.sidebar.tabs.teamTasks,
-        href: "/tasks",
+        href: "/v2/tasks",
       },
       {
         label: locale.components.sidebar.tabs.myTasks,
-        href: "/tasks/my-tasks",
+        href: "/v2/tasks/my-tasks",
       },
     ],
   },
@@ -265,12 +265,12 @@ function SidebarContent({
               } else if (user?.role === "ADMIN") {
                 // Admins see Team Tasks only
                 filteredSubLinks = tab.subLinks?.filter(
-                  (subLink) => subLink.href === "/tasks"
+                  (subLink) => subLink.href === "/v2/tasks"
                 );
               } else {
                 // Employees only see My Tasks
                 filteredSubLinks = tab.subLinks?.filter(
-                  (subLink) => subLink.href === "/tasks/my-tasks"
+                  (subLink) => subLink.href === "/v2/tasks/my-tasks"
                 );
               }
             } else if (tab.id === "faqsAndCategories" && tab.subLinks) {

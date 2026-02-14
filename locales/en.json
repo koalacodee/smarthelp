@@ -1123,6 +1123,10 @@
         "restartFailed": "Failed to restart task. Please try again.",
         "uploadFailed": "Failed to upload new attachments. Please try again.",
         "missingUploadKey": "Missing upload key for new attachments. Please retry the upload."
+      },
+      "fab": {
+        "newTask": "Create New Task",
+        "fromPreset": "Create from Preset"
       }
     },
     "myTasks": {
@@ -1135,7 +1139,8 @@
         "title": "My Dashboard",
         "totalTasks": "Total Tasks",
         "completed": "Completed",
-        "inProgress": "In Progress"
+        "inProgress": "In Progress",
+        "total": "Total"
       },
       "filters": {
         "title": "Filters & Search",
@@ -1179,6 +1184,12 @@
         "uploadFailed": "Failed to upload new attachments. Please try again.",
         "missingUploadKey": "Missing upload key for new attachments. Please retry the upload.",
         "addNotes": "Please add completion notes"
+      },
+      "pageTitle": "My Tasks",
+      "tabs": {
+        "tasks": "My Tasks",
+        "teamTasks": "Team Tasks",
+        "myDelegations": "My Delegations"
       }
     },
     "delegations": {
@@ -1186,6 +1197,16 @@
         "title": "My Delegations",
         "description": "Manage tasks delegated to you",
         "count": "{count} delegation{plural} assigned"
+      },
+      "modals": {
+        "forward": {
+          "title": "Forward Submission",
+          "message": "Message (optional)",
+          "messagePlaceholder": "Add a note for the recipient...",
+          "cancel": "Cancel",
+          "forward": "Forward",
+          "forwarding": "Forwarding..."
+        }
       },
       "dashboard": {
         "title": "Delegations Dashboard",
@@ -1215,8 +1236,10 @@
       },
       "empty": {
         "title": "No delegations found",
+        "message": "There are no delegations matching your current filters.",
         "hint": "Try adjusting your search or filter criteria"
       },
+      "pageTitle": "My Delegations",
       "loading": "Loading delegations...",
       "actions": {
         "submitWork": "Submit Work",
@@ -1237,7 +1260,9 @@
         "submitFailed": "Failed to submit delegation. Please try again.",
         "uploadFailed": "Failed to upload new attachments. Please try again.",
         "missingUploadKey": "Missing upload key for new attachments. Please retry the upload.",
-        "addNotes": "Please add completion notes"
+        "addNotes": "Please add completion notes",
+        "forwardSuccess": "Submission forwarded successfully!",
+        "forwardFailed": "Failed to forward submission. Please try again."
       }
     },
     "modals": {
@@ -1278,7 +1303,9 @@
           "setDueDateForDaysBeforeDeadline": "Set a due date above for \"days before deadline\" to apply.",
           "saveAsPreset": "Save as Preset",
           "reminderValidationIncomplete": "Each reminder must have a name and date/time.",
-          "reminderValidationMinInterval": "Reminder repeat interval must be at least 1 minute."
+          "reminderValidationMinInterval": "Reminder repeat interval must be at least 1 minute.",
+          "selectDepartment": "Select Department",
+          "selectSubDepartment": "Select Sub-Department"
         },
         "priorityOptions": {
           "low": "Low",
@@ -1287,7 +1314,8 @@
         },
         "buttons": {
           "cancel": "Cancel",
-          "create": "Create Task"
+          "create": "Create Task",
+          "creating": "Creating..."
         }
       },
       "editTask": {
@@ -1336,7 +1364,8 @@
           "close": "Close",
           "create": "Create Task",
           "creating": "Creating..."
-        }
+        },
+        "createFromPreset": "Create Task from Preset"
       },
       "createFromPreset": {
         "title": "Create Task from Preset",
@@ -1353,6 +1382,10 @@
           "cancel": "Cancel",
           "approve": "Approve",
           "approving": "Approving..."
+        },
+        "fields": {
+          "feedback": "Feedback (Optional)",
+          "feedbackPlaceholder": "Provide feedback for the submission..."
         }
       },
       "rejection": {
@@ -1404,7 +1437,21 @@
       "rejectionSuccess": "Submission rejected successfully!",
       "rejectionFailed": "Failed to reject submission. Please try again.",
       "taskRejectionSuccess": "Task rejected successfully!",
-      "taskRejectionFailed": "Failed to reject task. Please try again."
+      "taskRejectionFailed": "Failed to reject task. Please try again.",
+      "taskCreated": "Task Created Successfully!",
+      "taskUpdated": "Task Updated Successfully!",
+      "taskRejected": "Task Rejected Successfully!",
+      "workSubmitted": "Work Submitted Successfully!"
+    },
+    "details": {
+      "buttons": {
+        "close": "Close"
+      },
+      "labels": {
+        "reminders": "Reminders",
+        "dueDate": "Due Date",
+        "priority": "Priority"
+      }
     }
   },
   "userActivity": {

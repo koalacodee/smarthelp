@@ -118,10 +118,10 @@ const getNotificationHref = (
     case "task_created":
     case "task_approved":
     case "task_rejected":
-      return isSupervisor ? "/tasks/my-tasks" : "/tasks";
+      return isSupervisor ? "/v2/tasks/my-tasks" : "/v2/tasks";
     case "task_delegation_created":
     case "task_submitted":
-      return "/tasks";
+      return "/v2/tasks";
 
     // Ticket notifications -> Tickets page
     case "ticket_assigned":

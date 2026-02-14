@@ -29,7 +29,7 @@ export default async function Page() {
   const userRole = user.user.role;
 
   if (userRole === "EMPLOYEE") {
-    return redirect("/tasks/my-tasks");
+    return redirect("/v2/tasks/my-tasks");
   }
 
   // Fetch locale and language

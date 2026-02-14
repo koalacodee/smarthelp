@@ -7,7 +7,6 @@ export interface SpecificReminderEntry {
   id: string;
   name: string;
   dateTime: string;
-  /** Repeat interval: days (0 = one-time). Converted to ms for API. */
   intervalDays: number;
   intervalHours: number;
   intervalMinutes: number;

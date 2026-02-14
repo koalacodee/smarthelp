@@ -39,7 +39,7 @@ export default function EmployeeDashboardContent({
   const quickActions = [
     {
       label: storeLocale.dashboard.employee.quickActions.myTasks,
-      href: "/tasks/my-tasks",
+      href: "/v2/tasks/my-tasks",
       icon: <CheckCircle className="h-4 w-4" />,
     },
     {
@@ -204,7 +204,7 @@ function PendingTasksList({ tasks }: { tasks: EmployeePendingTask[] }) {
           {locale.dashboard.employee.pendingTasks.title} ({tasks.length})
         </motion.h3>
         <Link
-          href="/tasks/my-tasks"
+          href="/v2/tasks/my-tasks"
           className="text-xs font-medium text-blue-600 hover:text-blue-700"
         >
           {locale.dashboard.employee.pendingTasks.viewAll}

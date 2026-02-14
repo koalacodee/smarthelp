@@ -1123,6 +1123,10 @@
         "restartFailed": "فشل في إعادة تشغيل المهمة. يرجى المحاولة مرة أخرى.",
         "uploadFailed": "فشل في رفع المرفقات الجديدة. يرجى المحاولة مرة أخرى.",
         "missingUploadKey": "مفتاح الرفع مفقود للمرفقات الجديدة. يرجى إعادة محاولة الرفع."
+      },
+      "fab": {
+        "newTask": "إنشاء مهمة جديدة",
+        "fromPreset": "إنشاء من مسبقة"
       }
     },
     "myTasks": {
@@ -1135,7 +1139,8 @@
         "title": "لوحة تحكمي",
         "totalTasks": "إجمالي المهام",
         "completed": "مكتملة",
-        "inProgress": "قيد التنفيذ"
+        "inProgress": "قيد التنفيذ",
+        "total": "إجمالي"
       },
       "filters": {
         "title": "الفلاتر والبحث",
@@ -1179,6 +1184,12 @@
         "uploadFailed": "فشل في رفع المرفقات الجديدة. يرجى المحاولة مرة أخرى.",
         "missingUploadKey": "مفتاح الرفع مفقود للمرفقات الجديدة. يرجى إعادة محاولة الرفع.",
         "addNotes": "يرجى إضافة ملاحظات الإنجاز"
+      },
+      "pageTitle": "مهامي",
+      "tabs": {
+        "tasks": "مهامي",
+        "teamTasks": "مهام الفريق",
+        "myDelegations": "تفويضاتى"
       }
     },
     "delegations": {
@@ -1192,6 +1203,16 @@
         "totalDelegations": "إجمالي التفويضات",
         "completed": "مكتملة",
         "inProgress": "قيد التنفيذ"
+      },
+      "modals": {
+        "forward": {
+          "title": "إعادة توجيه الإرسال",
+          "message": "الرسالة (اختياري)",
+          "messagePlaceholder": "أضف ملاحظة للمستلم...",
+          "cancel": "إلغاء",
+          "forward": "إعادة توجيه",
+          "forwarding": "جاري الإعادة توجيه..."
+        }
       },
       "filters": {
         "title": "الفلاتر والبحث",
@@ -1215,8 +1236,10 @@
       },
       "empty": {
         "title": "لم يتم العثور على تفويضات",
+        "message": "لا توجد تفويضات تطابق الفلاتر الحالية.",
         "hint": "حاول تعديل معايير البحث أو الفلتر"
       },
+      "pageTitle": "تفويضاتي",
       "loading": "جاري تحميل التفويضات...",
       "actions": {
         "submitWork": "إرسال العمل",
@@ -1237,7 +1260,9 @@
         "submitFailed": "فشل في إرسال التفويض. يرجى المحاولة مرة أخرى.",
         "uploadFailed": "فشل في رفع المرفقات الجديدة. يرجى المحاولة مرة أخرى.",
         "missingUploadKey": "مفتاح الرفع مفقود للمرفقات الجديدة. يرجى إعادة محاولة الرفع.",
-        "addNotes": "يرجى إضافة ملاحظات الإنجاز"
+        "addNotes": "يرجى إضافة ملاحظات الإنجاز",
+        "forwardSuccess": "تم إعادة توجيه الإرسال بنجاح!",
+        "forwardFailed": "فشل في إعادة توجيه الإرسال. يرجى المحاولة مرة أخرى."
       }
     },
     "modals": {
@@ -1278,7 +1303,9 @@
           "setDueDateForDaysBeforeDeadline": "حدد تاريخ الاستحقاق أعلاه لتطبيق \"أيام قبل الموعد النهائي\".",
           "saveAsPreset": "حفظ كقالب",
           "reminderValidationIncomplete": "يجب أن يحتوي كل تذكير على اسم وتاريخ/وقت.",
-          "reminderValidationMinInterval": "يجب أن يكون فاصل تكرار التذكير دقيقة واحدة على الأقل."
+          "reminderValidationMinInterval": "يجب أن يكون فاصل تكرار التذكير دقيقة واحدة على الأقل.",
+          "selectDepartment": "إختار القسم",
+          "selectSubDepartment": "إختار القسم الفرعي"
         },
         "priorityOptions": {
           "low": "منخفضة",
@@ -1287,7 +1314,8 @@
         },
         "buttons": {
           "cancel": "إلغاء",
-          "create": "إنشاء مهمة"
+          "create": "إنشاء مهمة",
+          "creating": "جاري الإنشاء..."
         }
       },
       "editTask": {
@@ -1336,7 +1364,8 @@
           "close": "إغلاق",
           "create": "إنشاء مهمة",
           "creating": "جاري الإنشاء..."
-        }
+        },
+        "createFromPreset": "إنشاء مهمة من قالب"
       },
       "createFromPreset": {
         "title": "إنشاء مهمة من قالب",
@@ -1353,6 +1382,10 @@
           "cancel": "إلغاء",
           "approve": "موافقة",
           "approving": "جاري الموافقة..."
+        },
+        "fields": {
+          "feedback": "التعليق (اختياري)",
+          "feedbackPlaceholder": "أضف تعليقًا للمراجعة..."
         }
       },
       "rejection": {
@@ -1404,7 +1437,21 @@
       "rejectionSuccess": "تم رفض الإرسال بنجاح!",
       "rejectionFailed": "فشل في رفض الإرسال. يرجى المحاولة مرة أخرى.",
       "taskRejectionSuccess": "تم رفض المهمة بنجاح!",
-      "taskRejectionFailed": "فشل في رفض المهمة. يرجى المحاولة مرة أخرى."
+      "taskRejectionFailed": "فشل في رفض المهمة. يرجى المحاولة مرة أخرى.",
+      "taskCreated": "تم إنشاء مهمة جديدة بنجاح!",
+      "taskUpdated": "تم تحديث المهمة بنجاح!",
+      "taskRejected": "تم رفض المهمة بنجاح!",
+      "workSubmitted": "تم إرسال تنفيذ المهمة للمراجعة بنجاح!"
+    },
+    "details": {
+      "buttons": {
+        "close": "إغلاق"
+      },
+      "labels": {
+        "reminders": "التذكيرات",
+        "dueDate": "تاريخ الاستحقاق",
+        "priority": "الأولوية"
+      }
     }
   },
   "userActivity": {

@@ -1,0 +1,99 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useLocaleStore } from "@/lib/store/useLocaleStore";
+
+interface MyDelegationsDashboardProps {
+  total: number;
+  completedCount: number;
+  pendingCount: number;
+  completionPercentage: number;
+}
+
+export default function MyDelegationsDashboard({
+  total,
+  completedCount,
+  pendingCount,
+  completionPercentage,
+}: MyDelegationsDashboardProps) {
+  const locale = useLocaleStore((state) => state.locale);
+
+  if (!locale) return null;
+
+  return (
+    <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-5">
+      <motion.h3
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="text-base font-semibold mb-4 text-[#4a5568]"
+      >
+        {locale.tasks.delegations?.dashboard?.title ?? "Delegations Dashboard"}
+      </motion.h3>
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: "backOut" }}
+        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 relative"
+        style={{
+          background: `conic-gradient(
+            #9333ea 0deg ${completionPercentage * 3.6}deg,
+            #e2e8f0 ${completionPercentage * 3.6}deg 360deg
+          )`,
+        }}
+      >
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="text-lg font-bold bg-white rounded-full w-16 h-16 flex items-center justify-center"
+        >
+          {completionPercentage}%
+        </motion.span>
+      </motion.div>
+
+      <motion.ul
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="list-none"
+      >
+        {[
+          {
+            icon: "📋",
+            label: locale.tasks.delegations?.dashboard?.totalDelegations ?? "Total Delegations",
+            value: total,
+            color: "text-[#9333ea]",
+          },
+          {
+            icon: "✅",
+            label: locale.tasks.delegations?.dashboard?.completed ?? "Completed",
+            value: completedCount,
+            color: "text-[#48bb78]",
+          },
+          {
+            icon: "🟡",
+            label: locale.tasks.delegations?.dashboard?.inProgress ?? "In Progress",
+            value: pendingCount,
+            color: "text-[#f59e0b]",
+          },
+        ].map((item, index) => (
+          <motion.li
+            key={item.label}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+            whileHover={{ x: 5, transition: { duration: 0.2 } }}
+            className={`flex justify-between py-2.5 ${
+              index < 2 ? "border-b border-[#e2e8f0]" : ""
+            } text-sm`}
+          >
+            <span className="mr-1.5">{item.icon}</span>
+            <span className="flex-1">{item.label}</span>
+            <span className={item.color}>{item.value}</span>
+          </motion.li>
+        ))}
+      </motion.ul>
+    </div>
+  );
+}

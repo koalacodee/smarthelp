@@ -59,6 +59,17 @@ const pageAccess: Record<string, (r: string, p: string[]) => boolean> = {
     r !== "EMPLOYEE" ||
     (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
 
+  // Tasks v2
+  "/v2/tasks": (r, p) =>
+    r === "ADMIN" ||
+    (r === "SUPERVISOR" && p.includes(SupervisorPermissions.MANAGE_TASKS)) ||
+    (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
+
+  // My Tasks v2
+  "/v2/tasks/my-tasks": (r, p) =>
+    r !== "EMPLOYEE" ||
+    (r === "EMPLOYEE" && p.includes(EmployeePermissions.HANDLE_TASKS)),
+
   // Manage Team
   "/manage-team": (r) => r !== "EMPLOYEE",
 

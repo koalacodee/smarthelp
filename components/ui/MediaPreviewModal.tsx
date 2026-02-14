@@ -7,6 +7,8 @@ import api from "@/lib/api";
 import { usePathname } from "next/navigation";
 import { env } from "next-runtime-env";
 import { UploadService } from "@/lib/api/v2";
+import dynamic from "next/dynamic";
+const PDFViewer = dynamic(() => import("@/components/PDFViewer"), { ssr: false });
 
 export default function MediaPreviewModal() {
   const baseUrl = api.client.defaults.baseURL;
@@ -115,6 +117,10 @@ export default function MediaPreviewModal() {
     return ["mp3", "wav", "ogg", "aac", "flac", "m4a", "audio"].includes(
       fileType.toLowerCase()
     );
+  };
+
+  const isPDF = (fileType: string) => {
+    return fileType.toLowerCase() === "pdf";
   };
 
   const formatFileSize = (bytes?: number) => {
@@ -263,9 +269,14 @@ export default function MediaPreviewModal() {
                 </div>
               )}
 
+              {isPDF(fileType) && (
+                <PDFViewer pdfUrl={mediaUrl} />
+              )}
+
               {!isImage(fileType) &&
                 !isVideo(fileType) &&
-                !isAudio(fileType) && (
+                !isAudio(fileType) &&
+                !isPDF(fileType) && (
                   <div className="text-center">
                     <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg
