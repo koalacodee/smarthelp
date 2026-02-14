@@ -644,6 +644,8 @@
           "title": "No members yet",
           "hint": "Add members to grant them access to TV content displays"
         },
+        "departmentColumn": "DEPARTMENT",
+        "unassigned": "—",
         "table": {
           "name": "Name",
           "attachmentGroup": "Attachment Group",
@@ -662,6 +664,9 @@
           "namePlaceholder": "Enter member name",
           "groupLabel": "Attachment Group",
           "groupPlaceholder": "Select a group",
+          "departmentLabel": "Department",
+          "departmentPlaceholder": "Select a department",
+          "departmentStatic": "Department",
           "cancel": "Cancel",
           "add": "Add Member"
         },
@@ -671,6 +676,9 @@
           "namePlaceholder": "Enter member name",
           "groupLabel": "Attachment Group",
           "groupPlaceholder": "Select a group",
+          "departmentLabel": "Department",
+          "departmentPlaceholder": "Select a department",
+          "departmentStatic": "Department",
           "cancel": "Cancel",
           "update": "Update Member"
         },

@@ -12,6 +12,7 @@ export interface AddMemberRequest {
   otp: string;
   name: string;
   attachmentGroupId: UUID;
+  departmentId?: UUID;
 }
 
 export interface MemberDetails {
@@ -47,6 +48,7 @@ export interface MemberWithGroupDetails {
     updatedAt: Date;
     createdById: UUID;
   };
+  department?: { id: string; name: string } | null;
 }
 
 export interface GetAllMembersResponse {
@@ -61,7 +63,22 @@ export interface GetAllMembersResponse {
 export interface UpdateMemberRequest {
   name?: string;
   attachmentGroupId?: UUID;
+  departmentId?: UUID;
 }
+
+export type AvailableDepartmentsResponse =
+  | {
+      role: "admin";
+      mainDepartments: Array<{
+        id: string;
+        name: string;
+        subDepartments: Array<{ id: string; name: string }>;
+      }>;
+    }
+  | {
+      role: "supervisor" | "employee";
+      departments: Array<{ id: string; name: string }>;
+    };
 
 export interface UpdateMemberResponse {
   member: MemberDetails;
@@ -105,6 +122,13 @@ export class AttachmentGroupMemberManagementService {
       "/filehub/attachment-groups/members",
       body
     );
+    return data.data;
+  }
+
+  async getAvailableDepartmentsForMember(): Promise<AvailableDepartmentsResponse> {
+    const { data } = await this.http.get<
+      JSend<AvailableDepartmentsResponse>
+    >("/filehub/attachment-groups/members/available-departments");
     return data.data;
   }
 

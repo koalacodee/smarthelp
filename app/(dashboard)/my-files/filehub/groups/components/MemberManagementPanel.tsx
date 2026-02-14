@@ -6,6 +6,7 @@ import type {
   MemberWithGroupDetails,
   AddMemberRequest,
   UpdateMemberRequest,
+  AvailableDepartmentsResponse,
 } from "@/lib/api/v2/services/membership-management";
 import { useAttachmentGroupsStore } from "../store/useAttachmentGroupsStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -28,11 +29,14 @@ export default function MemberManagementPanel() {
   const [selectedMember, setSelectedMember] =
     useState<MemberWithGroupDetails | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [availableDepartments, setAvailableDepartments] =
+    useState<AvailableDepartmentsResponse | null>(null);
 
   // Form states
   const [otp, setOtp] = useState("");
   const [memberName, setMemberName] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
 
   const { attachmentGroups } = useAttachmentGroupsStore();
   const { addToast } = useToastStore();
@@ -45,7 +49,19 @@ export default function MemberManagementPanel() {
 
   useEffect(() => {
     loadMembers();
+    loadAvailableDepartments();
   }, []);
+
+  const loadAvailableDepartments = async () => {
+    try {
+      const data =
+        await MemberManagementService.getAvailableDepartmentsForMember();
+      setAvailableDepartments(data);
+    } catch {
+      // Non-blocking: department selection will be empty
+      setAvailableDepartments(null);
+    }
+  };
 
   const loadMembers = async () => {
     try {
@@ -85,6 +101,7 @@ export default function MemberManagementPanel() {
         otp,
         name: memberName,
         attachmentGroupId: selectedGroupId,
+        ...(selectedDepartmentId && { departmentId: selectedDepartmentId }),
       };
 
       await MemberManagementService.addMember(request);
@@ -114,6 +131,9 @@ export default function MemberManagementPanel() {
       const request: UpdateMemberRequest = {
         name: memberName || undefined,
         attachmentGroupId: selectedGroupId || undefined,
+        ...(selectedDepartmentId !== undefined && {
+          departmentId: selectedDepartmentId || undefined,
+        }),
       };
 
       await MemberManagementService.updateMember(selectedMember.id, request);
@@ -168,6 +188,13 @@ export default function MemberManagementPanel() {
 
   const openAddModal = () => {
     resetForm();
+    // Auto-assign department if supervisor/employee has exactly one
+    if (availableDepartments && availableDepartments.role !== "admin") {
+      const depts = availableDepartments.departments;
+      if (depts.length === 1) {
+        setSelectedDepartmentId(depts[0].id);
+      }
+    }
     setIsAddModalOpen(true);
   };
 
@@ -175,6 +202,7 @@ export default function MemberManagementPanel() {
     setSelectedMember(member);
     setMemberName(member.name);
     setSelectedGroupId(member.attachmentGroup.id);
+    setSelectedDepartmentId(member.department?.id ?? "");
     setIsEditModalOpen(true);
   };
 
@@ -182,6 +210,7 @@ export default function MemberManagementPanel() {
     setOtp("");
     setMemberName("");
     setSelectedGroupId("");
+    setSelectedDepartmentId("");
     setSelectedMember(null);
   };
 
@@ -319,6 +348,9 @@ export default function MemberManagementPanel() {
                   ATTACHMENT GROUP
                 </th>
                 <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {locale.myFiles.groups.members.departmentColumn}
+                </th>
+                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                   CREATED
                 </th>
                 <th className="pb-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -361,6 +393,10 @@ export default function MemberManagementPanel() {
                       >
                         {member.attachmentGroup.name}
                       </span>
+                    </td>
+                    <td className="py-3 text-sm text-slate-600">
+                      {member.department?.name ??
+                        locale.myFiles.groups.members.unassigned}
                     </td>
                     <td className="py-3 text-xs text-slate-500">
                       {formattedDate}
@@ -454,6 +490,68 @@ export default function MemberManagementPanel() {
                 </select>
               </div>
 
+              {availableDepartments && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {locale.myFiles.groups.members.addModal.departmentLabel}
+                  </label>
+                  {availableDepartments.role === "admin" ? (
+                    <select
+                      value={selectedDepartmentId}
+                      onChange={(e) =>
+                        setSelectedDepartmentId(e.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="">
+                        {
+                          locale.myFiles.groups.members.addModal
+                            .departmentPlaceholder
+                        }
+                      </option>
+                      {availableDepartments.mainDepartments.map((main) => (
+                        <optgroup key={main.id} label={main.name}>
+                          <option value={main.id}>{main.name}</option>
+                          {main.subDepartments.map((sub) => (
+                            <option key={sub.id} value={sub.id}>
+                              {sub.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  ) : availableDepartments.departments.length === 1 ? (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                      {
+                        locale.myFiles.groups.members.addModal
+                          .departmentStatic
+                      }
+                      : {availableDepartments.departments[0].name}
+                    </div>
+                  ) : availableDepartments.departments.length > 1 ? (
+                    <select
+                      value={selectedDepartmentId}
+                      onChange={(e) =>
+                        setSelectedDepartmentId(e.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="">
+                        {
+                          locale.myFiles.groups.members.addModal
+                            .departmentPlaceholder
+                        }
+                      </option>
+                      {availableDepartments.departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -516,6 +614,68 @@ export default function MemberManagementPanel() {
                   ))}
                 </select>
               </div>
+
+              {availableDepartments && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {locale.myFiles.groups.members.editModal.departmentLabel}
+                  </label>
+                  {availableDepartments.role === "admin" ? (
+                    <select
+                      value={selectedDepartmentId}
+                      onChange={(e) =>
+                        setSelectedDepartmentId(e.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="">
+                        {
+                          locale.myFiles.groups.members.editModal
+                            .departmentPlaceholder
+                        }
+                      </option>
+                      {availableDepartments.mainDepartments.map((main) => (
+                        <optgroup key={main.id} label={main.name}>
+                          <option value={main.id}>{main.name}</option>
+                          {main.subDepartments.map((sub) => (
+                            <option key={sub.id} value={sub.id}>
+                              {sub.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  ) : availableDepartments.departments.length === 1 ? (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                      {
+                        locale.myFiles.groups.members.editModal
+                          .departmentStatic
+                      }
+                      : {availableDepartments.departments[0].name}
+                    </div>
+                  ) : availableDepartments.departments.length > 1 ? (
+                    <select
+                      value={selectedDepartmentId}
+                      onChange={(e) =>
+                        setSelectedDepartmentId(e.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="">
+                        {
+                          locale.myFiles.groups.members.editModal
+                            .departmentPlaceholder
+                        }
+                      </option>
+                      {availableDepartments.departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button

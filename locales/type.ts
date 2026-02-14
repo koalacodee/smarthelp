@@ -642,6 +642,8 @@ export type Locale = {
         description: string;
         addButton: string;
         loading: string;
+        departmentColumn: string;
+        unassigned: string;
         empty: {
           title: string;
           hint: string;
@@ -664,6 +666,9 @@ export type Locale = {
           namePlaceholder: string;
           groupLabel: string;
           groupPlaceholder: string;
+          departmentLabel: string;
+          departmentPlaceholder: string;
+          departmentStatic: string;
           cancel: string;
           add: string;
         };
@@ -673,6 +678,9 @@ export type Locale = {
           namePlaceholder: string;
           groupLabel: string;
           groupPlaceholder: string;
+          departmentLabel: string;
+          departmentPlaceholder: string;
+          departmentStatic: string;
           cancel: string;
           update: string;
         };

@@ -644,6 +644,8 @@
           "title": "لا يوجد أعضاء بعد",
           "hint": "أضف أعضاءً لمنحهم الوصول إلى عروض محتوى التلفزيون"
         },
+        "departmentColumn": "القسم",
+        "unassigned": "—",
         "table": {
           "name": "الاسم",
           "attachmentGroup": "مجموعة المرفقات",
@@ -662,6 +664,9 @@
           "namePlaceholder": "أدخل اسم العضو",
           "groupLabel": "مجموعة المرفقات",
           "groupPlaceholder": "اختر مجموعة",
+          "departmentLabel": "القسم",
+          "departmentPlaceholder": "اختر قسمًا",
+          "departmentStatic": "القسم",
           "cancel": "إلغاء",
           "add": "إضافة عضو"
         },
@@ -671,6 +676,9 @@
           "namePlaceholder": "أدخل اسم العضو",
           "groupLabel": "مجموعة المرفقات",
           "groupPlaceholder": "اختر مجموعة",
+          "departmentLabel": "القسم",
+          "departmentPlaceholder": "اختر قسمًا",
+          "departmentStatic": "القسم",
           "cancel": "إلغاء",
           "update": "تحديث العضو"
         },
