@@ -72,6 +72,7 @@ export type AvailableDepartmentsResponse =
       mainDepartments: Array<{
         id: string;
         name: string;
+        includeMainAsOption?: boolean;
         subDepartments: Array<{ id: string; name: string }>;
       }>;
     }

@@ -511,7 +511,9 @@ export default function MemberManagementPanel() {
                       </option>
                       {availableDepartments.mainDepartments.map((main) => (
                         <optgroup key={main.id} label={main.name}>
-                          <option value={main.id}>{main.name}</option>
+                          {main.includeMainAsOption !== false && (
+                            <option value={main.id}>{main.name}</option>
+                          )}
                           {main.subDepartments.map((sub) => (
                             <option key={sub.id} value={sub.id}>
                               {sub.name}
@@ -636,7 +638,9 @@ export default function MemberManagementPanel() {
                       </option>
                       {availableDepartments.mainDepartments.map((main) => (
                         <optgroup key={main.id} label={main.name}>
-                          <option value={main.id}>{main.name}</option>
+                          {main.includeMainAsOption !== false && (
+                            <option value={main.id}>{main.name}</option>
+                          )}
                           {main.subDepartments.map((sub) => (
                             <option key={sub.id} value={sub.id}>
                               {sub.name}
