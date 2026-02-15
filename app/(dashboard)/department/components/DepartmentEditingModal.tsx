@@ -23,6 +23,7 @@ export default function DepartmentEditingModal() {
   const { addToast } = useToastStore();
   const [name, setName] = useState("");
   const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
+  const [isExposedToTvContent, setIsExposedToTvContent] = useState(false);
   const [knowledge, setKnowledge] = useState<undefined | string>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const addDepartment = useDepartmentsStore((state) => state.addDepartment);
@@ -34,10 +35,12 @@ export default function DepartmentEditingModal() {
     if (department) {
       setName(department.name);
       setVisibility(department.visibility);
+      setIsExposedToTvContent(department.isExposedToTvContent ?? false);
       setKnowledge(undefined);
     } else {
       setName("");
       setVisibility("PUBLIC");
+      setIsExposedToTvContent(false);
       setKnowledge(undefined);
     }
   }, [department]);
@@ -51,6 +54,7 @@ export default function DepartmentEditingModal() {
       const dto: CreateDepartmentInputDto = {
         name,
         visibility: DepartmentVisibility[visibility],
+        isExposedToTvContent,
         knowledgeChunkContent:
           mode === "add" && knowledge ? knowledge : undefined,
       };
@@ -61,6 +65,7 @@ export default function DepartmentEditingModal() {
             id: dept.id,
             name: dept.name,
             visibility: dept.visibility,
+            isExposedToTvContent: dept.isExposedToTvContent,
           })
         );
         addToast({
@@ -73,6 +78,7 @@ export default function DepartmentEditingModal() {
             updateDepartment(dept.id, {
               name: dept.name,
               visibility: dept.visibility,
+              isExposedToTvContent: dept.isExposedToTvContent,
             });
           }
         );
@@ -188,6 +194,21 @@ export default function DepartmentEditingModal() {
                     {errors.visibility}
                   </p>
                 )}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isExposedToTvContent"
+                  checked={isExposedToTvContent}
+                  onChange={(e) => setIsExposedToTvContent(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
+                />
+                <label
+                  htmlFor="isExposedToTvContent"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Expose to TV content
+                </label>
               </div>
               {mode === "add" && (
                 <div>

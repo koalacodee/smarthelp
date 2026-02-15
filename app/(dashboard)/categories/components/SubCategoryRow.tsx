@@ -22,13 +22,20 @@ export default function SubCategoryRow({ subCategory, animationDelay = 0 }: SubC
             <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                     <span className="w-2 h-2 rounded-full bg-indigo-400" />
-                    <div>
-                        <p className="text-sm font-medium text-slate-900">
-                            {subCategory.name}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                            {locale.categories.subCategoriesTable.underLabel} {subCategory.parent?.name || "Unknown"}
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">
+                                {subCategory.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                                {locale.categories.subCategoriesTable.underLabel} {subCategory.parent?.name || "Unknown"}
+                            </p>
+                        </div>
+                        {subCategory.isExposedToTvContent && (
+                            <span className="flex items-center gap-1 text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                                {locale.categories.categoryCard.exposedToTv}
+                            </span>
+                        )}
                     </div>
                 </div>
             </td>

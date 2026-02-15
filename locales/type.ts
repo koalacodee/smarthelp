@@ -36,6 +36,7 @@ export type Locale = {
       noKnowledgeChunks: string;
       public: string;
       private: string;
+      exposedToTv: string;
     };
     categoryModal: {
       addTitle: string;
@@ -45,6 +46,8 @@ export type Locale = {
       visibilityLabel: string;
       visibilityPublic: string;
       visibilityPrivate: string;
+      exposeToTvLabel: string;
+      exposeToTvHint: string;
       initialKnowledgeLabel: string;
       initialKnowledgePlaceholder: string;
       cancel: string;
@@ -59,6 +62,7 @@ export type Locale = {
       namePlaceholder: string;
       parentLabel: string;
       parentPlaceholder: string;
+      exposeToTvLabel: string;
       cancel: string;
       saving: string;
       saveChanges: string;

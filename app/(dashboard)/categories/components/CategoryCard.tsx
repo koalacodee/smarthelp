@@ -50,6 +50,11 @@ export default function CategoryCard({
           <div className="flex items-center gap-2">
             <h4 className="font-semibold text-slate-800">{category.name}</h4>
             <VisibilityBadge visibility={category.visibility} />
+            {category.isExposedToTvContent && (
+              <span className="flex items-center gap-1 text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                {locale.categories.categoryCard.exposedToTv}
+              </span>
+            )}
           </div>
         </div>
 

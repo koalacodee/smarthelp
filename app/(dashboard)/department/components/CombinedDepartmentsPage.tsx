@@ -213,14 +213,21 @@ export default function CombinedDepartmentsPage({
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 bg-indigo-400 rounded-full" />
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">
-                                {subDepartment.name}
-                              </p>
-                              <p className="text-xs text-slate-500">
-                                Under Category:{" "}
-                                {subDepartment.parent?.name || "Unknown"}
-                              </p>
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {subDepartment.name}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  Under Category:{" "}
+                                  {subDepartment.parent?.name || "Unknown"}
+                                </p>
+                              </div>
+                              {subDepartment.isExposedToTvContent && (
+                                <span className="flex items-center gap-1 text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                                  TV
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>

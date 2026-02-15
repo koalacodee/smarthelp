@@ -21,6 +21,7 @@ export default function EditSubDepartmentModal() {
   const [formData, setFormData] = useState({
     name: "",
     parentId: "",
+    isExposedToTvContent: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -30,6 +31,7 @@ export default function EditSubDepartmentModal() {
       setFormData({
         name: currentSubDepartment.name,
         parentId: currentSubDepartment?.parent?.id || "",
+        isExposedToTvContent: currentSubDepartment.isExposedToTvContent ?? false,
       });
     }
   }, [currentSubDepartment]);
@@ -57,6 +59,7 @@ export default function EditSubDepartmentModal() {
       const updateDto: UpdateSubDepartmentInputDto = {
         name: formData.name,
         parentId: formData.parentId,
+        isExposedToTvContent: formData.isExposedToTvContent,
       };
 
       const updatedSubDepartment = await DepartmentsService.updateSubDepartment(
@@ -170,6 +173,27 @@ export default function EditSubDepartmentModal() {
               {errors.parentId && (
                 <p className="mt-1 text-sm text-red-700">{errors.parentId}</p>
               )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isExposedToTvContent"
+                checked={formData.isExposedToTvContent}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    isExposedToTvContent: e.target.checked,
+                  })
+                }
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
+              />
+              <label
+                htmlFor="isExposedToTvContent"
+                className="text-sm font-medium text-slate-700"
+              >
+                Expose to TV content
+              </label>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">

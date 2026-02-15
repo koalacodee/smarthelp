@@ -6,6 +6,7 @@ export enum DepartmentVisibility {
 export interface CreateDepartmentInputDto {
   name: string;
   visibility: DepartmentVisibility;
+  isExposedToTvContent?: boolean;
   knowledgeChunkContent?: string;
 }
 
@@ -17,11 +18,13 @@ export interface CreateSubDepartmentDto {
 export class UpdateDepartmentInputDto {
   name?: string;
   visibility?: DepartmentVisibility;
+  isExposedToTvContent?: boolean;
 }
 
 export class UpdateSubDepartmentInputDto {
   name?: string;
   parentId?: string;
+  isExposedToTvContent?: boolean;
 }
 
 export interface DepartmentsResponse {
@@ -33,6 +36,7 @@ export interface Department {
   id: string;
   name: string;
   visibility: DepartmentVisibility;
+  isExposedToTvContent?: boolean;
   parent?: Department;
   parentId?: string;
 }

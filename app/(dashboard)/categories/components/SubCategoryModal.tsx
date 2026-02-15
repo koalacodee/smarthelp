@@ -24,6 +24,7 @@ export default function SubCategoryModal() {
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
+  const [isExposedToTvContent, setIsExposedToTvContent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [availableParents, setAvailableParents] = useState<Department[]>([]);
 
@@ -31,9 +32,11 @@ export default function SubCategoryModal() {
     if (subCategory) {
       setName(subCategory.name);
       setParentId(subCategory.parent?.id || subCategory.parentId || "");
+      setIsExposedToTvContent(subCategory.isExposedToTvContent ?? false);
     } else {
       setName("");
       setParentId("");
+      setIsExposedToTvContent(false);
     }
     clearErrors();
   }, [subCategory]);
@@ -59,6 +62,7 @@ export default function SubCategoryModal() {
           {
             name,
             parentId,
+            isExposedToTvContent,
           }
         );
         updateSubCategory(subCategory.id, updated);
@@ -78,6 +82,7 @@ export default function SubCategoryModal() {
           name: created.name,
           parent: created.parent,
           visibility: created.visibility,
+          isExposedToTvContent: created.isExposedToTvContent,
           parentId: created.parent?.id,
         });
         addToast({
@@ -158,6 +163,24 @@ export default function SubCategoryModal() {
             <p className="mt-1 text-sm text-red-600">{errors.parentId}</p>
           )}
         </div>
+
+        {isEdit && (
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isExposedToTvContent"
+              checked={isExposedToTvContent}
+              onChange={(e) => setIsExposedToTvContent(e.target.checked)}
+              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
+            />
+            <label
+              htmlFor="isExposedToTvContent"
+              className="text-sm font-medium text-slate-700"
+            >
+              {locale.categories.subCategoryModal.exposeToTvLabel}
+            </label>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <button

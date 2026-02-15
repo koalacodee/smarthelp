@@ -42,6 +42,7 @@ export default function CreateSubDepartmentModal() {
         name: dept.name,
         parent: dept?.parent,
         visibility: dept.visibility,
+        isExposedToTvContent: dept.isExposedToTvContent,
       });
       addToast({
         message: `Sub-Department ${dept.name} Created Successfully`,

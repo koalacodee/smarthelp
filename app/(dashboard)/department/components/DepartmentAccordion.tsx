@@ -61,6 +61,11 @@ export default function DepartmentAccordion({
                   <EyeSlashIcon className="w-3 h-3" /> Private
                 </span>
               )}
+              {department.isExposedToTvContent && (
+                <span className="flex items-center gap-1 text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                  TV
+                </span>
+              )}
             </div>
           </div>
         </div>

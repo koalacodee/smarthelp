@@ -33,7 +33,8 @@
       "addKnowledgeChunk": "إضافة جزء معرفة",
       "noKnowledgeChunks": "لم يتم العثور على أجزاء معرفة",
       "public": "عام",
-      "private": "خاص"
+      "private": "خاص",
+      "exposedToTv": "تلفزيون"
     },
     "categoryModal": {
       "addTitle": "إضافة فئة",
@@ -43,6 +44,8 @@
       "visibilityLabel": "الظهور",
       "visibilityPublic": "عام",
       "visibilityPrivate": "خاص",
+      "exposeToTvLabel": "عرض على محتوى التلفزيون",
+      "exposeToTvHint": "عرض هذا القسم على شاشات محتوى التلفزيون",
       "initialKnowledgeLabel": "المعرفة الأولية (اختياري)",
       "initialKnowledgePlaceholder": "أدخل المعرفة الأولية...",
       "cancel": "إلغاء",
@@ -57,6 +60,7 @@
       "namePlaceholder": "مثال: الشحن المحلي",
       "parentLabel": "الفئة الرئيسية",
       "parentPlaceholder": "اختر فئة رئيسية",
+      "exposeToTvLabel": "عرض على محتوى التلفزيون",
       "cancel": "إلغاء",
       "saving": "جاري الحفظ...",
       "saveChanges": "حفظ التغييرات",

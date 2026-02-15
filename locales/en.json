@@ -33,7 +33,8 @@
       "addKnowledgeChunk": "Add Knowledge Chunk",
       "noKnowledgeChunks": "No knowledge chunks found",
       "public": "Public",
-      "private": "Private"
+      "private": "Private",
+      "exposedToTv": "TV"
     },
     "categoryModal": {
       "addTitle": "Add Category",
@@ -43,6 +44,8 @@
       "visibilityLabel": "Visibility",
       "visibilityPublic": "Public",
       "visibilityPrivate": "Private",
+      "exposeToTvLabel": "Expose to TV content",
+      "exposeToTvHint": "Show this department on TV content displays",
       "initialKnowledgeLabel": "Initial Knowledge (Optional)",
       "initialKnowledgePlaceholder": "Enter initial knowledge...",
       "cancel": "Cancel",
@@ -57,6 +60,7 @@
       "namePlaceholder": "e.g., Domestic Shipping",
       "parentLabel": "Parent Category",
       "parentPlaceholder": "Select a parent category",
+      "exposeToTvLabel": "Expose to TV content",
       "cancel": "Cancel",
       "saving": "Saving...",
       "saveChanges": "Save Changes",

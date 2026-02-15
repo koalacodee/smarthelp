@@ -22,6 +22,7 @@ export default function CategoryModal() {
 
     const [name, setName] = useState("");
     const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
+    const [isExposedToTvContent, setIsExposedToTvContent] = useState(false);
     const [knowledge, setKnowledge] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -29,9 +30,11 @@ export default function CategoryModal() {
         if (category) {
             setName(category.name);
             setVisibility(category.visibility as "PUBLIC" | "PRIVATE");
+            setIsExposedToTvContent(category.isExposedToTvContent ?? false);
         } else {
             setName("");
             setVisibility("PUBLIC");
+            setIsExposedToTvContent(false);
             setKnowledge("");
         }
         clearErrors();
@@ -46,16 +49,17 @@ export default function CategoryModal() {
             const dto = {
                 name,
                 visibility: DepartmentVisibility[visibility],
+                isExposedToTvContent,
                 knowledgeChunkContent: !isEdit && knowledge ? knowledge : undefined,
             };
 
             if (isEdit && category) {
                 const updated = await DepartmentsService.updateMainDepartment(category.id, dto);
-                updateCategory(category.id, { name: updated.name, visibility: updated.visibility });
+                updateCategory(category.id, { name: updated.name, visibility: updated.visibility, isExposedToTvContent: updated.isExposedToTvContent });
                 addToast({ message: locale.categories.toasts.categoryUpdated, type: "success" });
             } else {
                 const created = await DepartmentsService.createDepartment(dto);
-                addCategory({ id: created.id, name: created.name, visibility: created.visibility });
+                addCategory({ id: created.id, name: created.name, visibility: created.visibility, isExposedToTvContent: created.isExposedToTvContent });
                 addToast({ message: locale.categories.toasts.categoryCreated, type: "success" });
             }
 
@@ -108,6 +112,22 @@ export default function CategoryModal() {
                         <option value="PRIVATE">{locale.categories.categoryModal.visibilityPrivate}</option>
                     </select>
                     {errors.visibility && <p className="mt-1 text-sm text-red-600">{errors.visibility}</p>}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="isExposedToTvContent"
+                        checked={isExposedToTvContent}
+                        onChange={(e) => setIsExposedToTvContent(e.target.checked)}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
+                    />
+                    <label
+                        htmlFor="isExposedToTvContent"
+                        className="text-sm font-medium text-slate-700"
+                    >
+                        {locale.categories.categoryModal.exposeToTvLabel}
+                    </label>
                 </div>
 
                 {!isEdit && (
