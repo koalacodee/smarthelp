@@ -9,9 +9,13 @@ import { useLocaleStore } from "@/lib/store/useLocaleStore";
 import useFormErrors from "@/hooks/useFormErrors";
 import Modal from "./Modal";
 
+function isSubDepartment(department: Department): boolean {
+    return !!(department.parentId ?? department.parent);
+}
+
 export default function CategoryModal() {
     const { locale } = useLocaleStore();
-    const { modal, closeModal, addCategory, updateCategory } = useCategoriesStore();
+    const { modal, closeModal, addCategory, updateCategory, updateSubCategory } = useCategoriesStore();
     const { addToast } = useToastStore();
     const { clearErrors, setErrors, setRootError, errors } = useFormErrors(["name", "visibility"]);
 
@@ -54,9 +58,19 @@ export default function CategoryModal() {
             };
 
             if (isEdit && category) {
-                const updated = await DepartmentsService.updateMainDepartment(category.id, dto);
-                updateCategory(category.id, { name: updated.name, visibility: updated.visibility, isExposedToTvContent: updated.isExposedToTvContent });
-                addToast({ message: locale.categories.toasts.categoryUpdated, type: "success" });
+                if (isSubDepartment(category)) {
+                    const updated = await DepartmentsService.updateSubDepartment(category.id, {
+                        name,
+                        parentId: category.parent?.id ?? category.parentId ?? "",
+                        isExposedToTvContent,
+                    });
+                    updateSubCategory(category.id, updated);
+                    addToast({ message: locale.categories.toasts.subCategoryUpdated, type: "success" });
+                } else {
+                    const updated = await DepartmentsService.updateMainDepartment(category.id, dto);
+                    updateCategory(category.id, { name: updated.name, visibility: updated.visibility, isExposedToTvContent: updated.isExposedToTvContent });
+                    addToast({ message: locale.categories.toasts.categoryUpdated, type: "success" });
+                }
             } else {
                 const created = await DepartmentsService.createDepartment(dto);
                 addCategory({ id: created.id, name: created.name, visibility: created.visibility, isExposedToTvContent: created.isExposedToTvContent });

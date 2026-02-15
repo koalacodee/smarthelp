@@ -28,7 +28,7 @@ export default async function CategoriesPage() {
   const isAdmin = user.role === "ADMIN";
 
   const [categories, subCategories, groupedChunks, locale, language] = await Promise.all([
-    isAdmin ? DepartmentsService.getAllDepartments() : Promise.resolve([]),
+    isAdmin ? DepartmentsService.getMainDepartmentsForAdmin() : Promise.resolve([]),
     DepartmentsService.getAllSubDepartments(),
     KnowledgeChunkService.getGroupedKnowledgeChunks(),
     getLocale(),
