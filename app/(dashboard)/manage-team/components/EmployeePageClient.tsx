@@ -78,29 +78,29 @@ export default function EmployeePageClient({
     const matchesSearch =
       !searchTerm ||
       JSON.stringify(employee).toLowerCase().includes(searchLower) ||
-      employee.user.username.toLowerCase().includes(searchLower) ||
-      employee.user.name.toLowerCase().includes(searchLower) ||
-      employee.user.email.toLowerCase().includes(searchLower) ||
+      employee.user?.username?.toLowerCase().includes(searchLower) ||
+      employee.user?.name?.toLowerCase().includes(searchLower) ||
+      employee.user?.email?.toLowerCase().includes(searchLower) ||
       employee.user?.employeeId?.toLowerCase().includes(searchLower) ||
       employee.user?.jobTitle?.toLowerCase().includes(searchLower) ||
-      employee.subDepartments?.some((dept) =>
+      (employee.subDepartments ?? [])?.some((dept) =>
         dept.name.toLowerCase().includes(searchLower)
       ) ||
-      employee.permissions?.some((permission) =>
+      (employee.permissions ?? [])?.some((permission) =>
         permission.toLowerCase().includes(searchLower)
       );
 
     // Sub-Department filter
     const matchesSubDepartment =
       !selectedSubDepartment ||
-      employee.subDepartments?.some(
+      (employee.subDepartments ?? [])?.some(
         (dept) => dept.id === selectedSubDepartment
       );
 
     // Permission filter
     const matchesPermission =
       !selectedPermission ||
-      employee.permissions?.some(
+      (employee.permissions ?? [])?.some(
         (permission) => permission === selectedPermission
       );
 
@@ -433,7 +433,7 @@ export default function EmployeePageClient({
                               }}
                               className="flex-shrink-0"
                             >
-                              {employee.user.profilePicture ? (
+                              {employee.user?.profilePicture ? (
                                 <motion.img
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
@@ -443,9 +443,9 @@ export default function EmployeePageClient({
                                   }}
                                   src={`${env(
                                     "NEXT_PUBLIC_API_URL"
-                                  )}/profile/pictures/${employee.user.profilePicture
+                                  )}/profile/pictures/${employee.user?.profilePicture
                                     }`}
-                                  alt={employee.user.name}
+                                  alt={employee.user?.name ?? ""}
                                   className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-lg"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
@@ -454,13 +454,13 @@ export default function EmployeePageClient({
                                     if (parent) {
                                       parent.innerHTML = `
                                         <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-slate-600 font-medium text-sm shadow-lg">
-                                          ${employee.user.name
+                                          ${employee.user?.name
                                           ? employee.user.name
                                             .split(" ")
                                             .map((n) => n[0])
                                             .join("")
                                             .toUpperCase()
-                                          : employee.user.username
+                                          : (employee.user?.username ?? "")
                                             .split(" ")
                                             .map((n) => n[0])
                                             .join("")
@@ -481,13 +481,13 @@ export default function EmployeePageClient({
                                   }}
                                   className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-slate-600 font-medium text-sm shadow-lg"
                                 >
-                                  {employee.user.name
+                                  {employee.user?.name
                                     ? employee.user.name
                                       .split(" ")
                                       .map((n) => n[0])
                                       .join("")
                                       .toUpperCase()
-                                    : employee.user.username
+                                    : (employee.user?.username ?? "")
                                       .split(" ")
                                       .map((n) => n[0])
                                       .join("")
@@ -513,7 +513,7 @@ export default function EmployeePageClient({
                                 }}
                                 className="text-sm font-semibold text-slate-900"
                               >
-                                {employee.user.name}
+                                {employee.user?.name ?? ""}
                               </motion.div>
                               <motion.div
                                 initial={{ opacity: 0, y: 5 }}
@@ -524,7 +524,7 @@ export default function EmployeePageClient({
                                 }}
                                 className="text-sm text-slate-500"
                               >
-                                @{employee.user.username}
+                                @{employee.user?.username ?? ""}
                               </motion.div>
                             </motion.div>
                           </div>
@@ -547,7 +547,7 @@ export default function EmployeePageClient({
                             }}
                             className="font-medium"
                           >
-                            {employee.user.jobTitle || locale.manageTeam.table.notSpecified}
+                            {employee.user?.jobTitle || locale.manageTeam.table.notSpecified}
                           </motion.span>
                         </motion.td>
                         <motion.td
@@ -559,7 +559,7 @@ export default function EmployeePageClient({
                           }}
                           className="px-6 py-4 text-sm text-slate-500"
                         >
-                          {employee.subDepartments.length > 0 ? (
+                          {(employee.subDepartments ?? []).length > 0 ? (
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -569,7 +569,7 @@ export default function EmployeePageClient({
                               }}
                               className="flex flex-wrap gap-1"
                             >
-                              {employee.subDepartments
+                              {(employee.subDepartments ?? [])
                                 .slice(0, 2)
                                 .map((dept, deptIndex) => (
                                   <motion.span
@@ -587,7 +587,7 @@ export default function EmployeePageClient({
                                     {dept.name}
                                   </motion.span>
                                 ))}
-                              {employee.subDepartments.length > 2 && (
+                              {(employee.subDepartments ?? []).length > 2 && (
                                 <motion.span
                                   initial={{ scale: 0, opacity: 0 }}
                                   animate={{ scale: 1, opacity: 1 }}
@@ -598,7 +598,7 @@ export default function EmployeePageClient({
                                   }}
                                   className="text-xs bg-gradient-to-r from-slate-100 to-slate-200 text-slate-600 px-3 py-1 rounded-full font-medium shadow-sm"
                                 >
-                                  +{employee.subDepartments.length - 2}
+                                  +{(employee.subDepartments ?? []).length - 2}
                                 </motion.span>
                               )}
                             </motion.div>
@@ -634,8 +634,8 @@ export default function EmployeePageClient({
                             }}
                             className="flex flex-wrap gap-1"
                           >
-                            {employee.permissions.length > 0 ? (
-                              employee.permissions
+                            {(employee.permissions ?? []).length > 0 ? (
+                              (employee.permissions ?? [])
                                 .slice(0, 2)
                                 .map((permission, permIndex) => (
                                   <motion.span
@@ -669,7 +669,7 @@ export default function EmployeePageClient({
                                 None
                               </motion.span>
                             )}
-                            {employee.permissions.length > 2 && (
+                            {(employee.permissions ?? []).length > 2 && (
                               <motion.span
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -680,7 +680,7 @@ export default function EmployeePageClient({
                                 }}
                                 className="text-xs bg-gradient-to-r from-slate-100 to-slate-200 text-slate-600 px-3 py-1 rounded-full font-medium shadow-sm"
                               >
-                                +{employee.permissions.length - 2}
+                                +{(employee.permissions ?? []).length - 2}
                               </motion.span>
                             )}
                           </motion.div>
