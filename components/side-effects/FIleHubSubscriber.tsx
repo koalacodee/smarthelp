@@ -55,19 +55,26 @@ export default function FileHubSubscriber() {
         }
       );
       socketRef.current.on("connect", () => {
-        console.log("Connected to attachment groups");
+        console.log("[FileHub Subscriber] Connected to filehub namespace");
         socketRef.current?.emit("filehub:subscribe", { userId });
+        console.log("[FileHub Subscriber] Emitted subscribe for userId:", userId);
       });
       socketRef.current.on("disconnect", () => {
-        console.log("Disconnected from attachment groups");
+        console.log("[FileHub Subscriber] Disconnected from filehub");
       });
       socketRef.current.on("error", (error) => {
-        console.error("Error connecting to attachment groups", error);
+        console.error("[FileHub Subscriber] Socket error:", error);
       });
       socketRef.current.on(
         "filehub:attachment",
         (payload: AttachmentEventPayload) => {
-          console.log("Attachment event", payload);
+          console.log(
+            "[FileHub Subscriber] Received filehub:attachment:",
+            payload.id,
+            payload.filename,
+            "userId:",
+            payload.userId
+          );
           addMyAttachment({
             id: payload.id,
             originalName: payload.originalName,

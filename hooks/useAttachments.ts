@@ -170,7 +170,14 @@ export const useAttachments = (targetId?: string) => {
   };
 
   const fetchMyAttachments = useCallback(async () => {
+    console.log("[useAttachments] Fetching my attachments...");
     const response = await FileHubService.getMyAttachments();
+    console.log(
+      "[useAttachments] getMyAttachments returned:",
+      response.length,
+      "attachments",
+      response.map((a) => ({ id: a.id, filename: a.filename }))
+    );
     setMyAttachments(
       response.map((attachment) => ({
         originalName: attachment.originalName,

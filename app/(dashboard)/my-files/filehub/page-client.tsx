@@ -325,6 +325,7 @@ export default function FileHubPageClient({
   };
 
   useEffect(() => {
+    console.log("[FileHub Page] Mounted, fetching attachments...");
     fetchMyAttachments();
   }, []);
 
@@ -460,12 +461,22 @@ export default function FileHubPageClient({
       setUploadError(null);
       setUploadProgress(0);
 
+      console.log("[FileHub Upload] Requesting upload key...");
       const { uploadKey } = await FileHubService.generateUploadKey();
+      console.log("[FileHub Upload] Got uploadKey:", uploadKey);
+
       const tusService = new TusService(tusUrl);
 
       const expirationDateIso = expirationInput
         ? new Date(`${expirationInput}T00:00:00`).toISOString()
         : "";
+
+      console.log(
+        "[FileHub Upload] Starting TUS upload:",
+        selectedFile.name,
+        "metadata:",
+        { expirationDate: expirationDateIso, isGlobal: isGlobalFlag }
+      );
 
       const tusUpload = await tusService.upload({
         file: selectedFile,
@@ -480,7 +491,7 @@ export default function FileHubPageClient({
           setUploadProgress(progress);
         },
         onError: (err) => {
-          console.error("Tus upload error", err);
+          console.error("[FileHub Upload] TUS upload error:", err);
           setUploadStatus("error");
           const { locale: storeLocale } = useLocaleStore.getState();
           setUploadError(
@@ -490,6 +501,7 @@ export default function FileHubPageClient({
           );
         },
         onSuccess: () => {
+          console.log("[FileHub Upload] TUS upload success:", selectedFile.name);
           setUploadStatus("success");
           setUploadProgress(100);
           closeAllModals();
@@ -498,7 +510,7 @@ export default function FileHubPageClient({
 
       tusUpload.start();
     } catch (err: any) {
-      console.error(err);
+      console.error("[FileHub Upload] Error:", err);
       setUploadStatus("error");
       setUploadError(
         err?.message || "Failed to upload file. Please try again."
