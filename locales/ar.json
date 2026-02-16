@@ -493,6 +493,10 @@
       "search": {
         "placeholder": "البحث في الملفات..."
       },
+      "pagination": {
+        "previous": "السابق",
+        "next": "التالي"
+      },
       "sections": {
         "documents": "الملفات والمستندات",
         "videos": "محتوى الفيديو",

@@ -493,6 +493,10 @@
       "search": {
         "placeholder": "Search files..."
       },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      },
       "sections": {
         "documents": "Files & Documents",
         "videos": "Video Content",

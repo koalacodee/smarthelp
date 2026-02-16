@@ -31,7 +31,23 @@ export interface GenerateUserUploadTokenOutput {
   uploadExpiry: string; // ISO date string
 }
 
-export type MyFileHubAttachmentsResponse = JSend<FileHubAttachment[]>;
+export interface GetMyAttachmentsParams {
+  cursor?: string;
+  direction?: "next" | "prev";
+  pageSize?: number;
+}
+
+export interface GetMyAttachmentsResponse {
+  data: FileHubAttachment[];
+  meta: {
+    nextCursor?: string;
+    prevCursor?: string;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export type MyFileHubAttachmentsResponse = JSend<GetMyAttachmentsResponse>;
 
 /* =========================
    Service Singleton
@@ -51,9 +67,12 @@ export class FileHubService {
     return inst;
   }
 
-  async getMyAttachments(): Promise<FileHubAttachment[]> {
+  async getMyAttachments(
+    params?: GetMyAttachmentsParams
+  ): Promise<GetMyAttachmentsResponse> {
     const { data } = await this.http.get<MyFileHubAttachmentsResponse>(
-      "/filehub/my-attachments"
+      "/filehub/my-attachments",
+      { params }
     );
     return data.data;
   }

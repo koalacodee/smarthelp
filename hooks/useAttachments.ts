@@ -59,6 +59,12 @@ export const useAttachments = (targetId?: string) => {
   >({});
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingMyAttachments, setIsLoadingMyAttachments] = useState(false);
+  const [myAttachmentsMeta, setMyAttachmentsMeta] = useState<{
+    nextCursor?: string;
+    prevCursor?: string;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  } | null>(null);
 
   const handleUploadAttachment = (
     file: File,
@@ -169,31 +175,35 @@ export const useAttachments = (targetId?: string) => {
     return uploadProgresses[uploadId] || 0;
   };
 
-  const fetchMyAttachments = useCallback(async () => {
-    console.log("[useAttachments] Fetching my attachments...");
-    const response = await FileHubService.getMyAttachments();
-    console.log(
-      "[useAttachments] getMyAttachments returned:",
-      response.length,
-      "attachments",
-      response.map((a) => ({ id: a.id, filename: a.filename }))
-    );
-    setMyAttachments(
-      response.map((attachment) => ({
-        originalName: attachment.originalName,
-        filename: attachment.originalName,
-        fileType: attachment.type,
-        size: attachment.size,
-        isGlobal: attachment.isGlobal,
-        expirationDate: attachment.expirationDate ?? undefined,
-        createdAt: attachment.createdAt,
-        signedUrl: attachment.signedUrl,
-        id: attachment.id,
-        targetId,
-        userId: attachment.userId,
-      }))
-    );
-  }, [setMyAttachments]);
+  const fetchMyAttachments = useCallback(
+    async (params?: { cursor?: string; direction?: "next" | "prev" }) => {
+      console.log("[useAttachments] Fetching my attachments...");
+      const response = await FileHubService.getMyAttachments(params);
+      console.log(
+        "[useAttachments] getMyAttachments returned:",
+        response.data.length,
+        "attachments",
+        response.data.map((a) => ({ id: a.id, filename: a.filename }))
+      );
+      setMyAttachments(
+        response.data.map((attachment) => ({
+          originalName: attachment.originalName,
+          filename: attachment.originalName,
+          fileType: attachment.type,
+          size: attachment.size,
+          isGlobal: attachment.isGlobal,
+          expirationDate: attachment.expirationDate ?? undefined,
+          createdAt: attachment.createdAt,
+          signedUrl: attachment.signedUrl,
+          id: attachment.id,
+          targetId,
+          userId: attachment.userId,
+        }))
+      );
+      setMyAttachmentsMeta(response.meta);
+    },
+    [setMyAttachments]
+  );
 
   const reset = () => {
     clearCurrentNewTargetSelections();
@@ -267,6 +277,7 @@ export const useAttachments = (targetId?: string) => {
     addMyAttachment,
     addExistingAttachmentToTarget,
     isLoadingMyAttachments,
+    myAttachmentsMeta,
     setExistingAttachmentsForTarget,
     clearExistingAttachmentsForTarget,
     upsertExistingAttachmentForTarget,

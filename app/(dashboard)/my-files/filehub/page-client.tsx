@@ -14,6 +14,8 @@ import Plus from "@/icons/Plus";
 import X from "@/icons/X";
 import Eye from "@/icons/Eye";
 import Trash from "@/icons/Trash";
+import ChevronLeft from "@/icons/ChevronLeft";
+import ChevronRight from "@/icons/ChevronRight";
 import { useMediaPreviewStore } from "@/app/(dashboard)/store/useMediaPreviewStore";
 import { useAttachments } from "@/hooks/useAttachments";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
@@ -283,8 +285,12 @@ export default function FileHubPageClient({
   locale,
   language,
 }: FileHubPageClientProps) {
-  const { fetchMyAttachments, myAttachments, isLoadingMyAttachments } =
-    useAttachments();
+  const {
+    fetchMyAttachments,
+    myAttachments,
+    isLoadingMyAttachments,
+    myAttachmentsMeta,
+  } = useAttachments();
   const [error] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -889,6 +895,44 @@ export default function FileHubPageClient({
           filteredAttachments
         )
       )}
+
+      {/* Pagination */}
+      {!isLoadingMyAttachments &&
+        !error &&
+        filteredAttachments.length > 0 &&
+        myAttachmentsMeta &&
+        (myAttachmentsMeta.hasNextPage || myAttachmentsMeta.hasPrevPage) && (
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <button
+              type="button"
+              onClick={() =>
+                fetchMyAttachments({
+                  cursor: myAttachmentsMeta.prevCursor,
+                  direction: "prev",
+                })
+              }
+              disabled={!myAttachmentsMeta.hasPrevPage}
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {locale.myFiles.filehub.pagination?.previous ?? "Previous"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                fetchMyAttachments({
+                  cursor: myAttachmentsMeta.nextCursor,
+                  direction: "next",
+                })
+              }
+              disabled={!myAttachmentsMeta.hasNextPage}
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {locale.myFiles.filehub.pagination?.next ?? "Next"}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       {/* Upload modal: select or drag file */}
       {isUploadModalOpen && (

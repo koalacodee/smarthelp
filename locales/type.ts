@@ -495,6 +495,10 @@ export type Locale = {
       search: {
         placeholder: string;
       };
+      pagination?: {
+        previous: string;
+        next: string;
+      };
       sections: {
         documents: string;
         videos: string;
