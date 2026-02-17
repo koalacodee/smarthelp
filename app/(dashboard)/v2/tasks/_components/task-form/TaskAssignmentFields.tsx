@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
 import { useV2TaskPageStore } from '../../_store/use-v2-task-page-store';
+import api from '@/lib/api';
+import type { TicketAssignee } from '@/lib/api';
 
 interface TaskAssignmentFieldsProps {
   departmentId: string;
@@ -13,6 +16,23 @@ interface TaskAssignmentFieldsProps {
 export default function TaskAssignmentFields({ departmentId, onDepartmentChange, assigneeId, onAssigneeChange }: TaskAssignmentFieldsProps) {
   const locale = useLocaleStore((state) => state.locale);
   const { role, departments, subDepartments } = useV2TaskPageStore();
+  const [employees, setEmployees] = useState<TicketAssignee[]>([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+
+  useEffect(() => {
+    if (role === 'supervisor' && departmentId) {
+      setIsLoadingEmployees(true);
+      api.EmployeeService.getEmployeesBySubDepartment(departmentId)
+        .then((data) => {
+          setEmployees(data);
+        })
+        .finally(() => {
+          setIsLoadingEmployees(false);
+        });
+    } else {
+      setEmployees([]);
+    }
+  }, [role, departmentId]);
 
   if (!locale) return null;
 
@@ -44,7 +64,19 @@ export default function TaskAssignmentFields({ departmentId, onDepartmentChange,
           {onAssigneeChange && (
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1">{fields.assignee}</label>
-              <input type="text" value={assigneeId ?? ''} onChange={(e) => onAssigneeChange(e.target.value)} placeholder={fields.assigneePlaceholder} className="w-full border border-border rounded-md p-2 bg-background" />
+              <select
+                value={assigneeId ?? ''}
+                onChange={(e) => onAssigneeChange(e.target.value)}
+                disabled={!departmentId || isLoadingEmployees}
+                className="w-full border border-border rounded-md p-2 bg-background disabled:opacity-50"
+              >
+                <option value="">{fields.assigneePlaceholder}</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.user.name}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
         </>

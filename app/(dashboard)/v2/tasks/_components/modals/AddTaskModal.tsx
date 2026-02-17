@@ -79,7 +79,8 @@ export default function AddTaskModal() {
         priority: data.priority,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
         targetDepartmentId: role === "admin" ? departmentId : undefined,
-        targetSubDepartmentId: role === "supervisor" ? departmentId : undefined,
+        targetSubDepartmentId:
+          role === "supervisor" && !assigneeId ? departmentId : undefined,
         assigneeId:
           role === "supervisor" && assigneeId ? assigneeId : undefined,
         attach: attachmentsToUpload.length > 0,
