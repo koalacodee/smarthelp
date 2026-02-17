@@ -151,7 +151,7 @@ export class AttachmentGroupMemberSDK {
   async subscribeForAuthorization(
     otp: string,
     // timeoutMs: number = 25 * 60 * 1000
-    onAuthorize: (otp: string) => void | Promise<void>
+    onAuthorize: (otp: string) => void | Promise<void>,
   ): Promise<void> {
     // Connect to WebSocket if not already connected
     if (!this.socket || !this.socket.connected) {
@@ -231,7 +231,7 @@ export class AttachmentGroupMemberSDK {
     } catch (error: any) {
       if (error.response?.status === 401) {
         throw new Error(
-          "Not authenticated. Please complete the authentication flow first."
+          "Not authenticated. Please complete the authentication flow first.",
         );
       }
       throw new Error(`Failed to get attachment group: ${error.message}`);
@@ -247,7 +247,7 @@ export class AttachmentGroupMemberSDK {
    */
   subscribeToAttachmentChanges(
     memberId: string,
-    onAttachmentsChange: (event: AttachmentsChangeEvent) => void
+    onAttachmentsChange: (event: AttachmentsChangeEvent) => void,
   ): () => void {
     if (!this.socket || !this.socket.connected) {
       this.socket = io(`${this.wsBaseUrl}/filehub/members`, {
@@ -299,8 +299,8 @@ export class AttachmentGroupMemberSDK {
   async authenticateAndGetAttachments(
     onOtpGenerated: (otp: string) => void | Promise<void>,
     onAuthorizeAndGetMyAttachments: (
-      attachments: GetAttachmentGroupResponse
-    ) => void | Promise<void>
+      attachments: GetAttachmentGroupResponse,
+    ) => void | Promise<void>,
   ): Promise<void> {
     // Step 1: Request membership OTP
     const otp = await this.requestMembership();
@@ -309,7 +309,6 @@ export class AttachmentGroupMemberSDK {
     await onOtpGenerated(otp);
     // Step 3: Wait for authorization
     await this.subscribeForAuthorization(otp, async (authorizeOtp) => {
-      console.log("Authorization OTP received:", authorizeOtp);
       // Step 4: Verify and get JWT
       await this.verifyMemberOtp(authorizeOtp);
       const attachments = await this.getMyAttachmentGroup();
@@ -347,30 +346,17 @@ export class AttachmentGroupMemberSDK {
    * @param onResubscribed - Optional callback with the new unsubscribe function
    */
   renewConnection(onResubscribed?: (unsubscribe: () => void) => void): void {
-    console.log("[renewConnection] Starting hard connection renewal...");
     // Store current subscription info before disconnecting
     const memberId = this.currentMemberId;
     const callback = this.currentAttachmentsChangeCallback;
 
-    console.log("[renewConnection] Current state:", {
-      hasMemberId: !!memberId,
-      hasCallback: !!callback,
-      hasSocket: !!this.socket,
-      isConnected: this.socket?.connected,
-    });
-
     // Completely destroy the connection
     if (this.socket) {
-      console.log("[renewConnection] Disconnecting socket...");
       // Unsubscribe before disconnecting
       if (this.currentMemberId) {
         this.socket.emit("member_unsubscribe", {
           memberId: this.currentMemberId,
         });
-        console.log(
-          "[renewConnection] Unsubscribed from member:",
-          this.currentMemberId
-        );
       }
       // Remove all listeners to ensure clean disconnect
       this.socket.removeAllListeners();
@@ -378,7 +364,6 @@ export class AttachmentGroupMemberSDK {
       this.socket.disconnect();
       // Destroy the socket instance
       this.socket = null;
-      console.log("[renewConnection] Socket disconnected and destroyed");
     }
 
     // Clear current state
@@ -387,35 +372,20 @@ export class AttachmentGroupMemberSDK {
 
     // Reconnect and resubscribe if there was an active subscription
     if (memberId && callback) {
-      console.log("[renewConnection] Will resubscribe after 100ms delay...");
       // Use setTimeout to ensure the old connection is fully closed
       setTimeout(() => {
-        console.log("[renewConnection] Resubscribing to member:", memberId);
         const unsubscribe = this.subscribeToAttachmentChanges(
           memberId,
-          callback
+          callback,
         );
-        console.log("[renewConnection] Resubscribed successfully");
         if (onResubscribed) {
-          console.log("[renewConnection] Calling onResubscribed callback");
           onResubscribed(unsubscribe);
         }
       }, 100);
     } else {
-      console.warn(
-        "[renewConnection] No active subscription to resubscribe. memberId:",
-        memberId,
-        "callback:",
-        !!callback
-      );
       if (onResubscribed) {
-        console.log(
-          "[renewConnection] No resubscription, but calling onResubscribed with null"
-        );
         // Still call the callback to update the ref, even if there's nothing to unsubscribe
-        onResubscribed(() => {
-          console.log("[renewConnection] Empty unsubscribe called");
-        });
+        onResubscribed(() => {});
       }
     }
   }
@@ -423,7 +393,7 @@ export class AttachmentGroupMemberSDK {
 
 // Export a factory function for easier usage
 export function createAttachmentGroupMemberSDK(
-  config: AttachmentGroupMemberSDKConfig
+  config: AttachmentGroupMemberSDKConfig,
 ): AttachmentGroupMemberSDK {
   return new AttachmentGroupMemberSDK(config);
 }

@@ -186,7 +186,7 @@ export default function ProfilePageClient({
       const { locale: storeLocale } = useLocaleStore.getState();
       setRootError(
         storeLocale?.profile?.errors?.nameAndEmailRequired ||
-          "Name and email are required"
+        "Name and email are required"
       );
       setLoading(false);
       return;
@@ -219,8 +219,8 @@ export default function ProfilePageClient({
         const { locale: storeLocale } = useLocaleStore.getState();
         setRootError(
           err?.response?.data?.message ||
-            storeLocale?.profile?.toasts?.updateFailed ||
-            "Failed to update profile. Please try again."
+          storeLocale?.profile?.toasts?.updateFailed ||
+          "Failed to update profile. Please try again."
         );
       }
     } finally {
@@ -353,7 +353,6 @@ export default function ProfilePageClient({
           "Failed to reset password. Please try again.",
         type: "error",
       });
-      console.log("error", err);
     } finally {
       setResettingPassword(false);
     }
@@ -1096,7 +1095,7 @@ export default function ProfilePageClient({
                       name={field.name}
                       value={
                         passwordResetData[
-                          field.name as keyof typeof passwordResetData
+                        field.name as keyof typeof passwordResetData
                         ]
                       }
                       onChange={handlePasswordResetInputChange}

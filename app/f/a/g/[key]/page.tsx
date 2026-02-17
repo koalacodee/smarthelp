@@ -21,7 +21,6 @@ export default async function FileHubAttachmentGroupPage({
   try {
     return <FileHubAttachmentGroupViewer groupKey={key} />;
   } catch (error) {
-    console.log(error);
     notFound();
   }
 }

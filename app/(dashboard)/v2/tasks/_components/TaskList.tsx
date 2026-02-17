@@ -46,7 +46,6 @@ export default function TaskList() {
     supervisorData?.data?.tasks?.map((t) => t.task) ??
     [];
   const submissions = adminData?.data.submissions ?? [];
-  console.log("SUBMISSIONS", submissions);
 
   const delegationSubs =
     role === 'supervisor'

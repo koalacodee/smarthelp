@@ -10,7 +10,7 @@ import { getIronSession } from "iron-session";
 // Prioritizes more specific routes (longer paths) over general ones
 function findMatchingRoute(
   pathname: string,
-  routes: Record<string, (r: string, p: string[]) => boolean>
+  routes: Record<string, (r: string, p: string[]) => boolean>,
 ): ((r: string, p: string[]) => boolean) | undefined {
   // First try exact match
   if (routes[pathname]) {
@@ -102,7 +102,7 @@ const excludedPages = [
 const extractSessionCookie = async (
   response: NextResponse,
   accessToken: string,
-  apiUrl: string
+  apiUrl: string,
 ) => {
   const session = await getIronSession<{ user?: UserResponse }>(
     response.cookies,
@@ -115,7 +115,7 @@ const extractSessionCookie = async (
         secure: env("NODE_ENV") === "production",
         sameSite: "lax",
       },
-    }
+    },
   );
 
   let user = session.user ?? null;
@@ -154,14 +154,16 @@ export async function middleware(request: NextRequest) {
   // Inject custom header in all requests
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
-  
+
   // Check for SMARTHELP_LANG cookie first, then fall back to accept-language header
   const cookieLang = request.cookies.get("SMARTHELP_LANG")?.value;
-  const acceptLang = headers.get("accept-language")?.split(",")[0]?.split("-")[0];
+  const acceptLang = headers
+    .get("accept-language")
+    ?.split(",")[0]
+    ?.split("-")[0];
   const lang = cookieLang || acceptLang || "en";
-  
+
   headers.set("x-lang", lang);
-  console.log("pathname", pathname);
 
   // Skip auth check for excluded pages or attachment pages
   const isAttachmentPage = pathname.startsWith("/a");
@@ -183,7 +185,9 @@ export async function middleware(request: NextRequest) {
 
       if (!apiResponse.ok) {
         // If refresh fails, redirect to login
-        return NextResponse.redirect(new URL("/login", request.url), { headers });
+        return NextResponse.redirect(new URL("/login", request.url), {
+          headers,
+        });
       }
 
       // Parse response to get new token
@@ -208,13 +212,11 @@ export async function middleware(request: NextRequest) {
         const user = await extractSessionCookie(
           response,
           accessToken,
-          env("NEXT_PUBLIC_API_URL") || ""
+          env("NEXT_PUBLIC_API_URL") || "",
         );
-        console.log("user", user);
         const allowed = pathname
           ? findMatchingRoute(pathname, pageAccess)
           : undefined;
-        console.log(allowed);
         let notAllowed = false;
 
         if (allowed && user && !allowed(user.role, user.permissions ?? [])) {
@@ -222,17 +224,14 @@ export async function middleware(request: NextRequest) {
         }
 
         if (notAllowed) {
-          return NextResponse.redirect(
-            new URL("/access-denied", request.url),
-            { headers }
-          );
+          return NextResponse.redirect(new URL("/access-denied", request.url), {
+            headers,
+          });
         }
       }
 
       return response;
     } catch (error) {
-      console.log(error);
-
       return NextResponse.redirect(new URL("/login", request.url), { headers });
     }
   }

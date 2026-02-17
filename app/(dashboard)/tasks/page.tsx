@@ -97,8 +97,6 @@ export default async function Page() {
             delegationSubmissions[t.task.id] = t.task.delegationSubmissions;
           }
         });
-
-        console.log(data);
       }),
       DepartmentsService.getAllSubDepartments(),
       DepartmentsService.getAllDepartments(),

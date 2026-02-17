@@ -44,7 +44,6 @@ export default function TVViewer() {
     const unsubscribe = MembershipService.subscribeToAttachmentChanges(
       memberIdToSubscribe,
       (event: AttachmentsChangeEvent) => {
-        console.log("Attachments updated:", event.attachments);
         setAttachments(event.attachments);
       }
     );
@@ -53,17 +52,10 @@ export default function TVViewer() {
 
     // Set up hard connection renewal interval (every 30 minutes)
     connectionRenewalIntervalRef.current = setInterval(() => {
-      console.log(
-        "[TVViewer] Interval triggered - Renewing WebSocket connection..."
-      );
       MembershipService.renewConnection((newUnsubscribe) => {
-        console.log(
-          "[TVViewer] onResubscribed callback called with new unsubscribe function"
-        );
         // Don't call the old unsubscribe - renewConnection already handled cleanup
         // Just update the ref with the new unsubscribe function
         unsubscribeRef.current = newUnsubscribe;
-        console.log("[TVViewer] Updated unsubscribeRef with new function");
       });
     }, 30 * 60 * 1000); // 30 minutes (changed to 1 second for testing)
   }, []);
@@ -71,7 +63,6 @@ export default function TVViewer() {
   // Handle successful authentication and attachment retrieval
   const handleAttachmentsReceived = useCallback(
     (response: GetAttachmentGroupResponse) => {
-      console.log("Attachments received:", response);
       setAttachments(response.attachments);
       setMemberId(response.memberId);
       setAuthState("authenticated");
@@ -91,7 +82,6 @@ export default function TVViewer() {
         const response = await MembershipService.getMyAttachmentGroup();
         handleAttachmentsReceived(response);
       } catch (err: any) {
-        console.log("Not authenticated, starting OTP flow:", err);
         // Not authenticated, start OTP flow
         setAuthState("needs_auth");
         await startOtpFlow();
@@ -121,7 +111,6 @@ export default function TVViewer() {
       await MembershipService.authenticateAndGetAttachments(
         // onOtpGenerated callback
         async (generatedOtp: string) => {
-          console.log("OTP generated:", generatedOtp);
           setOtp(generatedOtp);
         },
         // onAuthorizeAndGetMyAttachments callback

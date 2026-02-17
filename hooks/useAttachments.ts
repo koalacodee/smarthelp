@@ -69,7 +69,7 @@ export const useAttachments = (targetId?: string) => {
   const handleUploadAttachment = (
     file: File,
     isGlobal: boolean,
-    expirationDate: Date | null
+    expirationDate: Date | null,
   ) => {
     setIsLoadingMyAttachments(true);
     let id = random10DigitId();
@@ -106,7 +106,7 @@ export const useAttachments = (targetId?: string) => {
     try {
       // Only upload files that haven't been successfully uploaded yet
       const pendingUploads = targetUploads.filter(
-        (upload) => upload.status === "queued" || upload.status === "uploading"
+        (upload) => upload.status === "queued" || upload.status === "uploading",
       );
 
       for (const upload of pendingUploads) {
@@ -177,14 +177,7 @@ export const useAttachments = (targetId?: string) => {
 
   const fetchMyAttachments = useCallback(
     async (params?: { cursor?: string; direction?: "next" | "prev" }) => {
-      console.log("[useAttachments] Fetching my attachments...");
       const response = await FileHubService.getMyAttachments(params);
-      console.log(
-        "[useAttachments] getMyAttachments returned:",
-        response.data.length,
-        "attachments",
-        response.data.map((a) => ({ id: a.id, filename: a.filename }))
-      );
       setMyAttachments(
         response.data.map((attachment) => ({
           originalName: attachment.originalName,
@@ -198,11 +191,11 @@ export const useAttachments = (targetId?: string) => {
           id: attachment.id,
           targetId,
           userId: attachment.userId,
-        }))
+        })),
       );
       setMyAttachmentsMeta(response.meta);
     },
-    [setMyAttachments]
+    [setMyAttachments],
   );
 
   const reset = () => {
@@ -246,7 +239,7 @@ export const useAttachments = (targetId?: string) => {
     setAttachmentToUploadExpirationAndGlobalFlag: (
       attachmentId: string,
       expirationDate: Date | null,
-      isGlobal: boolean
+      isGlobal: boolean,
     ) => {
       targetId
         ? updateAttachmentToUploadForTarget(targetId, attachmentId, {

@@ -17,8 +17,6 @@ export default async function Page() {
     getLanguage(),
   ]);
 
-  console.log(response);
-
   // Calculate metrics
   const totalTickets = response.metrics.totalTickets;
   const pendingTickets = response.metrics.pendingTickets;

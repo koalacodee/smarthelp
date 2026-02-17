@@ -331,7 +331,6 @@ export default function FileHubPageClient({
   };
 
   useEffect(() => {
-    console.log("[FileHub Page] Mounted, fetching attachments...");
     fetchMyAttachments();
   }, []);
 
@@ -447,7 +446,7 @@ export default function FileHubPageClient({
       const { locale: storeLocale } = useLocaleStore.getState();
       setUploadError(
         storeLocale?.myFiles?.filehub?.uploadModal?.selectFileError ||
-          "Please select a file to upload."
+        "Please select a file to upload."
       );
       return;
     }
@@ -457,7 +456,7 @@ export default function FileHubPageClient({
       const { locale: storeLocale } = useLocaleStore.getState();
       setUploadError(
         storeLocale?.myFiles?.filehub?.uploadModal?.endpointError ||
-          "Upload endpoint is not configured."
+        "Upload endpoint is not configured."
       );
       return;
     }
@@ -467,22 +466,13 @@ export default function FileHubPageClient({
       setUploadError(null);
       setUploadProgress(0);
 
-      console.log("[FileHub Upload] Requesting upload key...");
       const { uploadKey } = await FileHubService.generateUploadKey();
-      console.log("[FileHub Upload] Got uploadKey:", uploadKey);
 
       const tusService = new TusService(tusUrl);
 
       const expirationDateIso = expirationInput
         ? new Date(`${expirationInput}T00:00:00`).toISOString()
         : "";
-
-      console.log(
-        "[FileHub Upload] Starting TUS upload:",
-        selectedFile.name,
-        "metadata:",
-        { expirationDate: expirationDateIso, isGlobal: isGlobalFlag }
-      );
 
       const tusUpload = await tusService.upload({
         file: selectedFile,
@@ -502,12 +492,11 @@ export default function FileHubPageClient({
           const { locale: storeLocale } = useLocaleStore.getState();
           setUploadError(
             err?.message ||
-              storeLocale?.myFiles?.filehub?.toasts?.uploadFailed ||
-              "Failed to upload file. Please try again."
+            storeLocale?.myFiles?.filehub?.toasts?.uploadFailed ||
+            "Failed to upload file. Please try again."
           );
         },
         onSuccess: () => {
-          console.log("[FileHub Upload] TUS upload success:", selectedFile.name);
           setUploadStatus("success");
           setUploadProgress(100);
           closeAllModals();
@@ -594,9 +583,8 @@ export default function FileHubPageClient({
     return (
       <div
         key={att.id}
-        className={`relative flex flex-col rounded-xl border transition-shadow bg-white border-slate-200 ${
-          isHovered ? "shadow-lg" : "shadow-sm"
-        }`}
+        className={`relative flex flex-col rounded-xl border transition-shadow bg-white border-slate-200 ${isHovered ? "shadow-lg" : "shadow-sm"
+          }`}
         onMouseEnter={() => setHoveredCardId(att.id)}
         onMouseLeave={() => setHoveredCardId(null)}
       >
@@ -705,19 +693,17 @@ export default function FileHubPageClient({
           <button
             type="button"
             onClick={() => setActiveTab("all")}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition ${
-              activeTab === "all"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === "all"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+              }`}
           >
             {locale.myFiles.filehub.tabs.allFiles}
             <span
-              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${
-                activeTab === "all"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-slate-200 text-slate-600"
-              }`}
+              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${activeTab === "all"
+                ? "bg-blue-100 text-blue-600"
+                : "bg-slate-200 text-slate-600"
+                }`}
             >
               {allCount}
             </span>
@@ -725,19 +711,17 @@ export default function FileHubPageClient({
           <button
             type="button"
             onClick={() => setActiveTab("documents")}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition ${
-              activeTab === "documents"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === "documents"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+              }`}
           >
             {locale.myFiles.filehub.tabs.documents}
             <span
-              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${
-                activeTab === "documents"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-slate-200 text-slate-600"
-              }`}
+              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${activeTab === "documents"
+                ? "bg-blue-100 text-blue-600"
+                : "bg-slate-200 text-slate-600"
+                }`}
             >
               {docsCount}
             </span>
@@ -745,19 +729,17 @@ export default function FileHubPageClient({
           <button
             type="button"
             onClick={() => setActiveTab("videos")}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition ${
-              activeTab === "videos"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === "videos"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+              }`}
           >
             {locale.myFiles.filehub.tabs.videos}
             <span
-              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${
-                activeTab === "videos"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-slate-200 text-slate-600"
-              }`}
+              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${activeTab === "videos"
+                ? "bg-blue-100 text-blue-600"
+                : "bg-slate-200 text-slate-600"
+                }`}
             >
               {videosCount}
             </span>
@@ -765,19 +747,17 @@ export default function FileHubPageClient({
           <button
             type="button"
             onClick={() => setActiveTab("images")}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition ${
-              activeTab === "images"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === "images"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+              }`}
           >
             {locale.myFiles.filehub.tabs.images}
             <span
-              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${
-                activeTab === "images"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-slate-200 text-slate-600"
-              }`}
+              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${activeTab === "images"
+                ? "bg-blue-100 text-blue-600"
+                : "bg-slate-200 text-slate-600"
+                }`}
             >
               {imagesCount}
             </span>
@@ -785,19 +765,17 @@ export default function FileHubPageClient({
           <button
             type="button"
             onClick={() => setActiveTab("audio")}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition ${
-              activeTab === "audio"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === "audio"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+              }`}
           >
             {locale.myFiles.filehub.tabs.audio}
             <span
-              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${
-                activeTab === "audio"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-slate-200 text-slate-600"
-              }`}
+              className={`ms-2 px-2 py-0.5 text-xs rounded-full ${activeTab === "audio"
+                ? "bg-blue-100 text-blue-600"
+                : "bg-slate-200 text-slate-600"
+                }`}
             >
               {audioCount}
             </span>
@@ -1135,22 +1113,20 @@ export default function FileHubPageClient({
                     <button
                       type="button"
                       onClick={() => setIsGlobalFlag(false)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                        !isGlobalFlag
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${!isGlobalFlag
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600"
+                        }`}
                     >
                       {locale.myFiles.filehub.metadataModal.no}
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsGlobalFlag(true)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                        isGlobalFlag
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${isGlobalFlag
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-100 text-slate-600"
+                        }`}
                     >
                       {locale.myFiles.filehub.metadataModal.yes}
                     </button>

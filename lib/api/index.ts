@@ -71,7 +71,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor → handle refresh
@@ -92,7 +92,7 @@ api.interceptors.response.use(
 
     try {
       const response = await api.post<{ data: { accessToken: string } }>(
-        "/auth/refresh"
+        "/auth/refresh",
       );
       const accessToken = response.data.data.accessToken;
       await setCookie("accessToken", accessToken);
@@ -102,7 +102,7 @@ api.interceptors.response.use(
     } catch (refreshError) {
       return Promise.reject(refreshError);
     }
-  }
+  },
 );
 
 // Guest
@@ -375,11 +375,8 @@ export const TicketsService = {
         },
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       });
-
-    console.log(response);
 
     return response.data.data;
   },
@@ -394,7 +391,7 @@ export const TicketsService = {
   answerTicket: async (
     ticketId: string,
     dto: AnswerTicketDto,
-    attach: boolean
+    attach: boolean,
   ) => {
     const data = await api
       .put<JSend<AnswerTicketOutput>>(`/support-tickets/${ticketId}/answer`, {
@@ -469,7 +466,7 @@ export const DepartmentsService = {
   },
   getAllSubDepartments: async () => {
     const response = await api.get<DepartmentsResponse>(
-      "/department/sub-departments"
+      "/department/sub-departments",
     );
     return response.data.data;
   },
@@ -480,7 +477,7 @@ export const DepartmentsService = {
   createSubDepartment: async (dto: CreateSubDepartmentDto) => {
     const response = await api.post<{ data: Department }>(
       "/department/sub-department",
-      dto
+      dto,
     );
     return response.data.data;
   },
@@ -493,14 +490,14 @@ export const DepartmentsService = {
   updateMainDepartment: async (id: string, dto: UpdateDepartmentInputDto) => {
     const response = await api.put<{ data: Department }>(
       `/department/main/${id}`,
-      dto
+      dto,
     );
     return response.data.data;
   },
   updateSubDepartment: async (id: string, dto: UpdateSubDepartmentInputDto) => {
     const response = await api.put<{ data: Department }>(
       `/department/sub/${id}`,
-      dto
+      dto,
     );
     return response.data.data;
   },
@@ -606,7 +603,7 @@ export const FAQsService = {
   updateQuestion: async (
     id: string,
     dto: UpdateQuestionInputDto,
-    formData?: FormData
+    formData?: FormData,
   ) => {
     const res = await api.put<{
       data: { question: Question; uploadKey?: string };
@@ -622,37 +619,37 @@ export const FAQsService = {
   },
   getQuestion: async (id: string) => {
     const response = await api.get<{ data: SingleFAQResponse }>(
-      `/questions/${id}`
+      `/questions/${id}`,
     );
     return response.data.data;
   },
   getAllQuestions: async () => {
     const response = await api.get<{ data: MultipleFAQsResponse }>(
-      "/questions"
+      "/questions",
     );
     return response.data.data;
   },
   getViewFAQs: async () => {
     const response = await api.get<{ data: ViewFAQsResponse }>(
-      "/questions/view"
+      "/questions/view",
     );
     return response.data.data;
   },
   getGrouped: async () => {
     const response = await api.get<{ data: GroupedFAQsResponse }>(
-      "/questions/grouped"
+      "/questions/grouped",
     );
     return response.data.data;
   },
   getShared: async () => {
     const response = await api.get<{ data: SharedFAQsResponse }>(
-      "/questions/shared"
+      "/questions/shared",
     );
     return response.data.data;
   },
   getGroup: async () => {
     const response = await api.get<{ data: GroupQuestionsResponse }>(
-      "/questions/group"
+      "/questions/group",
     );
     return response.data.data;
   },
@@ -731,15 +728,17 @@ export interface MyTasksResponse {
   };
 }
 
-export interface DepartmentLevelTaskData
-  extends TaskData<Omit<Task, "targetSubDepartment">> {
+export interface DepartmentLevelTaskData extends TaskData<
+  Omit<Task, "targetSubDepartment">
+> {
   attachments: { [taskId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
   submissions: TaskSubmission[];
 }
 
-export interface SubDepartmentLevelTaskData
-  extends TaskData<Omit<Task, "targetDepartment">> {
+export interface SubDepartmentLevelTaskData extends TaskData<
+  Omit<Task, "targetDepartment">
+> {
   attachments: { [taskId: string]: string[] };
   fileHubAttachments: FileHubAttachment[];
   submissions: TaskSubmission[];
@@ -768,7 +767,11 @@ export interface UpdateTaskDto {
   attach?: boolean;
   deleteAttachments?: string[];
   chooseAttachments?: string[];
-  addReminders?: { name: string; reminderDate: Date; reminderInterval: number }[];
+  addReminders?: {
+    name: string;
+    reminderDate: Date;
+    reminderInterval: number;
+  }[];
   deleteReminders?: string[];
 }
 
@@ -862,7 +865,7 @@ export const TasksService = {
     departmentId?: string,
     cursor?: string,
     cursorDir?: "next" | "prev",
-    limit?: number
+    limit?: number,
   ) => {
     const response = await api.get<{
       data: DepartmentLevelTaskData & { meta: any };
@@ -886,7 +889,7 @@ export const TasksService = {
     departmentId?: string,
     cursor?: string,
     cursorDir?: "next" | "prev",
-    limit?: number
+    limit?: number,
   ) => {
     const response = await api.get<{
       data: SubDepartmentLevelTaskData & { meta: any };
@@ -910,7 +913,7 @@ export const TasksService = {
     departmentId?: string,
     cursor?: string,
     cursorDir?: "next" | "prev",
-    limit?: number
+    limit?: number,
   ) => {
     const response = await api
       .get<{ data: EmployeeLevelTaskData & { meta: any } }>(
@@ -925,7 +928,7 @@ export const TasksService = {
             cursorDir,
             limit,
           },
-        }
+        },
       )
       .catch((error) => {
         console.error(error.response.data);
@@ -933,19 +936,26 @@ export const TasksService = {
       });
     return response.data.data;
   },
-  getTeamTasks: async (
-    options?: {
-      status?: TaskStatus,
-      priority?: "LOW" | "MEDIUM" | "HIGH",
-      cursor?: string,
-      cursorDir?: "next" | "prev",
-      limit?: number,
-      search?: string,
-      departmentId?: string,
-      subDepartmentId?: string
-    }
-  ) => {
-    const { status, priority, cursor, cursorDir, limit, search, departmentId, subDepartmentId } = options || {};
+  getTeamTasks: async (options?: {
+    status?: TaskStatus;
+    priority?: "LOW" | "MEDIUM" | "HIGH";
+    cursor?: string;
+    cursorDir?: "next" | "prev";
+    limit?: number;
+    search?: string;
+    departmentId?: string;
+    subDepartmentId?: string;
+  }) => {
+    const {
+      status,
+      priority,
+      cursor,
+      cursorDir,
+      limit,
+      search,
+      departmentId,
+      subDepartmentId,
+    } = options || {};
     const response = await api.get<{
       data: {
         data: Array<{
@@ -991,20 +1001,20 @@ export const TasksService = {
   submitWork: async (
     id: string,
     dto: { notes: string; chooseAttachments?: string[] },
-    attach: boolean = false
+    attach: boolean = false,
   ) => {
     const response = await api.post<JSend<SubmitTaskForReviewResponse>>(
       `tasks/${id}/submit-review`,
       {
         ...dto,
         attach,
-      }
+      },
     );
     return response.data.data;
   },
   getTask: async (id: string) => {
     const response = await api.get<{ data: SingleTaskResponse }>(
-      `/tasks/${id}`
+      `/tasks/${id}`,
     );
     return response.data.data;
   },
@@ -1012,28 +1022,29 @@ export const TasksService = {
     const response = await api.get<{ data: MultipleTasksResponse }>("/tasks");
     return response.data.data;
   },
-  getMyTasks: async (
-    options?: {
-      cursor?: string,
-      cursorDir?: "next" | "prev",
-      limit?: number,
-      status?: TaskStatus
-      search?: string
-      departmentId?: string
-      subDepartmentId?: string
-    }
-  ): Promise<MyTasksResponse> => {
-    const response = await api.get<{ data: MyTasksResponse }>("/tasks/my-tasks", {
-      params: {
-        cursor: options?.cursor,
-        cursorDir: options?.cursorDir,
-        limit: options?.limit,
-        status: options?.status,
-        search: options?.search,
-        departmentId: options?.departmentId,
-        subDepartmentId: options?.subDepartmentId,
+  getMyTasks: async (options?: {
+    cursor?: string;
+    cursorDir?: "next" | "prev";
+    limit?: number;
+    status?: TaskStatus;
+    search?: string;
+    departmentId?: string;
+    subDepartmentId?: string;
+  }): Promise<MyTasksResponse> => {
+    const response = await api.get<{ data: MyTasksResponse }>(
+      "/tasks/my-tasks",
+      {
+        params: {
+          cursor: options?.cursor,
+          cursorDir: options?.cursorDir,
+          limit: options?.limit,
+          status: options?.status,
+          search: options?.search,
+          departmentId: options?.departmentId,
+          subDepartmentId: options?.subDepartmentId,
+        },
       },
-    });
+    );
     return response.data.data;
   },
   approveTask: async (taskId: string) => {
@@ -1056,7 +1067,7 @@ export const TasksService = {
   },
   getTaskSubmissions: async (taskId: string) => {
     const response = await api.get<{ data: TaskSubmissionsResponse }>(
-      `/task/submission/task/${taskId}`
+      `/task/submission/task/${taskId}`,
     );
     return response.data.data;
   },
@@ -1065,11 +1076,11 @@ export const TasksService = {
    * POST /task/submission/approve
    */
   approveTaskSubmission: async (
-    data: ApproveTaskSubmissionRequest
+    data: ApproveTaskSubmissionRequest,
   ): Promise<any> => {
     const response: AxiosResponse<any> = await api.post(
       "/task/submission/approve",
-      data
+      data,
     );
     return response.data;
   },
@@ -1079,17 +1090,17 @@ export const TasksService = {
    * POST /task/submission/reject
    */
   rejectTaskSubmission: async (
-    data: RejectTaskSubmissionRequest
+    data: RejectTaskSubmissionRequest,
   ): Promise<any> => {
     const response: AxiosResponse<any> = await api.post(
       "/task/submission/reject",
-      data
+      data,
     );
     return response.data;
   },
   markTaskAsSeen: async (taskId: string) => {
     const response: AxiosResponse<any> = await api.post(
-      `/tasks/${taskId}/seen`
+      `/tasks/${taskId}/seen`,
     );
     return response.data;
   },
@@ -1114,21 +1125,21 @@ export const EmployeeRequestsService = {
   getEmployeeRequestsForSupervisor: async (supervisorId: string) => {
     const response = await api.get<EmployeeRequestsResponse>(
       "/employee-requests",
-      { params: { supervisorId } }
+      { params: { supervisorId } },
     );
     return response.data.data;
   },
   getPendingEmployeeRequests: async () => {
     const response = await api.get<EmployeeRequestsResponse>(
       "/employee-requests",
-      { params: { statuses: ["PENDING"] } }
+      { params: { statuses: ["PENDING"] } },
     );
     return response.data.data;
   },
   getResolvedEmployeeRequests: async () => {
     const response = await api.get<EmployeeRequestsResponse>(
       "/employee-requests",
-      { params: { statuses: ["APPROVED", "REJECTED"] } }
+      { params: { statuses: ["APPROVED", "REJECTED"] } },
     );
     return response.data.data;
   },
@@ -1143,8 +1154,7 @@ export interface SinglePromotionResponse extends PromotionAttachmentsResponse {
   promotion: any; // Replace 'any' with proper Promotion type if available
 }
 
-export interface MultiplePromotionsResponse
-  extends PromotionAttachmentsResponse {
+export interface MultiplePromotionsResponse extends PromotionAttachmentsResponse {
   promotions: any[]; // Replace 'any[]' with proper Promotion[] type if available
 }
 
@@ -1170,20 +1180,20 @@ export const PromotionService = {
       {
         ...dto,
         attach,
-      }
+      },
     );
 
     return response.data.data;
   },
   getPromotion: async (id: string) => {
     const response = await api.get<{ data: SinglePromotionResponse }>(
-      `/promotions/${id}`
+      `/promotions/${id}`,
     );
     return response.data.data;
   },
   getAllPromotions: async () => {
     const response = await api.get<{ data: MultiplePromotionsResponse }>(
-      "/promotions"
+      "/promotions",
     );
     return response.data.data;
   },
@@ -1204,7 +1214,7 @@ export const SupervisorsService = {
   },
   canDelete: async (id: string) => {
     const response = await api.get<{ data: boolean }>(
-      `/supervisors/can-delete/${id}`
+      `/supervisors/can-delete/${id}`,
     );
     return response.data.data;
   },
@@ -1215,21 +1225,23 @@ export const SupervisorsService = {
 };
 
 export const EmployeeService = {
-  getMySubDepartments: async (): Promise<Array<{ id: string; name: string }>> => {
-    const response = await api.get<{ data: Array<{ id: string; name: string }> }>(
-      "/employees/me/sub-departments"
-    );
+  getMySubDepartments: async (): Promise<
+    Array<{ id: string; name: string }>
+  > => {
+    const response = await api.get<{
+      data: Array<{ id: string; name: string }>;
+    }>("/employees/me/sub-departments");
     return response.data.data ?? [];
   },
   getEmployeesBySubDepartment: async (subDepartmentId: string) => {
     const response = await api.get<{ data: { employees: TicketAssignee[] } }>(
-      "/employees/sub-department/" + subDepartmentId
+      "/employees/sub-department/" + subDepartmentId,
     );
     return response.data.data.employees;
   },
   getAllEmployees: async () => {
     const response = await api.get<{ data: { employees: Entity[] } }>(
-      "/employees"
+      "/employees",
     );
     return response.data.data.employees;
   },
@@ -1239,7 +1251,7 @@ export const EmployeeService = {
   },
   canDeleteEmployee: async (id: string) => {
     const response = await api.get<{ data: boolean }>(
-      `/employees/can-delete/${id}`
+      `/employees/can-delete/${id}`,
     );
     return response.data.data;
   },
@@ -1262,7 +1274,7 @@ export const UserActivityService = {
   },
   getAnalyticsOverview: async () => {
     const response = await api.get<{ data: AnalyticsOverviewResult }>(
-      "/activity-log/analytics-overview"
+      "/activity-log/analytics-overview",
     );
     return response.data.data;
   },
@@ -1296,7 +1308,7 @@ export const FileService = {
 
   getAttachmentMetadata: async (tokenOrId: string) => {
     const res = await api.get<AttachmentMetadataResponse>(
-      `/attachment/${tokenOrId}/metadata`
+      `/attachment/${tokenOrId}/metadata`,
     );
     return res.data.data;
   },
@@ -1307,13 +1319,11 @@ export interface KnowledgeChunkAttachmentsResponse {
   attachments: { [chunkId: string]: string[] };
 }
 
-export interface SingleKnowledgeChunkResponse
-  extends KnowledgeChunkAttachmentsResponse {
+export interface SingleKnowledgeChunkResponse extends KnowledgeChunkAttachmentsResponse {
   knowledgeChunk: any | null; // Replace 'any' with proper KnowledgeChunk type if available
 }
 
-export interface MultipleKnowledgeChunksResponse
-  extends KnowledgeChunkAttachmentsResponse {
+export interface MultipleKnowledgeChunksResponse extends KnowledgeChunkAttachmentsResponse {
   knowledgeChunks: any[]; // Replace 'any[]' with proper KnowledgeChunk[] type if available
 }
 
@@ -1322,7 +1332,7 @@ export const KnowledgeChunksService = {
 
   createKnowledgeChunk: async (
     dto: CreateKnowledgeChunkInputDto,
-    formData?: FormData
+    formData?: FormData,
   ) => {
     const response = await api.post<{
       data: { knowledgeChunk: any; uploadKey?: string };
@@ -1340,7 +1350,7 @@ export const KnowledgeChunksService = {
   updateKnowledgeChunk: async (
     id: string,
     dto: UpdateKnowledgeChunkInputDto,
-    formData?: FormData
+    formData?: FormData,
   ) => {
     const response = await api.put<{
       data: { knowledgeChunk: any; uploadKey?: string };
@@ -1357,14 +1367,14 @@ export const KnowledgeChunksService = {
 
   getKnowledgeChunk: async (id: string) => {
     const response = await api.get<{ data: SingleKnowledgeChunkResponse }>(
-      `/knowledge-chunks/${id}`
+      `/knowledge-chunks/${id}`,
     );
     return response.data.data;
   },
 
   getAllKnowledgeChunks: async () => {
     const response = await api.get<{ data: MultipleKnowledgeChunksResponse }>(
-      "/knowledge-chunks"
+      "/knowledge-chunks",
     );
     return response.data.data;
   },
