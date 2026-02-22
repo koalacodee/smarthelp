@@ -118,7 +118,7 @@ export default function InviteEmployeeModal() {
     setEmployeeId("");
     setSelectedPermissions([]);
     setSelectedSubDepartmentIds([]);
-    setSelectedSupervisorId("");
+    setSelectedSupervisorId(undefined);
     setSupervisorSearchTerm("");
     setShowSupervisorDropdown(false);
     setMentionStartIndex(-1);
@@ -154,7 +154,7 @@ export default function InviteEmployeeModal() {
   };
 
   const handleSupervisorRemove = () => {
-    setSelectedSupervisorId("");
+    setSelectedSupervisorId(undefined);
   };
 
   const handleSupervisorInputChange = (
