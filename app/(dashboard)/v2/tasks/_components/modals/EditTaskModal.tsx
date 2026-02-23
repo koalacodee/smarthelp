@@ -18,6 +18,7 @@ import TaskRemindersInput, {
 import AttachmentInputV3 from "@/app/(dashboard)/files/components/v3/AttachmentInput";
 import ExistingAttachmentsViewer from "@/app/(dashboard)/files/components/ExistingAttachmentsViewer";
 import type { TaskResponse, UpdateTaskRequest } from "@/services/tasks/types";
+import { EmployeeService } from "@/lib/api/v2";
 
 function buildReminders(entries: SpecificReminderEntry[]) {
   return entries
@@ -40,6 +41,7 @@ export default function EditTaskModal() {
   const { fileHubUploadKey } = useTaskStore();
   const { selectedFormMyAttachments, attachmentsToUpload } = useAttachments();
   const [departmentId, setDepartmentId] = useState("");
+  const [assigneeId, setAssigneeId] = useState("");
   const [reminders, setReminders] = useState<SpecificReminderEntry[]>([]);
   const [error, setError] = useState("");
 
@@ -70,9 +72,10 @@ export default function EditTaskModal() {
           ? new Date(task.dueDate).toISOString().slice(0, 16)
           : "",
       });
-      setDepartmentId(
-        task.targetDepartmentId ?? task.targetSubDepartmentId ?? "",
-      );
+      const initialDept =
+        task.targetSubDepartmentId ?? task.targetDepartmentId ?? "";
+      setDepartmentId(initialDept);
+      setAssigneeId(task.assigneeId ?? "");
       setReminders(
         (task.reminders ?? []).map((r) => ({
           id: r.id,
@@ -83,11 +86,23 @@ export default function EditTaskModal() {
           intervalMinutes: Math.floor((r.reminderInterval % 3600000) / 60000),
         })),
       );
+      if (
+        role === "supervisor" &&
+        task.assigneeId &&
+        !task.targetSubDepartmentId &&
+        !task.targetDepartmentId
+      ) {
+        EmployeeService.getEmployee(task.assigneeId).then((employee) => {
+          const subDeptId = employee.subDepartments?.[0]?.id ?? "";
+          if (subDeptId) setDepartmentId(subDeptId);
+        }).catch(() => {});
+      }
     }
-  }, [task, reset]);
+  }, [task, reset, role]);
 
   const handleClose = () => {
     reset();
+    setAssigneeId("");
     setError("");
     closeModal();
   };
@@ -102,7 +117,10 @@ export default function EditTaskModal() {
         priority: data.priority,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
         targetDepartmentId: role === "admin" ? departmentId : undefined,
-        targetSubDepartmentId: role === "supervisor" ? departmentId : undefined,
+        targetSubDepartmentId:
+          role === "supervisor" && !assigneeId ? departmentId : undefined,
+        assigneeId:
+          role === "supervisor" && assigneeId ? assigneeId : undefined,
         attach: attachmentsToUpload.length > 0,
         addReminders: buildReminders(
           reminders.filter(
@@ -145,6 +163,8 @@ export default function EditTaskModal() {
         <TaskAssignmentFields
           departmentId={departmentId}
           onDepartmentChange={setDepartmentId}
+          assigneeId={assigneeId}
+          onAssigneeChange={setAssigneeId}
         />
         <TaskRemindersInput
           specificReminders={reminders}
