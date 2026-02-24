@@ -40,8 +40,9 @@ export interface ReauthMemberResponse {
 }
 
 export interface GetAllMembersRequest {
-  limit?: number;
-  offset?: number;
+  cursor?: string;
+  direction?: "next" | "prev";
+  pageSize?: number;
 }
 
 export interface MemberWithGroupDetails {
@@ -61,13 +62,16 @@ export interface MemberWithGroupDetails {
   department?: { id: string; name: string } | null;
 }
 
+export interface CursorMeta {
+  nextCursor?: string;
+  prevCursor?: string;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface GetAllMembersResponse {
   members: MemberWithGroupDetails[];
-  pagination: {
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
+  meta: CursorMeta;
 }
 
 export interface UpdateMemberRequest {
@@ -160,7 +164,13 @@ export class AttachmentGroupMemberManagementService {
   ): Promise<GetAllMembersResponse> {
     const { data } = await this.http.get<JSend<GetAllMembersResponse>>(
       "/filehub/attachment-groups/members/all",
-      { params }
+      {
+        params: {
+          cursor: params.cursor,
+          direction: params.direction,
+          pageSize: params.pageSize,
+        },
+      }
     );
     return data.data;
   }

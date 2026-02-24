@@ -690,6 +690,10 @@
           "cancel": "Cancel",
           "update": "Update Member"
         },
+        "pagination": {
+          "previous": "Previous",
+          "next": "Next"
+        },
         "reauthButton": "Re-auth",
         "reauthModal": {
           "title": "Re-authenticate Display",

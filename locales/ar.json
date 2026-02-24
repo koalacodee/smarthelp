@@ -690,6 +690,10 @@
           "cancel": "إلغاء",
           "update": "تحديث العضو"
         },
+        "pagination": {
+          "previous": "السابق",
+          "next": "التالي"
+        },
         "reauthButton": "إعادة المصادقة",
         "reauthModal": {
           "title": "إعادة مصادقة العرض",

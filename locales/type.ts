@@ -649,6 +649,10 @@ export type Locale = {
         title: string;
         description: string;
         addButton: string;
+        pagination: {
+          previous: string;
+          next: string;
+        };
         reauthButton: string;
         reauthModal: {
           title: string;

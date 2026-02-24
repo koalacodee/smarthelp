@@ -7,6 +7,7 @@ import type {
   AddMemberRequest,
   UpdateMemberRequest,
   AvailableDepartmentsResponse,
+  CursorMeta,
 } from "@/lib/api/v2/services/membership-management";
 import { useAttachmentGroupsStore } from "../store/useAttachmentGroupsStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
@@ -15,6 +16,8 @@ import Pencil from "@/icons/Pencil";
 import Trash from "@/icons/Trash";
 import UserPlus from "@/icons/UserPlus";
 import RefreshCw from "@/icons/RefreshCw";
+import ChevronLeft from "@/icons/ChevronLeft";
+import ChevronRight from "@/icons/ChevronRight";
 import Cookie from "js-cookie";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
 
@@ -34,6 +37,9 @@ export default function MemberManagementPanel() {
   const [reauthOtp, setReauthOtp] = useState("");
   const [availableDepartments, setAvailableDepartments] =
     useState<AvailableDepartmentsResponse | null>(null);
+  const [paginationMeta, setPaginationMeta] = useState<CursorMeta | null>(
+    null
+  );
 
   // Form states
   const [otp, setOtp] = useState("");
@@ -66,11 +72,19 @@ export default function MemberManagementPanel() {
     }
   };
 
-  const loadMembers = async () => {
+  const loadMembers = async (params?: {
+    cursor?: string;
+    direction?: "next" | "prev";
+  }) => {
     try {
       setIsLoading(true);
-      const response = await MemberManagementService.getAllMembersWithGroups();
+      const response = await MemberManagementService.getAllMembersWithGroups({
+        ...(params?.cursor && { cursor: params.cursor }),
+        ...(params?.direction && { direction: params.direction }),
+        pageSize: 10,
+      });
       setMembers(response.members);
+      setPaginationMeta(response.meta);
       const accessToken = Cookie.get("accessToken");
       if (!accessToken) return;
       await MemberManagementService.subscribeOnActiveMembers(
@@ -295,25 +309,16 @@ export default function MemberManagementPanel() {
   );
 
   return (
+    <>
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Header with Add Button */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            {locale.myFiles.groups.members.title}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {locale.myFiles.groups.members.description}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-indigo-700 transition"
-        >
-          <UserPlus className="w-4 h-4" />
-          {locale.myFiles.groups.members.addButton}
-        </button>
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">
+          {locale.myFiles.groups.members.title}
+        </h2>
+        <p className="mt-1 text-sm text-slate-500">
+          {locale.myFiles.groups.members.description}
+        </p>
       </div>
 
       {/* Filter and Count Section - Top Control Bar */}
@@ -479,6 +484,41 @@ export default function MemberManagementPanel() {
           </table>
         </div>
       )}
+
+      {/* Pagination */}
+      {paginationMeta &&
+        (paginationMeta.hasNextPage || paginationMeta.hasPrevPage) && (
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <button
+              type="button"
+              onClick={() =>
+                loadMembers({
+                  cursor: paginationMeta.prevCursor,
+                  direction: "prev",
+                })
+              }
+              disabled={!paginationMeta.hasPrevPage}
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {locale.myFiles.groups.members.pagination?.previous ?? "Previous"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                loadMembers({
+                  cursor: paginationMeta.nextCursor,
+                  direction: "next",
+                })
+              }
+              disabled={!paginationMeta.hasNextPage}
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {locale.myFiles.groups.members.pagination?.next ?? "Next"}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       {/* Add Member Modal */}
       {isAddModalOpen && (
@@ -806,5 +846,16 @@ export default function MemberManagementPanel() {
         </div>
       )}
     </div>
+
+    {/* Fixed Add Member button - bottom-right */}
+    <button
+      type="button"
+      onClick={openAddModal}
+      className="fixed bottom-6 right-6 z-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 transition"
+    >
+      <UserPlus className="w-4 h-4" />
+      {locale.myFiles.groups.members.addButton}
+    </button>
+    </>
   );
 }
