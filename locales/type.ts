@@ -649,6 +649,19 @@ export type Locale = {
         title: string;
         description: string;
         addButton: string;
+        reauthButton: string;
+        reauthModal: {
+          title: string;
+          description: string;
+          otpLabel: string;
+          otpPlaceholder: string;
+          cancel: string;
+          submit: string;
+          toasts: {
+            success: string;
+            failed: string;
+          };
+        };
         loading: string;
         departmentColumn: string;
         unassigned: string;

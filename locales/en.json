@@ -690,6 +690,19 @@
           "cancel": "Cancel",
           "update": "Update Member"
         },
+        "reauthButton": "Re-auth",
+        "reauthModal": {
+          "title": "Re-authenticate Display",
+          "description": "Enter the OTP shown on the display to restore access for {name}",
+          "otpLabel": "OTP Code",
+          "otpPlaceholder": "Enter OTP from display",
+          "cancel": "Cancel",
+          "submit": "Re-authenticate",
+          "toasts": {
+            "success": "Display re-authenticated successfully",
+            "failed": "Failed to re-authenticate display"
+          }
+        },
         "confirmations": {
           "deleteTitle": "Delete Member",
           "deleteMessage": "Are you sure you want to delete member \"{name}\"? This action cannot be undone.",

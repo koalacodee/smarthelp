@@ -690,6 +690,19 @@
           "cancel": "إلغاء",
           "update": "تحديث العضو"
         },
+        "reauthButton": "إعادة المصادقة",
+        "reauthModal": {
+          "title": "إعادة مصادقة العرض",
+          "description": "أدخل رمز OTP المعروض على الشاشة لاستعادة الوصول لـ {name}",
+          "otpLabel": "رمز OTP",
+          "otpPlaceholder": "أدخل OTP من العرض",
+          "cancel": "إلغاء",
+          "submit": "إعادة المصادقة",
+          "toasts": {
+            "success": "تم إعادة مصادقة العرض بنجاح",
+            "failed": "فشل في إعادة مصادقة العرض"
+          }
+        },
         "confirmations": {
           "deleteTitle": "حذف العضو",
           "deleteMessage": "هل أنت متأكد من حذف العضو \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",

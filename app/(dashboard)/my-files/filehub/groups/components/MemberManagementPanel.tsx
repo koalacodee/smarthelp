@@ -11,13 +11,12 @@ import type {
 import { useAttachmentGroupsStore } from "../store/useAttachmentGroupsStore";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import { useConfirmationModalStore } from "@/app/(dashboard)/store/useConfirmationStore";
-import Plus from "@/icons/Plus";
 import Pencil from "@/icons/Pencil";
 import Trash from "@/icons/Trash";
 import UserPlus from "@/icons/UserPlus";
+import RefreshCw from "@/icons/RefreshCw";
 import Cookie from "js-cookie";
 import { useLocaleStore } from "@/lib/store/useLocaleStore";
-import { formatDateWithHijri } from "@/locales/dateFormatter";
 
 type StatusFilter = "all" | "online" | "offline";
 
@@ -29,6 +28,10 @@ export default function MemberManagementPanel() {
   const [selectedMember, setSelectedMember] =
     useState<MemberWithGroupDetails | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [isReauthModalOpen, setIsReauthModalOpen] = useState(false);
+  const [reauthMember, setReauthMember] =
+    useState<MemberWithGroupDetails | null>(null);
+  const [reauthOtp, setReauthOtp] = useState("");
   const [availableDepartments, setAvailableDepartments] =
     useState<AvailableDepartmentsResponse | null>(null);
 
@@ -204,6 +207,46 @@ export default function MemberManagementPanel() {
     setSelectedGroupId(member.attachmentGroup.id);
     setSelectedDepartmentId(member.department?.id ?? "");
     setIsEditModalOpen(true);
+  };
+
+  const openReauthModal = (member: MemberWithGroupDetails) => {
+    setReauthMember(member);
+    setReauthOtp("");
+    setIsReauthModalOpen(true);
+  };
+
+  const handleReauthMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reauthMember || !reauthOtp) {
+      addToast({
+        message: locale.myFiles.groups.members.toasts.fillAllFields,
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      await MemberManagementService.reauthMember({
+        otp: reauthOtp,
+        memberId: reauthMember.id,
+      });
+
+      addToast({
+        message: locale.myFiles.groups.members.reauthModal.toasts.success,
+        type: "success",
+      });
+
+      setIsReauthModalOpen(false);
+      setReauthMember(null);
+      setReauthOtp("");
+      loadMembers();
+    } catch (err: any) {
+      addToast({
+        message:
+          err?.message || locale.myFiles.groups.members.reauthModal.toasts.failed,
+        type: "error",
+      });
+    }
   };
 
   const resetForm = () => {
@@ -405,6 +448,14 @@ export default function MemberManagementPanel() {
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
+                          onClick={() => openReauthModal(member)}
+                          className="inline-flex items-center justify-center rounded-md bg-blue-50 p-1.5 text-blue-600 hover:bg-blue-100 transition"
+                          aria-label="Re-auth member"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => openEditModal(member)}
                           className="inline-flex items-center justify-center rounded-md bg-green-50 p-1.5 text-green-600 hover:bg-green-100 transition"
                           aria-label="Edit member"
@@ -567,6 +618,60 @@ export default function MemberManagementPanel() {
                   className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
                 >
                   {locale.myFiles.groups.members.addModal.add}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Re-auth Member Modal */}
+      {isReauthModalOpen && reauthMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              {locale.myFiles.groups.members.reauthModal.title}
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">
+              {locale.myFiles.groups.members.reauthModal.description.replace(
+                "{name}",
+                reauthMember.name
+              )}
+            </p>
+            <form onSubmit={handleReauthMember} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  {locale.myFiles.groups.members.reauthModal.otpLabel}
+                </label>
+                <input
+                  type="text"
+                  value={reauthOtp}
+                  onChange={(e) => setReauthOtp(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  placeholder={
+                    locale.myFiles.groups.members.reauthModal.otpPlaceholder
+                  }
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsReauthModalOpen(false);
+                    setReauthMember(null);
+                    setReauthOtp("");
+                  }}
+                  className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                >
+                  {locale.myFiles.groups.members.reauthModal.cancel}
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
+                >
+                  {locale.myFiles.groups.members.reauthModal.submit}
                 </button>
               </div>
             </form>

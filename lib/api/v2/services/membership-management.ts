@@ -29,6 +29,16 @@ export interface AddMemberResponse {
   member: MemberDetails;
 }
 
+export interface ReauthMemberRequest {
+  otp: string;
+  memberId: UUID;
+}
+
+export interface ReauthMemberResponse {
+  success: boolean;
+  member: MemberDetails;
+}
+
 export interface GetAllMembersRequest {
   limit?: number;
   offset?: number;
@@ -121,6 +131,17 @@ export class AttachmentGroupMemberManagementService {
   async addMember(body: AddMemberRequest): Promise<AddMemberResponse> {
     const { data } = await this.http.post<JSend<AddMemberResponse>>(
       "/filehub/attachment-groups/members",
+      body
+    );
+    return data.data;
+  }
+
+  // POST /filehub/attachment-groups/members/reauth
+  async reauthMember(
+    body: ReauthMemberRequest
+  ): Promise<ReauthMemberResponse> {
+    const { data } = await this.http.post<JSend<ReauthMemberResponse>>(
+      "/filehub/attachment-groups/members/reauth",
       body
     );
     return data.data;
