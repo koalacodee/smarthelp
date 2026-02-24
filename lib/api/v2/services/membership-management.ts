@@ -43,6 +43,7 @@ export interface GetAllMembersRequest {
   cursor?: string;
   direction?: "next" | "prev";
   pageSize?: number;
+  filterDepartmentId?: string;
 }
 
 export interface MemberWithGroupDetails {
@@ -169,6 +170,7 @@ export class AttachmentGroupMemberManagementService {
           cursor: params.cursor,
           direction: params.direction,
           pageSize: params.pageSize,
+          filterDepartmentId: params.filterDepartmentId,
         },
       }
     );

@@ -690,6 +690,11 @@
           "cancel": "إلغاء",
           "update": "تحديث العضو"
         },
+        "filters": {
+          "departmentLabel": "القسم",
+          "departmentAll": "جميع الأقسام",
+          "departmentUnassigned": "غير معين"
+        },
         "pagination": {
           "previous": "السابق",
           "next": "التالي"

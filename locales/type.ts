@@ -649,6 +649,11 @@ export type Locale = {
         title: string;
         description: string;
         addButton: string;
+        filters: {
+          departmentLabel: string;
+          departmentAll: string;
+          departmentUnassigned: string;
+        };
         pagination: {
           previous: string;
           next: string;

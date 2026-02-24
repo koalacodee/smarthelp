@@ -690,6 +690,11 @@
           "cancel": "Cancel",
           "update": "Update Member"
         },
+        "filters": {
+          "departmentLabel": "Department",
+          "departmentAll": "All Departments",
+          "departmentUnassigned": "Unassigned"
+        },
         "pagination": {
           "previous": "Previous",
           "next": "Next"

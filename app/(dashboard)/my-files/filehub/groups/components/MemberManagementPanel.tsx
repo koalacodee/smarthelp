@@ -40,6 +40,7 @@ export default function MemberManagementPanel() {
   const [paginationMeta, setPaginationMeta] = useState<CursorMeta | null>(
     null
   );
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>("");
 
   // Form states
   const [otp, setOtp] = useState("");
@@ -61,6 +62,18 @@ export default function MemberManagementPanel() {
     loadAvailableDepartments();
   }, []);
 
+  // Clear Unassigned filter when user is not admin
+  useEffect(() => {
+    if (
+      filterDepartmentId === "__unassigned__" &&
+      availableDepartments &&
+      availableDepartments.role !== "admin"
+    ) {
+      setFilterDepartmentId("");
+      loadMembers({ filterDepartmentIdOverride: "" });
+    }
+  }, [availableDepartments, filterDepartmentId]);
+
   const loadAvailableDepartments = async () => {
     try {
       const data =
@@ -75,13 +88,24 @@ export default function MemberManagementPanel() {
   const loadMembers = async (params?: {
     cursor?: string;
     direction?: "next" | "prev";
+    filterDepartmentIdOverride?: string;
   }) => {
+    const effectiveDeptId =
+      params?.filterDepartmentIdOverride !== undefined
+        ? params.filterDepartmentIdOverride
+        : filterDepartmentId;
     try {
       setIsLoading(true);
       const response = await MemberManagementService.getAllMembersWithGroups({
         ...(params?.cursor && { cursor: params.cursor }),
         ...(params?.direction && { direction: params.direction }),
         pageSize: 10,
+        ...(effectiveDeptId && {
+          filterDepartmentId:
+            effectiveDeptId === "__unassigned__"
+              ? "__unassigned__"
+              : effectiveDeptId,
+        }),
       });
       setMembers(response.members);
       setPaginationMeta(response.meta);
@@ -271,14 +295,38 @@ export default function MemberManagementPanel() {
     setSelectedMember(null);
   };
 
-  // Filter members based on status
-  const filteredMembers = members.filter((member) => {
+  // Status is client-side only: filter members by online/offline for display
+  const displayMembers = members.filter((member) => {
     if (statusFilter === "all") return true;
     const isOnline = activeMembers.includes(member.id);
     if (statusFilter === "online") return isOnline;
     if (statusFilter === "offline") return !isOnline;
     return true;
   });
+
+  // Flatten department options for the filter dropdown
+  const departmentFilterOptions: { value: string; label: string }[] = [
+    { value: "", label: locale.myFiles.groups.members.filters?.departmentAll ?? "All Departments" },
+    ...(availableDepartments?.role === "admin"
+      ? [{ value: "__unassigned__", label: locale.myFiles.groups.members.filters?.departmentUnassigned ?? "Unassigned" }]
+      : []),
+  ];
+  if (availableDepartments) {
+    if (availableDepartments.role === "admin") {
+      availableDepartments.mainDepartments.forEach((main) => {
+        if (main.includeMainAsOption !== false) {
+          departmentFilterOptions.push({ value: main.id, label: main.name });
+        }
+        main.subDepartments.forEach((sub) => {
+          departmentFilterOptions.push({ value: sub.id, label: sub.name });
+        });
+      });
+    } else {
+      availableDepartments.departments.forEach((d) => {
+        departmentFilterOptions.push({ value: d.id, label: d.name });
+      });
+    }
+  }
 
   if (isLoading) {
     return (
@@ -321,48 +369,83 @@ export default function MemberManagementPanel() {
         </p>
       </div>
 
-      {/* Filter and Count Section - Top Control Bar */}
-      {members.length > 0 && (
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FilterIcon />
-            <span className="text-sm text-slate-700">Filter by Status:</span>
-            <div className="relative inline-block">
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as StatusFilter)
-                }
-                className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="all">Show All</option>
-                <option value="online">
-                  {locale.myFiles.groups.members.status.online}
+      {/* Filter Section - Department and Status */}
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <FilterIcon />
+          <span className="text-sm text-slate-700">
+            {locale.myFiles.groups.members.filters?.departmentLabel ?? "Department"}:
+          </span>
+          <div className="relative inline-block">
+            <select
+              value={filterDepartmentId}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setFilterDepartmentId(newValue);
+                loadMembers({ filterDepartmentIdOverride: newValue });
+              }}
+              className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              {departmentFilterOptions.map((opt) => (
+                <option key={opt.value || "__all__"} value={opt.value}>
+                  {opt.label}
                 </option>
-                <option value="offline">
-                  {locale.myFiles.groups.members.status.offline}
-                </option>
-              </select>
-              <svg
-                className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="text-sm text-slate-600">
-            Showing {filteredMembers.length} of {members.length} members
+              ))}
+            </select>
+            <svg
+              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
           </div>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-700">Status:</span>
+          <div className="relative inline-block">
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as StatusFilter)
+              }
+              className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="all">Show All</option>
+              <option value="online">
+                {locale.myFiles.groups.members.status.online}
+              </option>
+              <option value="offline">
+                {locale.myFiles.groups.members.status.offline}
+              </option>
+            </select>
+            <svg
+              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+        {members.length > 0 && (
+          <div className="text-sm text-slate-600">
+            Showing {displayMembers.length} members
+          </div>
+        )}
+      </div>
 
       {/* Members List */}
       {members.length === 0 ? (
@@ -375,7 +458,7 @@ export default function MemberManagementPanel() {
             {locale.myFiles.groups.members.empty.hint}
           </p>
         </div>
-      ) : filteredMembers.length === 0 ? (
+      ) : displayMembers.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
           <p className="text-sm font-medium text-slate-700">
             No members found with the selected filter
@@ -407,7 +490,7 @@ export default function MemberManagementPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredMembers.map((member) => {
+              {displayMembers.map((member) => {
                 const isOnline = activeMembers.includes(member.id);
                 // Format date as M/D/YYYY
                 const formattedDate = new Date(
