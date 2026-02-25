@@ -103,8 +103,8 @@ export default function GroupsPageClient({
 
   if (isLoading) {
     return (
-      <div className="px-4 py-6 md:px-8 md:py-8">
-        <div className="flex items-center justify-center py-12 text-sm text-slate-500">
+      <div className="font-cairo min-h-full bg-[var(--groups-bg)] p-6 md:p-8">
+        <div className="flex items-center justify-center py-12 text-sm text-gray-500">
           {locale.myFiles.groups.loading}
         </div>
       </div>
@@ -113,8 +113,8 @@ export default function GroupsPageClient({
 
   if (error) {
     return (
-      <div className="px-4 py-6 md:px-8 md:py-8">
-        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="font-cairo min-h-full bg-[var(--groups-bg)] p-6 md:p-8">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       </div>
@@ -122,27 +122,27 @@ export default function GroupsPageClient({
   }
 
   return (
-    <div className="px-4 py-6 md:px-8 md:py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="font-cairo min-h-full bg-[var(--groups-bg)] p-6 md:p-8">
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-[1.75rem] font-bold text-gray-900">
             {locale.myFiles.groups.pageHeader.title}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-[0.95rem] text-gray-500">
             {locale.myFiles.groups.pageHeader.description}
           </p>
         </div>
         <button
           type="button"
           onClick={handleCreateAttachmentGroup}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-3 text-[0.95rem] font-semibold text-white transition hover:bg-blue-600"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           {locale.myFiles.groups.createButton}
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-[1600px] mx-auto">
         <AttachmentGroupsGrid
           attachmentGroups={attachmentGroups}
           onGroupDeleted={loadAttachmentGroups}

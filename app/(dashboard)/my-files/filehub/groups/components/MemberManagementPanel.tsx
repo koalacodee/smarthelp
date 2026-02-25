@@ -99,7 +99,7 @@ export default function MemberManagementPanel() {
       const response = await MemberManagementService.getAllMembersWithGroups({
         ...(params?.cursor && { cursor: params.cursor }),
         ...(params?.direction && { direction: params.direction }),
-        pageSize: 10,
+        pageSize: 20,
         ...(effectiveDeptId && {
           filterDepartmentId:
             effectiveDeptId === "__unassigned__"
@@ -330,18 +330,18 @@ export default function MemberManagementPanel() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-center py-12 text-sm text-slate-500">
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-center py-12 text-sm text-gray-500">
           {locale.myFiles.groups.members.loading}
         </div>
       </div>
     );
   }
 
-  // Filter icon component (funnel icon)
+  // Filter icon component (funnel icon) - inline SVG
   const FilterIcon = () => (
     <svg
-      className="w-4 h-4 text-slate-600"
+      className="h-4 w-4 text-gray-600"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -358,13 +358,13 @@ export default function MemberManagementPanel() {
 
   return (
     <>
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-bold text-gray-900">
           {locale.myFiles.groups.members.title}
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-gray-500">
           {locale.myFiles.groups.members.description}
         </p>
       </div>
@@ -373,7 +373,7 @@ export default function MemberManagementPanel() {
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <FilterIcon />
-          <span className="text-sm text-slate-700">
+          <span className="text-sm text-gray-500">
             {locale.myFiles.groups.members.filters?.departmentLabel ?? "Department"}:
           </span>
           <div className="relative inline-block">
@@ -384,7 +384,7 @@ export default function MemberManagementPanel() {
                 setFilterDepartmentId(newValue);
                 loadMembers({ filterDepartmentIdOverride: newValue });
               }}
-              className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="min-w-[140px] appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {departmentFilterOptions.map((opt) => (
                 <option key={opt.value || "__all__"} value={opt.value}>
@@ -393,7 +393,7 @@ export default function MemberManagementPanel() {
               ))}
             </select>
             <svg
-              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -408,14 +408,14 @@ export default function MemberManagementPanel() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-700">Status:</span>
+          <span className="text-sm text-gray-500">Status:</span>
           <div className="relative inline-block">
             <select
               value={statusFilter}
               onChange={(e) =>
                 setStatusFilter(e.target.value as StatusFilter)
               }
-              className="appearance-none rounded border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="min-w-[140px] appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="all">Show All</option>
               <option value="online">
@@ -426,7 +426,7 @@ export default function MemberManagementPanel() {
               </option>
             </select>
             <svg
-              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -441,7 +441,7 @@ export default function MemberManagementPanel() {
           </div>
         </div>
         {members.length > 0 && (
-          <div className="text-sm text-slate-600">
+          <div className="text-sm text-gray-600">
             Showing {displayMembers.length} members
           </div>
         )}
@@ -449,47 +449,47 @@ export default function MemberManagementPanel() {
 
       {/* Members List */}
       {members.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-          <UserPlus className="w-16 h-16 text-slate-300 mb-2" />
-          <p className="text-sm font-medium text-slate-700">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center">
+          <UserPlus className="mb-2 h-16 w-16 text-gray-300" />
+          <p className="text-sm font-medium text-gray-700">
             {locale.myFiles.groups.members.empty.title}
           </p>
-          <p className="text-xs text-slate-500 max-w-md">
+          <p className="max-w-md text-xs text-gray-500">
             {locale.myFiles.groups.members.empty.hint}
           </p>
         </div>
       ) : displayMembers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-          <p className="text-sm font-medium text-slate-700">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center">
+          <p className="text-sm font-medium text-gray-700">
             No members found with the selected filter
           </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full bg-white">
+          <table className="w-full border-collapse bg-white">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   NAME
                 </th>
-                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   STATUS
                 </th>
-                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   ATTACHMENT GROUP
                 </th>
-                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   {locale.myFiles.groups.members.departmentColumn}
                 </th>
-                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   CREATED
                 </th>
-                <th className="pb-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
                   ACTIONS
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {displayMembers.map((member) => {
                 const isOnline = activeMembers.includes(member.id);
                 // Format date as M/D/YYYY
@@ -501,62 +501,60 @@ export default function MemberManagementPanel() {
                   year: "numeric",
                 });
                 return (
-                  <tr key={member.id} className="hover:bg-slate-50/50">
-                    <td className="py-3 text-sm font-medium text-slate-900">
+                  <tr key={member.id} className="border-b border-gray-100 transition hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">
                       {member.name}
                     </td>
-                    <td className="py-3">
+                    <td className="px-4 py-3">
                       {isOnline ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-green-600"></span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-700" />
                           {locale.myFiles.groups.members.status.online}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-400 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-600">
+                          <span className="h-1.5 w-1.5 rounded-full bg-gray-600" />
                           {locale.myFiles.groups.members.status.offline}
                         </span>
                       )}
                     </td>
-                    <td className="py-3 flex items-center justify-center">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium bg-blue-50 border-blue-400 text-blue-600`}
-                      >
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-md bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
                         {member.attachmentGroup.name}
                       </span>
                     </td>
-                    <td className="py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       {member.department?.name ??
                         locale.myFiles.groups.members.unassigned}
                     </td>
-                    <td className="py-3 text-xs text-slate-500">
+                    <td className="px-4 py-3 text-sm text-gray-400">
                       {formattedDate}
                     </td>
-                    <td className="py-3 text-right">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => openReauthModal(member)}
-                          className="inline-flex items-center justify-center rounded-md bg-blue-50 p-1.5 text-blue-600 hover:bg-blue-100 transition"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-100 hover:text-gray-600"
                           aria-label="Re-auth member"
                         >
-                          <RefreshCw className="w-4 h-4" />
+                          <RefreshCw className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => openEditModal(member)}
-                          className="inline-flex items-center justify-center rounded-md bg-green-50 p-1.5 text-green-600 hover:bg-green-100 transition"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-600 transition hover:bg-green-100"
                           aria-label="Edit member"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteMember(member)}
-                          className="inline-flex items-center justify-center rounded-md bg-red-50 p-1.5 text-red-600 hover:bg-red-100 transition"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
                           aria-label="Delete member"
                         >
-                          <Trash className="w-4 h-4" />
+                          <Trash className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -571,7 +569,7 @@ export default function MemberManagementPanel() {
       {/* Pagination */}
       {paginationMeta &&
         (paginationMeta.hasNextPage || paginationMeta.hasPrevPage) && (
-          <div className="flex items-center justify-center gap-4 mt-6">
+          <div className="mt-6 flex items-center justify-center gap-2 border-t border-gray-200 pt-6">
             <button
               type="button"
               onClick={() =>
@@ -581,9 +579,9 @@ export default function MemberManagementPanel() {
                 })
               }
               disabled={!paginationMeta.hasPrevPage}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex min-h-9 min-w-9 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" />
               {locale.myFiles.groups.members.pagination?.previous ?? "Previous"}
             </button>
             <button
@@ -595,10 +593,10 @@ export default function MemberManagementPanel() {
                 })
               }
               disabled={!paginationMeta.hasNextPage}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex min-h-9 min-w-9 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {locale.myFiles.groups.members.pagination?.next ?? "Next"}
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -606,20 +604,23 @@ export default function MemberManagementPanel() {
       {/* Add Member Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
-              {locale.myFiles.groups.members.addModal.title}
-            </h3>
-            <form onSubmit={handleAddMember} className="space-y-4">
+          <div className="w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="border-b border-gray-200 p-5">
+              <h3 className="text-lg font-bold text-gray-900">
+                {locale.myFiles.groups.members.addModal.title}
+              </h3>
+            </div>
+            <form onSubmit={handleAddMember}>
+              <div className="space-y-4 p-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.members.addModal.otpLabel}
                 </label>
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   placeholder={
                     locale.myFiles.groups.members.addModal.otpPlaceholder
                   }
@@ -628,14 +629,14 @@ export default function MemberManagementPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.members.addModal.nameLabel}
                 </label>
                 <input
                   type="text"
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   placeholder={
                     locale.myFiles.groups.members.addModal.namePlaceholder
                   }
@@ -644,13 +645,13 @@ export default function MemberManagementPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.members.addModal.groupLabel}
                 </label>
                 <select
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   required
                 >
                   <option value="">
@@ -666,7 +667,7 @@ export default function MemberManagementPanel() {
 
               {availableDepartments && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-sm font-semibold text-gray-700">
                     {locale.myFiles.groups.members.addModal.departmentLabel}
                   </label>
                   {availableDepartments.role === "admin" ? (
@@ -675,7 +676,7 @@ export default function MemberManagementPanel() {
                       onChange={(e) =>
                         setSelectedDepartmentId(e.target.value)
                       }
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     >
                       <option value="">
                         {
@@ -710,7 +711,7 @@ export default function MemberManagementPanel() {
                       onChange={(e) =>
                         setSelectedDepartmentId(e.target.value)
                       }
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     >
                       <option value="">
                         {
@@ -728,17 +729,18 @@ export default function MemberManagementPanel() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-2">
+              </div>
+              <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-lg border border-gray-200 px-6 py-2 text-[0.95rem] font-semibold text-gray-500 transition hover:border-gray-300 hover:bg-gray-100"
                 >
                   {locale.myFiles.groups.members.addModal.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
+                  className="rounded-lg bg-blue-500 px-6 py-2 text-[0.95rem] font-semibold text-white transition hover:bg-blue-600"
                 >
                   {locale.myFiles.groups.members.addModal.add}
                 </button>
@@ -751,34 +753,37 @@ export default function MemberManagementPanel() {
       {/* Re-auth Member Modal */}
       {isReauthModalOpen && reauthMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              {locale.myFiles.groups.members.reauthModal.title}
-            </h3>
-            <p className="text-sm text-slate-600 mb-4">
-              {locale.myFiles.groups.members.reauthModal.description.replace(
-                "{name}",
-                reauthMember.name
-              )}
-            </p>
-            <form onSubmit={handleReauthMember} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  {locale.myFiles.groups.members.reauthModal.otpLabel}
-                </label>
-                <input
-                  type="text"
-                  value={reauthOtp}
-                  onChange={(e) => setReauthOtp(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder={
-                    locale.myFiles.groups.members.reauthModal.otpPlaceholder
-                  }
-                  required
-                />
+          <div className="w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="border-b border-gray-200 p-5">
+              <h3 className="text-lg font-bold text-gray-900">
+                {locale.myFiles.groups.members.reauthModal.title}
+              </h3>
+              <p className="mt-1 text-sm text-gray-600">
+                {locale.myFiles.groups.members.reauthModal.description.replace(
+                  "{name}",
+                  reauthMember.name
+                )}
+              </p>
+            </div>
+            <form onSubmit={handleReauthMember}>
+              <div className="space-y-4 p-6">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-gray-700">
+                    {locale.myFiles.groups.members.reauthModal.otpLabel}
+                  </label>
+                  <input
+                    type="text"
+                    value={reauthOtp}
+                    onChange={(e) => setReauthOtp(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                    placeholder={
+                      locale.myFiles.groups.members.reauthModal.otpPlaceholder
+                    }
+                    required
+                  />
+                </div>
               </div>
-
-              <div className="flex gap-3 pt-2">
+              <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
                 <button
                   type="button"
                   onClick={() => {
@@ -786,13 +791,13 @@ export default function MemberManagementPanel() {
                     setReauthMember(null);
                     setReauthOtp("");
                   }}
-                  className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-lg border border-gray-200 px-6 py-2 text-[0.95rem] font-semibold text-gray-500 transition hover:border-gray-300 hover:bg-gray-100"
                 >
                   {locale.myFiles.groups.members.reauthModal.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
+                  className="rounded-lg bg-blue-500 px-6 py-2 text-[0.95rem] font-semibold text-white transition hover:bg-blue-600"
                 >
                   {locale.myFiles.groups.members.reauthModal.submit}
                 </button>
@@ -805,20 +810,23 @@ export default function MemberManagementPanel() {
       {/* Edit Member Modal */}
       {isEditModalOpen && selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
-              {locale.myFiles.groups.members.editModal.title}
-            </h3>
-            <form onSubmit={handleUpdateMember} className="space-y-4">
+          <div className="w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="border-b border-gray-200 p-5">
+              <h3 className="text-lg font-bold text-gray-900">
+                {locale.myFiles.groups.members.editModal.title}
+              </h3>
+            </div>
+            <form onSubmit={handleUpdateMember}>
+              <div className="space-y-4 p-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.members.editModal.nameLabel}
                 </label>
                 <input
                   type="text"
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   placeholder={
                     locale.myFiles.groups.members.editModal.namePlaceholder
                   }
@@ -826,13 +834,13 @@ export default function MemberManagementPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.members.editModal.groupLabel}
                 </label>
                 <select
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                 >
                   <option value="">
                     {locale.myFiles.groups.members.editModal.groupPlaceholder}
@@ -847,7 +855,7 @@ export default function MemberManagementPanel() {
 
               {availableDepartments && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-sm font-semibold text-gray-700">
                     {locale.myFiles.groups.members.editModal.departmentLabel}
                   </label>
                   {availableDepartments.role === "admin" ? (
@@ -856,7 +864,7 @@ export default function MemberManagementPanel() {
                       onChange={(e) =>
                         setSelectedDepartmentId(e.target.value)
                       }
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     >
                       <option value="">
                         {
@@ -878,7 +886,7 @@ export default function MemberManagementPanel() {
                       ))}
                     </select>
                   ) : availableDepartments.departments.length === 1 ? (
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
                       {
                         locale.myFiles.groups.members.editModal
                           .departmentStatic
@@ -891,7 +899,7 @@ export default function MemberManagementPanel() {
                       onChange={(e) =>
                         setSelectedDepartmentId(e.target.value)
                       }
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     >
                       <option value="">
                         {
@@ -909,17 +917,18 @@ export default function MemberManagementPanel() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-2">
+              </div>
+              <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-lg border border-gray-200 px-6 py-2 text-[0.95rem] font-semibold text-gray-500 transition hover:border-gray-300 hover:bg-gray-100"
                 >
                   {locale.myFiles.groups.members.editModal.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
+                  className="rounded-lg bg-blue-500 px-6 py-2 text-[0.95rem] font-semibold text-white transition hover:bg-blue-600"
                 >
                   {locale.myFiles.groups.members.editModal.update}
                 </button>
@@ -934,7 +943,7 @@ export default function MemberManagementPanel() {
     <button
       type="button"
       onClick={openAddModal}
-      className="fixed bottom-6 right-6 z-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 transition"
+      className="fixed bottom-6 right-6 z-10 inline-flex items-center gap-2 rounded-full bg-blue-500 px-6 py-3 text-[0.95rem] font-semibold text-white shadow-[0_4px_20px_rgba(59,130,246,0.4)] transition hover:-translate-y-0.5 hover:bg-blue-600"
     >
       <UserPlus className="w-4 h-4" />
       {locale.myFiles.groups.members.addButton}

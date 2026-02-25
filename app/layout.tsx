@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import ToastContainer from "@/components/Toasts/ToastContainer";
 import ProgressBar from "@/components/ProgressBar";
@@ -12,6 +13,12 @@ const roboto = localFont({
   src: "../public/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf",
   variable: "--font-roboto",
   style: "normal",
+  display: "swap",
+});
+
+const cairo = Cairo({
+  subsets: ["latin", "arabic"],
+  variable: "--font-cairo",
   display: "swap",
 });
 
@@ -37,7 +44,7 @@ export default async function RootLayout({
       <head>
         <PublicEnvScript />
       </head>
-      <body className={`${roboto.variable} antialiased`}>
+      <body className={`${roboto.variable} ${cairo.variable} antialiased`}>
         <ProgressBar />
         <ToastContainer />
         {children}

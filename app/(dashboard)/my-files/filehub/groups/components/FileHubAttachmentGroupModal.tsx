@@ -7,6 +7,7 @@ import X from "@/icons/X";
 import DocumentDuplicate from "@/icons/DocumentDuplicate";
 import Plus from "@/icons/Plus";
 import Trash from "@/icons/Trash";
+import AttachmentClip from "@/icons/AttachmentClip";
 import { useToastStore } from "@/app/(dashboard)/store/useToastStore";
 import type {
   AttachmentGroupSummary,
@@ -157,11 +158,11 @@ export default function FileHubAttachmentGroupModal({
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-[0_25px_50px_rgba(0,0,0,0.25)] max-h-[90vh]"
           >
-            <div className="flex items-center justify-between p-6 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                <DocumentDuplicate className="w-6 h-6 text-blue-500" />
+            <div className="flex items-center justify-between border-b border-gray-200 p-5">
+              <h2 className="flex items-center gap-3 text-xl font-bold text-gray-900">
+                <DocumentDuplicate className="h-6 w-6 text-blue-500" />
                 {mode === "create"
                   ? locale.myFiles.groups.modal.createTitle
                   : mode === "edit"
@@ -170,17 +171,17 @@ export default function FileHubAttachmentGroupModal({
               </h2>
               <button
                 onClick={onClose}
-                className="text-slate-500 hover:text-slate-700 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition hover:bg-gray-200"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-130px)]">
+            <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
               {mode === "create" ? (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-blue-700">
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-sm text-gray-700">
                       {locale.myFiles.groups.modal.createHint}
                     </p>
                   </div>
@@ -188,7 +189,7 @@ export default function FileHubAttachmentGroupModal({
                   <div className="space-y-2">
                     <label
                       htmlFor="attachment-group-name"
-                      className="text-sm font-medium text-slate-700"
+                      className="mb-1 block text-sm font-semibold text-gray-700"
                     >
                       {locale?.myFiles?.groups?.modal?.nameLabel || "Name"} *
                     </label>
@@ -199,14 +200,14 @@ export default function FileHubAttachmentGroupModal({
                       onChange={(event) => setNameInput(event.target.value)}
                       placeholder={locale?.myFiles?.groups?.modal?.namePlaceholder || "Enter group name"}
                       required
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label
                       htmlFor="attachment-group-expiration"
-                      className="text-sm font-medium text-slate-700"
+                      className="mb-1 block text-sm font-semibold text-gray-700"
                     >
                       {locale.myFiles.groups.modal.expirationLabel}
                     </label>
@@ -217,16 +218,16 @@ export default function FileHubAttachmentGroupModal({
                       onChange={(event) =>
                         setExpiresAtInput(event.target.value)
                       }
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     />
-                    <p className="text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-gray-500">
                       {locale.myFiles.groups.modal.expirationHint}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-slate-800">
+                      <h3 className="text-lg font-medium text-gray-900">
                         {locale.myFiles.groups.modal.selectedAttachments.replace(
                           "{count}",
                           selectedAttachmentIds.length.toString()
@@ -242,15 +243,17 @@ export default function FileHubAttachmentGroupModal({
                         .map((attachment) => (
                           <div
                             key={attachment.id}
-                            className="border border-blue-400 bg-blue-50 rounded-lg p-3 flex items-center justify-between"
+                            className="flex items-center justify-between rounded-lg border border-blue-400 bg-blue-50 p-3"
                           >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="text-2xl">📄</div>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-200 to-red-300 text-red-600">
+                                <AttachmentClip className="h-5 w-5" />
+                              </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-slate-800 truncate">
+                                <p className="truncate text-sm font-medium text-gray-900">
                                   {attachment.originalName}
                                 </p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-gray-500">
                                   {formatFileSize(attachment.size)}
                                 </p>
                               </div>
@@ -267,7 +270,7 @@ export default function FileHubAttachmentGroupModal({
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-slate-800">
+                    <h3 className="text-lg font-medium text-gray-900">
                       {locale.myFiles.groups.modal.availableAttachments}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -279,22 +282,24 @@ export default function FileHubAttachmentGroupModal({
                         .map((attachment) => (
                           <div
                             key={attachment.id}
-                            className="border border-slate-200 rounded-lg p-3 flex items-center justify-between"
+                            className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
                           >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="text-2xl">📄</div>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-200 to-red-300 text-red-600">
+                                <AttachmentClip className="h-5 w-5" />
+                              </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-slate-800 truncate">
+                                <p className="truncate text-sm font-medium text-gray-900">
                                   {attachment.originalName}
                                 </p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-gray-500">
                                   {formatFileSize(attachment.size)}
                                 </p>
                               </div>
                             </div>
                             <button
                               onClick={() => toggleAttachment(attachment.id)}
-                              className="p-2 rounded-md bg-blue-100 text-blue-600 hover:bg-blue-200"
+                              className="rounded-md bg-blue-100 p-2 text-blue-600 hover:bg-blue-200"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -306,36 +311,36 @@ export default function FileHubAttachmentGroupModal({
               ) : (
                 attachmentGroup && (
                   <div className="space-y-6">
-                    <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                    <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-gray-600">
                           {locale?.myFiles?.groups?.modal?.nameLabel || "Name"}
                         </p>
-                        <p className="text-sm font-bold text-slate-800">
+                        <p className="text-sm font-semibold text-gray-900">
                           {attachmentGroup.name}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-gray-600">
                           {locale.myFiles.groups.modal.groupKey}
                         </p>
-                        <p className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md">
+                        <p className="rounded-md bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-600">
                           {attachmentGroup.key}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-gray-600">
                           {locale.myFiles.groups.modal.createdAt}
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-gray-700">
                           {new Date(attachmentGroup.createdAt).toLocaleString()}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-gray-600">
                           {locale.myFiles.groups.modal.watchers}
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-gray-700">
                           {locale.myFiles.groups.modal.clients.replace(
                             "{count}",
                             attachmentGroup.clientIds.length.toString()
@@ -343,15 +348,15 @@ export default function FileHubAttachmentGroupModal({
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-gray-600">
                           {locale.myFiles.groups.modal.expiresAt}
                         </p>
                         <p
                           className={`text-sm ${
                             attachmentGroup.expiresAt &&
                             new Date(attachmentGroup.expiresAt) < new Date()
-                              ? "text-red-600 font-semibold"
-                              : "text-slate-600"
+                              ? "font-semibold text-red-600"
+                              : "text-gray-700"
                           }`}
                         >
                           {attachmentGroup.expiresAt
@@ -366,9 +371,9 @@ export default function FileHubAttachmentGroupModal({
                     {mode === "edit" && (
                       <>
                         <div className="space-y-2">
-                          <label
+                          <                          label
                             htmlFor="attachment-group-name-edit"
-                            className="text-sm font-medium text-slate-700"
+                            className="mb-1 block text-sm font-semibold text-gray-700"
                           >
                             {locale?.myFiles?.groups?.modal?.nameLabel || "Name"}
                           </label>
@@ -378,16 +383,16 @@ export default function FileHubAttachmentGroupModal({
                             value={nameInput}
                             onChange={(event) => setNameInput(event.target.value)}
                             placeholder={locale?.myFiles?.groups?.modal?.namePlaceholder || "Enter group name"}
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                           />
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-gray-500">
                             {locale?.myFiles?.groups?.modal?.nameHint || "Leave empty to keep current name."}
                           </p>
                         </div>
                         <div className="space-y-2">
                           <label
                             htmlFor="attachment-group-expiration-edit"
-                            className="text-sm font-medium text-slate-700"
+                            className="mb-1 block text-sm font-semibold text-gray-700"
                           >
                             Update Expiration Date
                           </label>
@@ -398,7 +403,7 @@ export default function FileHubAttachmentGroupModal({
                           onChange={(event) =>
                             setExpiresAtInput(event.target.value)
                           }
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                         />
                         <p className="text-xs text-slate-500">
                           Leave empty to remove the expiration date.
@@ -409,7 +414,7 @@ export default function FileHubAttachmentGroupModal({
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-slate-800">
+                        <h3 className="text-lg font-medium text-gray-900">
                           Current Attachments ({selectedAttachmentIds.length})
                         </h3>
                       </div>
@@ -425,9 +430,11 @@ export default function FileHubAttachmentGroupModal({
                             }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className="text-2xl">📄</div>
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-200 to-red-300 text-red-600">
+                                <AttachmentClip className="h-5 w-5" />
+                              </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-slate-800 truncate">
+                                <p className="truncate text-sm font-medium text-gray-900">
                                   {attachment.originalName}
                                 </p>
                                 <p className="text-xs text-slate-500">
@@ -460,7 +467,7 @@ export default function FileHubAttachmentGroupModal({
 
                     {mode === "edit" && availableAttachments.length > 0 && (
                       <div className="space-y-3">
-                        <h3 className="text-lg font-medium text-slate-800">
+                        <h3 className="text-lg font-medium text-gray-900">
                           {locale.myFiles.groups.modal.availableAttachments}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -481,9 +488,11 @@ export default function FileHubAttachmentGroupModal({
                                 }`}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
-                                  <div className="text-2xl">📄</div>
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-200 to-red-300 text-red-600">
+                                    <AttachmentClip className="h-5 w-5" />
+                                  </div>
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-slate-800 truncate">
+                                    <p className="truncate text-sm font-medium text-gray-900">
                                       {attachment.originalName}
                                     </p>
                                     <p className="text-xs text-slate-500">
@@ -521,10 +530,10 @@ export default function FileHubAttachmentGroupModal({
               )}
             </div>
 
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
+            <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                className="rounded-lg border border-gray-200 px-6 py-2 text-[0.95rem] font-semibold text-gray-500 transition hover:border-gray-300 hover:bg-gray-100"
               >
                 {mode === "view"
                   ? locale.myFiles.groups.modal.close
@@ -537,12 +546,12 @@ export default function FileHubAttachmentGroupModal({
                     isLoading ||
                     (mode === "create" && (selectedAttachmentIds.length === 0 || !nameInput.trim()))
                   }
-                  className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
+                  className={`rounded-lg px-6 py-2 text-[0.95rem] font-semibold text-white transition ${
                     isLoading ||
                     (mode === "create" && selectedAttachmentIds.length === 0)
-                      ? "bg-blue-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  } transition-colors`}
+                      ? "cursor-not-allowed bg-blue-400"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  }`}
                 >
                   {isLoading
                     ? locale.myFiles.groups.modal.saving

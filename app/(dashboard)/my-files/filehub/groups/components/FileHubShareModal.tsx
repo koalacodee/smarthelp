@@ -84,23 +84,24 @@ export default function FileHubShareModal({
   if (!isOpen || !groupId) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
+        <div className="flex items-center justify-between border-b border-gray-200 p-5">
+          <h3 className="text-lg font-bold text-gray-900">
             {locale.myFiles.groups.shareModal.title}
           </h3>
           <button
             type="button"
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition hover:bg-gray-200"
           >
-            <XCircle className="w-5 h-5" />
+            <XCircle className="h-5 w-5" />
           </button>
         </div>
 
+        <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
@@ -114,7 +115,7 @@ export default function FileHubShareModal({
             {/* Share Link Display */}
             {shareLink && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
                   {locale.myFiles.groups.shareModal.shareLink}
                 </label>
                 <div className="flex gap-2">
@@ -122,37 +123,38 @@ export default function FileHubShareModal({
                     type="text"
                     value={shareLink}
                     readOnly
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm bg-slate-50 text-slate-700"
+                    className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900"
                   />
                   <button
                     type="button"
                     onClick={handleCopyToClipboard}
-                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                       copied
                         ? "bg-green-600 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    <DocumentDuplicate className="w-4 h-4" />
+                    <DocumentDuplicate className="h-4 w-4" />
                     {copied
                       ? locale.myFiles.groups.shareModal.copied
                       : locale.myFiles.groups.shareModal.copy}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   {locale.myFiles.groups.shareModal.linkHint}
                 </p>
               </div>
             )}
           </>
         )}
+        </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+        <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+            className="rounded-lg border border-gray-200 px-6 py-2 text-[0.95rem] font-semibold text-gray-500 transition hover:border-gray-300 hover:bg-gray-100"
           >
             {locale.myFiles.groups.shareModal.close}
           </button>
@@ -162,7 +164,7 @@ export default function FileHubShareModal({
               onClick={() => {
                 window.open(shareLink, "_blank");
               }}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+              className="rounded-lg bg-blue-500 px-6 py-2 text-[0.95rem] font-semibold text-white transition hover:bg-blue-600"
             >
               {locale.myFiles.groups.shareModal.openLink}
             </button>
