@@ -111,6 +111,10 @@ export default function EditTaskModal() {
     if (!task) return;
     setError("");
     try {
+      const deletedIds = (task.reminders ?? [])
+        .filter((er) => !reminders.some((r) => r.id === er.id))
+        .map((er) => er.id);
+
       const req: UpdateTaskRequest = {
         title: data.title,
         description: data.description,
@@ -122,6 +126,7 @@ export default function EditTaskModal() {
         assigneeId:
           role === "supervisor" && assigneeId ? assigneeId : undefined,
         attach: attachmentsToUpload.length > 0,
+        ...(deletedIds.length > 0 && { deleteReminders: deletedIds }),
         addReminders: buildReminders(
           reminders.filter(
             (r) => !task.reminders?.some((er) => er.id === r.id),
