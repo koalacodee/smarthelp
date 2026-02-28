@@ -11,6 +11,7 @@ import { useAttachments } from "@/hooks/useAttachments";
 import ModalShell from "./ModalShell";
 import TaskFormFields from "../task-form/TaskFormFields";
 import TaskAssignmentFields from "../task-form/TaskAssignmentFields";
+import DaysBeforeDeadlineInput from "../task-form/DaysBeforeDeadlineInput";
 import TaskRemindersInput, {
   type SpecificReminderEntry,
 } from "../task-form/TaskRemindersInput";
@@ -41,6 +42,7 @@ export default function AddTaskModal() {
   const [departmentId, setDepartmentId] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [reminders, setReminders] = useState<SpecificReminderEntry[]>([]);
+  const [daysBeforeDeadlineReminder, setDaysBeforeDeadlineReminder] = useState(0);
   const [saveAsPreset, setSaveAsPreset] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,6 +67,7 @@ export default function AddTaskModal() {
     setDepartmentId("");
     setAssigneeId("");
     setReminders([]);
+    setDaysBeforeDeadlineReminder(0);
     setSaveAsPreset(false);
     setError("");
     closeModal();
@@ -86,6 +89,8 @@ export default function AddTaskModal() {
         attach: attachmentsToUpload.length > 0,
         reminders: buildReminders(reminders),
         savePreset: saveAsPreset,
+        daysBeforeDeadlineReminder:
+          daysBeforeDeadlineReminder > 0 ? daysBeforeDeadlineReminder : undefined,
         chooseAttachments:
           selectedFormMyAttachments.length > 0
             ? selectedFormMyAttachments.map((a) => a.id)
@@ -124,6 +129,10 @@ export default function AddTaskModal() {
           onDepartmentChange={setDepartmentId}
           assigneeId={assigneeId}
           onAssigneeChange={setAssigneeId}
+        />
+        <DaysBeforeDeadlineInput
+          value={daysBeforeDeadlineReminder}
+          onChange={setDaysBeforeDeadlineReminder}
         />
         <TaskRemindersInput
           specificReminders={reminders}

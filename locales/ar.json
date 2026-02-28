@@ -1331,7 +1331,7 @@
           "scheduledReminders": "التذكيرات المجدولة",
           "noAutomaticReminder": "لا يوجد تذكير تلقائي",
           "automaticReminderRule": "قاعدة التذكير التلقائي",
-          "automaticReminderRuleDescription": "بدء إرسال تنبيهات تلقائية قبل انتهاء المهمة:",
+          "automaticReminderRuleDescription": "إرسال كل تذكير X أيام قبل تاريخه المجدول:",
           "daysBeforeDeadline": "أيام قبل الموعد النهائي",
           "additionalSpecificReminders": "تذكيرات محددة إضافية",
           "additionalSpecificRemindersHint": "أضف تسميات وأوقات محددة للتنبيهات لمرة واحدة.",

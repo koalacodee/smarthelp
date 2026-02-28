@@ -67,6 +67,7 @@ export interface TaskResponse {
   completedAt?: Date;
   reminders?: TaskReminderResponse[];
   assigneeName?: string;
+  daysBeforeDeadlineReminder?: number;
 }
 
 export interface AttachmentResponse {
@@ -188,6 +189,7 @@ export interface CreateTaskRequest {
   reminders?: CreateTaskReminderRequest[];
   savePreset?: boolean;
   chooseAttachments?: string[];
+  daysBeforeDeadlineReminder?: number;
 }
 
 export interface CreateTaskResponse {
@@ -220,6 +222,7 @@ export interface UpdateTaskRequest {
   chooseAttachments?: string[];
   deleteReminders?: string[];
   addReminders?: UpdateTaskReminderRequest[];
+  daysBeforeDeadlineReminder?: number;
 }
 
 export interface UpdateTaskResponse {

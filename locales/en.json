@@ -1331,7 +1331,7 @@
           "scheduledReminders": "Scheduled Reminders",
           "noAutomaticReminder": "No automatic reminder",
           "automaticReminderRule": "Automatic Reminder Rule",
-          "automaticReminderRuleDescription": "Start sending automatic alerts before the task expires:",
+          "automaticReminderRuleDescription": "Send each reminder X days earlier than its scheduled date:",
           "daysBeforeDeadline": "Days before deadline",
           "additionalSpecificReminders": "Additional Specific Reminders",
           "additionalSpecificRemindersHint": "Add custom labels and specific times for one-off alerts.",

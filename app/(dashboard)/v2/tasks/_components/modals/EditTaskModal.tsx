@@ -12,6 +12,7 @@ import { useTaskStore } from "@/services/tasks/store";
 import ModalShell from "./ModalShell";
 import TaskFormFields from "../task-form/TaskFormFields";
 import TaskAssignmentFields from "../task-form/TaskAssignmentFields";
+import DaysBeforeDeadlineInput from "../task-form/DaysBeforeDeadlineInput";
 import TaskRemindersInput, {
   type SpecificReminderEntry,
 } from "../task-form/TaskRemindersInput";
@@ -43,6 +44,7 @@ export default function EditTaskModal() {
   const [departmentId, setDepartmentId] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [reminders, setReminders] = useState<SpecificReminderEntry[]>([]);
+  const [daysBeforeDeadlineReminder, setDaysBeforeDeadlineReminder] = useState(0);
   const [error, setError] = useState("");
 
   const task = modalPayload as TaskResponse | null;
@@ -86,6 +88,7 @@ export default function EditTaskModal() {
           intervalMinutes: Math.floor((r.reminderInterval % 3600000) / 60000),
         })),
       );
+      setDaysBeforeDeadlineReminder(task.daysBeforeDeadlineReminder ?? 0);
       if (
         role === "supervisor" &&
         task.assigneeId &&
@@ -103,6 +106,7 @@ export default function EditTaskModal() {
   const handleClose = () => {
     reset();
     setAssigneeId("");
+    setDaysBeforeDeadlineReminder(0);
     setError("");
     closeModal();
   };
@@ -132,6 +136,7 @@ export default function EditTaskModal() {
             (r) => !task.reminders?.some((er) => er.id === r.id),
           ),
         ),
+        daysBeforeDeadlineReminder,
         chooseAttachments:
           selectedFormMyAttachments.length > 0
             ? selectedFormMyAttachments.map((a) => a.id)
@@ -170,6 +175,10 @@ export default function EditTaskModal() {
           onDepartmentChange={setDepartmentId}
           assigneeId={assigneeId}
           onAssigneeChange={setAssigneeId}
+        />
+        <DaysBeforeDeadlineInput
+          value={daysBeforeDeadlineReminder}
+          onChange={setDaysBeforeDeadlineReminder}
         />
         <TaskRemindersInput
           specificReminders={reminders}
